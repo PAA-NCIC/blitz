@@ -1,0 +1,93 @@
+data_path: data/DIDI
+data_type: float
+backend_type: CPU
+# train or inference
+model_type: train 
+inference: true
+eval: true
+eval_type: regress
+epoches: 20
+#for image is channel, width, height per image
+data_shape: [1, 1, 448]
+label_size: 1
+pool_size: 60000
+batch_size: 16
+
+fillers:
+-
+    type: Gaussian
+    name: f0
+    loc: 0.0
+    scale: 0.01
+-
+    type: Constant
+    name: b0
+    val: 0.5
+-
+    type: Uniform
+    name: f1
+    high: 0.1
+    low: -0.1
+
+scheduler:
+-
+    type: GradientDescent
+    name: op0
+    learning_rate: 0.01
+    step: 10
+    change: 0.1
+    momentum_coef: 0.9
+    decay: 0.0
+
+layers:
+-
+    type: Affine
+    name: Affine1
+    nout: 240
+    filler: f1
+    activation: 
+        type: Rectlin
+    bias:
+        name: Bias1
+        filler: b0
+        optimizer: op0
+    optimizer: op0
+-
+    type: Dropout
+    name: Dropout1
+    keep: 0.5
+-
+    type: Affine
+    name: Affine2
+    nout: 80
+    filler: f1
+    activation: 
+        type: Rectlin
+    bias:
+        name: Bias2
+        filler: b0
+        optimizer: op0
+    optimizer: op0
+-
+    type: Dropout
+    name: Dropout1
+    keep: 0.5
+-
+    type: Affine
+    name: Affine3
+    nout: 1
+    filler: f1
+    bias:
+        name: Bias3
+        filler: b0
+        optimizer: op0
+    optimizer: op0
+-
+    cost: 
+        type: AbsMean
+
+callbacks:
+-
+    type: Progressbar
+    step: 1000
+

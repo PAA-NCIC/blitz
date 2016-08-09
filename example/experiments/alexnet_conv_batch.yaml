@@ -1,0 +1,198 @@
+# backend: gpu
+data_path: data/IMAGENET12
+data_type: float
+backend_type: CPU
+# train or inference
+model_type: train 
+eval: false
+epoches: 1
+# for image is channel, width, height per image
+data_shape: [3, 224, 224]
+label_size: 1000
+batch_size: 128
+pool_size: 60
+
+fillers:
+-
+    type: Gaussian
+    name: f1
+    loc: 0.0
+    scale: 0.01
+-
+    type: Gaussian
+    name: f2
+    loc: 0.0
+    scale: 0.03
+-
+    type: Constant
+    name: b0
+    val: 0
+-
+    type: Constant
+    name: b1
+    val: 1
+-
+    type: Constant
+    name: b7
+    val: -7
+
+layers:
+-
+    type: ConvBatch
+    name: Conv1
+    fshape: [64, 3, 11, 11]
+    filler: f1
+    stride: 4
+    padding: 3
+    bias:
+        name: Bias1
+        filler: b0
+        optimizer: op2
+    activation: 
+        type: Rectlin
+    optimizer: op1
+-
+    type: Pooling
+    name: Pooling1
+    fshape: 3
+    stride: 2
+    op: max
+-
+    type: ConvBatch
+    name: Conv2
+    fshape: [192, 64, 5, 5]
+    filler: f1
+    stride: 1
+    padding: 2
+    bias:
+        name: Bias2
+        filler: b1
+        optimizer: op2
+    activation: 
+        type: Rectlin
+    optimizer: op1
+-
+    type: Pooling
+    name: Pooling2
+    fshape: 3
+    stride: 2
+    op: max
+-
+    type: ConvBatch
+    name: Conv3
+    fshape: [384, 192, 3, 3]
+    filler: f2
+    stride: 1
+    padding: 1
+    bias:
+        name: Bias3
+        filler: b0
+        optimizer: op2
+    activation: 
+        type: Rectlin
+    optimizer: op1
+-
+    type: ConvBatch
+    name: Conv4
+    fshape: [256, 384, 3, 3]
+    filler: f2
+    stride: 1
+    padding: 1
+    bias:
+        name: Bias4
+        filler: b1
+        optimizer: op2
+    activation: 
+        type: Rectlin
+    optimizer: op1
+-
+    type: ConvBatch
+    name: Conv5
+    fshape: [256, 256, 3, 3]
+    filler: f2
+    stride: 1
+    padding: 1
+    bias:
+        name: Bias5
+        filler: b1
+        optimizer: op2
+    activation: 
+        type: Rectlin
+    optimizer: op1
+-
+    type: Pooling
+    name: Pooling3
+    fshape: 3
+    stride: 2
+    op: max
+-
+    type: Affine
+    name: Affine1
+    nout: 4096
+    filler: f1
+    bias:
+        name: Bias6
+        filler: b1
+        optimizer: op2
+    activation:
+        type: Rectlin
+    optimizer: op1
+-
+    type: Dropout
+    name: Dropout1
+    keep: 0.5
+-
+    type: Affine
+    name: Affine2
+    nout: 4096
+    filler: f1
+    bias:
+        name: Bias7
+        filler: b1
+        optimizer: op2
+    activation:
+        type: Rectlin
+    optimizer: op1
+-
+    type: Dropout
+    name: Dropout2
+    keep: 0.5
+-
+    type: Affine
+    name: Affine3
+    nout: 1000
+    filler: f1
+    bias:
+        name: Bias8
+        filler: b7
+        optimizer: op2
+    activation: 
+        type: Softmax
+        short_cut: true
+    optimizer: op1
+-
+    cost: 
+        type: CrossEntropyMulti
+
+scheduler:
+-
+    type: GradientDescent
+    name: op1
+    learning_rate: 0.01
+    step: 10
+    change: 0.1
+    momentum_coef: 0.9
+    decay: 0.0005
+-
+    type: GradientDescent
+    name: op2
+    learning_rate: 0.02
+    step: 10
+    change: 0.1
+    momentum_coef: 0.9
+    decay: 0.0
+
+callbacks:
+-
+    type: Progressbar
+    step: 100

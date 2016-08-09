@@ -1,0 +1,57 @@
+# backend: gpu
+data_path: data/MNIST
+data_type: float
+backend_type: CPU
+# train or inference
+model_type: train 
+eval: true
+epoches: 1
+#for image is channel, width, height per image
+data_shape: [1, 28, 28]
+label_size: 10
+batch_size: 128
+
+fillers:
+-
+    type: Gaussian
+    name: f1
+    loc: 0.0
+    scale: 0.01
+
+scheduler:
+-
+    type: GradientDescent
+    name: op1
+    learning_rate: 0.1
+    step: 10
+    change: 0.1
+    momentum_coef: 0.9
+    decay: 0.0
+
+layers:
+-
+    type: Affine
+    name: Affine1
+    nout: 100
+    filler: f1
+    activation: 
+        type: Rectlin
+    optimizer: op1
+-
+    type: Affine
+    name: Affine2
+    nout: 10
+    filler: f1
+    activation: 
+        type: Logistic
+        short_cut: true
+    optimizer: op1
+-
+    cost: 
+        type: CrossEntropyBinary
+
+callbacks:
+-
+    type: Progressbar
+    step: 300
+
