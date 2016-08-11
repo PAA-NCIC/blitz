@@ -1,3 +1,3 @@
 # blitz
 
-Be a Light and Efficient System
+Be a Light and Efficient Deep Learning System
