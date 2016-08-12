@@ -13,10 +13,10 @@ batch_size: 128
 
 fillers:
 -
-    type: Uniform
+    type: Gaussian
     name: f1
-    low: -0.2
-    high: 0.2
+    loc: 0.0
+    scale: 0.1
 
 layers:
 -

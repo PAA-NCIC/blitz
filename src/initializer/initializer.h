@@ -69,48 +69,48 @@ class InitializerRegister {
   }
 };
 
-#ifdef CPU_ONLY
-#define INSTANTIATE_INITIALIZE \
-    char BlitzInstantiatiionInitializerGuard; \
-  template void Initializer::Initialize<CPUTensor, float>(const Parser& parser); \
-  template void Initializer::Initialize<CPUTensor, double>(const Parser& parser)
-
-#define INSTANTIATE_ADD \
-    char BlitzInstantiatiionAddGuard; \
-  template void Initializer::Add<CPUTensor, float>(const string& data_type, \
-      const string& backend); \
-  template void Initializer::Add<CPUTensor, double>(const string& data_type, \
-      const string& backend)
-
-#define REGISTER_INITIALIZER \
-  INSTANTIATE_INITIALIZE; \
-  INSTANTIATE_ADD; \
-  static InitializerRegister<CPUTensor, float> initializer_float_CPU("float", "CPU"); \
-  static InitializerRegister<CPUTensor, double> initializer_double_CPU("double", "CPU")
+#ifdef BLITZ_CPU_ONLY
+  #define INSTANTIATE_INITIALIZE \
+      char BlitzInstantiatiionInitializerGuard; \
+    template void Initializer::Initialize<CPUTensor, float>(const Parser& parser); \
+    template void Initializer::Initialize<CPUTensor, double>(const Parser& parser)
+  
+  #define INSTANTIATE_ADD \
+      char BlitzInstantiatiionAddGuard; \
+    template void Initializer::Add<CPUTensor, float>(const string& data_type, \
+        const string& backend); \
+    template void Initializer::Add<CPUTensor, double>(const string& data_type, \
+        const string& backend)
+  
+  #define REGISTER_INITIALIZER \
+    INSTANTIATE_INITIALIZE; \
+    INSTANTIATE_ADD; \
+    static InitializerRegister<CPUTensor, float> initializer_float_CPU("float", "CPU"); \
+    static InitializerRegister<CPUTensor, double> initializer_double_CPU("double", "CPU")
 #else
-#define INSTANTIATE_INITIALIZE \
-    char BlitzInstantiatiionInitializerGuard; \
-  template void Initializer::Initialize<CPUTensor, float>(const Parser& parser); \
-  template void Initializer::Initialize<CPUTensor, double>(const Parser& parser)
-
-#define INSTANTIATE_ADD \
-    char BlitzInstantiatiionAddGuard; \
-  template void Initializer::Add<CPUTensor, float>(const string& data_type, \
-      const string& backend); \
-  template void Initializer::Add<CPUTensor, double>(const string& data_type, \
-      const string& backend); \
-  template void Initializer::Add<GPUTensor, float>(const string& data_type, \
-      const string& backend); \
-  template void Initializer::Add<GPUTensor, double>(const string& data_type, \
-      const string& backend)
-
-#define REGISTER_INITIALIZER \
-  INSTANTIATE_INITIALIZE; \
-  INSTANTIATE_ADD; \
-  static InitializerRegister<CPUTensor, float> initializer_float_CPU("float", "CPU"); \
-  static InitializerRegister<CPUTensor, double> initializer_double_CPU("double", "CPU"); \
-  static InitializerRegister<GPUTensor, float> initializer_float_GPU("float", "GPU"); \
-  static InitializerRegister<GPUTensor, double> initializer_double_GPU("double", "GPU")
+  #define INSTANTIATE_INITIALIZE \
+      char BlitzInstantiatiionInitializerGuard; \
+    template void Initializer::Initialize<CPUTensor, float>(const Parser& parser); \
+    template void Initializer::Initialize<CPUTensor, double>(const Parser& parser)
+  
+  #define INSTANTIATE_ADD \
+      char BlitzInstantiatiionAddGuard; \
+    template void Initializer::Add<CPUTensor, float>(const string& data_type, \
+        const string& backend); \
+    template void Initializer::Add<CPUTensor, double>(const string& data_type, \
+        const string& backend); \
+    template void Initializer::Add<GPUTensor, float>(const string& data_type, \
+        const string& backend); \
+    template void Initializer::Add<GPUTensor, double>(const string& data_type, \
+        const string& backend)
+  
+  #define REGISTER_INITIALIZER \
+    INSTANTIATE_INITIALIZE; \
+    INSTANTIATE_ADD; \
+    static InitializerRegister<CPUTensor, float> initializer_float_CPU("float", "CPU"); \
+    static InitializerRegister<CPUTensor, double> initializer_double_CPU("double", "CPU"); \
+    static InitializerRegister<GPUTensor, float> initializer_float_GPU("float", "GPU"); \
+    static InitializerRegister<GPUTensor, double> initializer_double_GPU("double", "GPU")
 #endif
 
 }  // namespace blitz

@@ -20,13 +20,14 @@ OPTIMIZE_OPTIONS := -O3 -mavx
 OPENMP_OPTIONS := -fopenmp
 CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Isrc/
-#TODO(keren) support other architecture
-ifneq ($(CPU_ONLY), 1)
+
+ifeq ($(CPU_ONLY), 1)
+  CXXFLAGS += -DCPU_ONLY
+else
   NVCC := nvcc
   NVCC_INC := -Isrc/
-  NVCC_FLAGS := -O3 -arch sm_35 --use_fast_math -ccbin $(CC) -Xcompiler "-O3 -Wall -fopenmp -fPIC"
-else
-  CXXFLAGS += -DCPU_ONLY
+  NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
+  NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(CC)
 endif
 
 #dependency
@@ -36,20 +37,23 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
 #libraries
-ifneq ($(CPU_ONLY), 1)
+ifeq ($(CPU_ONLY), 1)
+  LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time
+else
   LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
     -lboost_chrono -lboost_thread -lboost_date_time
-else
-  LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time
 endif
 
 #blitz
 ifeq ($(BLITZ_MODE), release)
   CXXFLAGS += -DBLITZ_RELEASE
+  NVCC_XCOMPILE := -DBLITZ_RELEASE
 else ifeq ($(BLITZ_MODE), performance)
   CXXFLAGS += -DBLITZ_PERFORMANCE -g
+  NVCC_XCOMPILE := -DBLITZ_PERFORMANCE -g
 else ifeq ($(BLITZ_MODE), develop)
   CXXFLAGS += -DBLITZ_DEVELOP -g
+  NVCC_XCOMPILE := -DBLITZ_DEVELOP -g
 endif
 
 ifeq ($(BLITZ_AVX), 1)
@@ -98,7 +102,7 @@ BINS := $(BIN_DIR)/$(PROJECT) $(SAMPLES)
 
 AUTODEPS:= $(patsubst %.o, %.d, $(OBJECTS)) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 
-ifneq ($(CPU_ONLY), 1)
+ifeq ($(CPU_ONLY), 0)
   NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*sample*")
   NVCC_OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cu, %.o, $(NVCC_SRCS:$(SRC_ROOT)/%=%)))
   NVCC_OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(NVCC_SRCS:$(SRC_ROOT)/%=%))))
@@ -112,12 +116,12 @@ endif
 #mkdir first
 all: dirs bins objects 
 
-ifneq ($(CPU_ONLY), 1)
-  ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
-  ALL_BINS_DIR := $(BIN_DIR) $(BIN_DIR)/$(SAMPLES_DIR) $(BIN_DIR)/$(NVCC_SAMPLES_DIR)
-else
+ifeq ($(CPU_ONLY), 1)
   ALL_OBJECTS_DIR := $(OBJECTS_DIR)
   ALL_BINS_DIR := $(BIN_DIR) $(BIN_DIR)/$(SAMPLES_DIR)
+else
+  ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
+  ALL_BINS_DIR := $(BIN_DIR) $(BIN_DIR)/$(SAMPLES_DIR) $(BIN_DIR)/$(NVCC_SAMPLES_DIR)
 endif
 
 dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR)
@@ -130,28 +134,28 @@ $(ALL_OBJECTS_DIR):
 
 bins: $(BINS)
 
-ifneq ($(CPU_ONLY), 1)
-$(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(OBJECTS) $(NVCC_OBJECTS)
-	$(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
+ifeq ($(CPU_ONLY), 1)
+  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(OBJECTS)
+	  $(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
 
-objects: $(OBJECTS) $(NVCC_OBJECTS)
+  objects: $(OBJECTS)
 
-$(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
-	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
-	$(POSTCOMPILE)
-
-$(NVCC_OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cu $(BUILD_DIR)/%.d 
-	$(NVCC) $(NVCC_FLAGS) $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
-	$(NVCC) $(NVCC_FLAGS) $(NVCC_INC) -c $< -o $@
+  $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
+	  $(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
+	  $(POSTCOMPILE)
 else
-$(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(OBJECTS)
-	$(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
+  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(OBJECTS) $(NVCC_OBJECTS)
+	  $(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
 
-objects: $(OBJECTS)
+  objects: $(OBJECTS) $(NVCC_OBJECTS)
 
-$(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
-	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
-	$(POSTCOMPILE)
+  $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
+	  $(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
+	  $(POSTCOMPILE)
+
+  $(NVCC_OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cu $(BUILD_DIR)/%.d 
+	  $(NVCC) $(NVCC_FLAGS) -Xcompiler $(NVCC_XCOMPILE) $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
+	  $(NVCC) $(NVCC_FLAGS) -Xcompiler $(NVCC_XCOMPILE) $(NVCC_INC) -c $< -o $@
 endif
 
 clean:

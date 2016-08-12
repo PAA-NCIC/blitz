@@ -44,7 +44,7 @@
   template class Backend<tensor, double> \
 
 // instaniate class
-#ifdef CPU_ONLY
+#ifdef BLITZ_CPU_ONLY
   #define INSTANTIATE_CLASS(classname) \
       char BlitzInstantiationClassGuard##classname; \
     template class classname<CPUTensor, float>; \
@@ -59,7 +59,7 @@
 #endif
 
 // instaniate functions
-#ifdef CPU_ONLY
+#ifdef BLITZ_CPU_ONLY
 #define INSTANTIATE_SETTER(object) \
     char BlitzInstantiatiionSetterGuard##object; \
   template shared_ptr<object<CPUTensor, float> > \

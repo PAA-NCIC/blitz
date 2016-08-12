@@ -27,17 +27,20 @@
 *.out
 *.app
 
-#tags
+# hdf5 files
+*.h5
+
+# tags
 *tags
 
-#result
+# result
 *.result
 
-#IMAGENET data
+# IMAGENET data
 data/IMAGENET12*
 
-#DIDI data
+# DIDI data
 data/DIDI*
 
-#CIFAR10 data
+# CIFAR10 data
 data/CIFAR10*
