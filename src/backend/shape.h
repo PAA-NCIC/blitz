@@ -41,7 +41,9 @@ class Shape {
 
       (*size_) = 1;
       for (size_t i = 0; i < dimension_; ++i) {
-        (*size_) *= shape_[i];
+        if (shape_[i] != 0) {
+          (*size_) *= shape_[i];
+        }      
       }
     }
 

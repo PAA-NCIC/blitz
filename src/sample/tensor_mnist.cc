@@ -1,7 +1,7 @@
 #include <omp.h>
 #include <iostream>
 
-#include "common/common.h"
+#include "util/common.h"
 #include "backend/backends.h"
 
 using namespace blitz;
@@ -55,17 +55,18 @@ void forward_conv(
       // to
       // (input_channel * filter_height * filter_width)
       // (output_width * output_height)
-      Unpack2DParallelFunc(input.Slice(batch_input_offset),
-          input_channel, input_height, input_width,
-          filter_height, filter_width, output_height, output_width,
-          padding_height, padding_width,
-          stride_height, stride_width, unpack[tid].data());
+      Backend<CPUTensor, float>::Unpack2DFunc(
+        input.Slice(batch_input_offset),
+        input_channel, input_height, input_width,
+        filter_height, filter_width, output_height, output_width,
+        padding_height, padding_width,
+        stride_height, stride_width, unpacks[tid]->data());
 
       // gemm generate
       // (output_channel) * (output_height * output_width)
       BlitzCPUGemm(false, false, dim_left, dim_right, dim_common,
-          weight.data(), unpack.data(), output.Slice(batch_output_offset),
-          static_cast<DType>(1), static_cast<DType>(0));
+        filter.data(), unpacks[tid]->data(), output.Slice(batch_output_offset),
+        static_cast<float>(1), static_cast<float>(0));
 
       batch_input_offset += input_channel * input_height * input_width;
       batch_output_offset += output_channel * output_height * output_width;
@@ -81,18 +82,19 @@ void forward_pool(
   const int filter_height = 2;
   const int filter_width = 2;
   if (barrier == true) {
-    MaxPooling2DForwardFunc(input, filter_height, filter_width,
+    Backend<CPUTensor, float>::MaxPooling2DForwardFunc(
+      &input, filter_height, filter_width,
       stride_width, stride_height, &max_index, &output);
   } else {
     // shape decode
     // input
-    const Shape& input_shape = input->shape();
+    const Shape& input_shape = input.shape();
     int batch_size = input_shape[0];
     int input_channel = input_shape[1];
     int input_height = input_shape[2];
     int input_width = input_shape[3];
     // output
-    const Shape& output_shape = output->shape();
+    const Shape& output_shape = output.shape();
     int output_channel = output_shape[1];
     int output_height = output_shape[2];
     int output_width = output_shape[3];
@@ -119,11 +121,11 @@ void forward_pool(
       for (int channel_index = 0; channel_index < input_channel; ++channel_index) {
         channel_input_offset = channel_index * input_channel_offset;
         channel_output_offset = channel_index * output_channel_offset;
-        const DType* input_slice = input->Slice(batch_input_offset +
+        const float* input_slice = input.Slice(batch_input_offset +
           channel_input_offset);
-        DType* output_slice = output->Slice(batch_output_offset +
+        float* output_slice = output.Slice(batch_output_offset +
           channel_output_offset);
-        int* max_index_slice = max_index->Slice(batch_output_offset +
+        int* max_index_slice = max_index.Slice(batch_output_offset +
           channel_output_offset);
         for (int output_height_index = 0; output_height_index < output_height;
           ++output_height_index) {
@@ -135,7 +137,7 @@ void forward_pool(
             const int width_end = width_start + filter_width;
             const int pool_index = output_height_index * output_width +
               output_width_index;
-            const int max_index_tmp = height_start * input_width + width_start;
+            int max_index_tmp = height_start * input_width + width_start;
             for (int h = height_start; h < height_end; ++h) {
               for (int w = width_start; w < width_end; ++w) {
                 const int index = h * input_width + w;
@@ -171,13 +173,14 @@ void forward_gemm(
     int output_start = (dim_common / num_threads * tid) * dim_right;
 
     BlitzCPUGemm(false, false, dim_left, dim_right, dim_common,
-        const_cast<CPUTensor<DType> >(input).Slice(input_start),
-        weight.data(), output.Slice(output_start),
-        static_cast<DType>(1), static_cast<DType>(0));
+        input.Slice(input_start), weight.data(), output.Slice(output_start),
+        static_cast<float>(1), static_cast<float>(0));
   }
 }
 
 void forward_mnist(const int& iteration, const int& thread) {
+  std::cout << "configs " << std::endl;
+
   Shape input_shape(4);
   // batch_size
   input_shape[0] = 128;
@@ -191,7 +194,7 @@ void forward_mnist(const int& iteration, const int& thread) {
   ///////////////////////
   // convolution1
   // unpack_shape1
-  Shape unpack_shape1(4);
+  Shape unpack_shape1(2);
   // ic * ih * iw
   unpack_shape1[0] = 1 * 28 * 28;
   // oh * ow
@@ -246,7 +249,7 @@ void forward_mnist(const int& iteration, const int& thread) {
   ///////////////////////
   // convolution2
   // unpack_shape2
-  Shape unpack_shape2(4);
+  Shape unpack_shape2(2);
   // ic * ih * iw
   unpack_shape2[0] = 16 * 12 * 12;
   // oh * ow
@@ -330,8 +333,10 @@ void forward_mnist(const int& iteration, const int& thread) {
   // num_output
   output_shape6[1] = 10;
 
+  std::cout << "allocate " << std::endl;
+
   CPUTensor<float> input(input_shape);
-  Backend<CPUTensor, float>::NormalDistributionFunc(0.0, 1.0, &input_shape);
+  Backend<CPUTensor, float>::NormalDistributionFunc(0.0, 1.0, &input);
   // conv1
   CPUTensor<float> filter1(filter_shape1);
   CPUTensor<float> output1(output_shape1);
@@ -363,10 +368,12 @@ void forward_mnist(const int& iteration, const int& thread) {
   CPUTensor<float> output6(output_shape6);
   Backend<CPUTensor, float>::NormalDistributionFunc(0.0, 1.0, &weight2);
 
+  std::cout << "start forward " << std::endl;
+
   for (int i = 0; i < iteration; ++i) {
-      forward_conv(input, filter1, unpack1, output1, true);
+      forward_conv(input, filter1, unpacks1, output1, true);
       forward_pool(output1, max_index1, output2, true);
-      forward_conv(output2, filter2, unpack2, output3, true);
+      forward_conv(output2, filter2, unpacks2, output3, true);
       forward_pool(output3, max_index2, output4, true);
       forward_gemm(output4, weight1, output5, true);
       forward_gemm(output5, weight2, output6, true);
@@ -382,7 +389,7 @@ void forward_mnist(const int& iteration, const int& thread) {
 }
 
 int main() {
-  const int iteration = 450;
+  const int iteration = 1;
   const int thread = 16;
   forward_mnist(iteration, thread);
   return 0;
