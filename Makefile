@@ -22,7 +22,7 @@ CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIO
 INC := -Isrc/
 
 ifeq ($(CPU_ONLY), 1)
-  CXXFLAGS += -DCPU_ONLY
+  CXXFLAGS += -DBLITZ_CPU_ONLY
 else
   NVCC := nvcc
   NVCC_INC := -Isrc/
