@@ -305,7 +305,9 @@ void Backend<GPUTensor, DType>::MakeBinaryMaskFunc(
 
 template<typename DType>
 void Backend<GPUTensor, DType>::ConstantDistributionFunc(
-  const DType val, GPUTensor<DType>* output) {}
+  const DType val, GPUTensor<DType>* output) {
+  output->Fill(val);
+}
 
 template<typename DType>
 void Backend<GPUTensor, DType>::NormalDistributionFunc(

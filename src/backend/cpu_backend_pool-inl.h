@@ -31,7 +31,6 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   int channel_output_offset;
   int batch_input_offset;
   int batch_output_offset;
-  output->Fill(std::numeric_limits<DType>::min());
 
   // no padding
   #pragma omp parallel for private(batch_input_offset, batch_output_offset,\
@@ -58,15 +57,17 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
           const int width_end = width_start + filter_width;
           const int pool_index = output_height_index * output_width +
             output_width_index;
+          int max_index_tmp = height_start * input_width + width_start;
           for (int h = height_start; h < height_end; ++h) {
             for (int w = width_start; w < width_end; ++w) {
               const int index = h * input_width + w;
-              if (input_slice[index] > output_slice[pool_index]) {
-                output_slice[pool_index] = input_slice[index];
-                max_index_slice[pool_index] = index;
+              if (input_slice[index] > input_slice[max_index_tmp]) {
+                max_index_tmp = index;
               }
             }
           }
+          output_slice[pool_index] = input_slice[max_index_tmp];
+          max_index_slice[pool_index] = max_index_tmp;
         }
       }
     }
