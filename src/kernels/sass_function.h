@@ -20,11 +20,15 @@ class CudaLoadModule {
     cuCtxCreate(&context_, CU_CTX_BLOCKING_SYNC, device_);
 
     // init kernels list
-    const size_t kernel_size = 3;
+    const size_t kernel_size = 6;
     const string kernel_name[kernel_size] = {
       "sgemm_nn_128x128", 
       "sgemm_nt_128x128", 
-      "sgemm_tn_128x128"}; 
+      "sgemm_tn_128x128",
+      "sgemm_nn_128x128_vec",
+      "sgemm_nt_128x128_vec",
+      "sgemm_tn_128x128_vec",
+    }; 
    
     for (size_t i = 0; i < kernel_size; ++i) {
       const string& name = kernel_name[i];

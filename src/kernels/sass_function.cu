@@ -24,15 +24,27 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
   if (transa == true && transb == false) {
     lda = M * 32;
     ldb = N * 32;
-    kernel = "sgemm_tn_128x128";
+    if (M % 4 == 0 && N % 4 == 0) {
+      kernel = "sgemm_tn_128x128_vec";
+    } else {
+      kernel = "sgemm_tn_128x128";
+    }
   } else if (transa == false && transb == true) {
     lda = K;
     ldb = K;
-    kernel = "sgemm_nt_128x128";
+    if (K % 16 == 0) {
+      kernel = "sgemm_nt_128x128_vec";
+    } else {
+      kernel = "sgemm_nt_128x128";
+    }
   } else if (transa == false && transb == false) {
     lda = K;
     ldb = N * 32;
-    kernel = "sgemm_nn_128x128";
+    if (K % 16 == 0 && N % 4 == 0) {
+      kernel = "sgemm_nn_128x128_vec";
+    } else {
+      kernel = "sgemm_nn_128x128";
+    }
   } else {
     LOG(FATAL) << "Not support both matrice transport!";
   }

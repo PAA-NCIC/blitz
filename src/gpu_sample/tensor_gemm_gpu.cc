@@ -12,125 +12,109 @@ using namespace blitz;
 void left_transpose() {
   std::cout << "left transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 4;
-  left_shape[1] = 4;
+  left_shape[0] = 1024;
+  left_shape[1] = 1024;
 
   CPUTensor<float> left_cpu(left_shape);
-  GPUTensor<float> left(left_shape);
-  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &left);
-  //cudaMemcpy(left_cpu.data(), left.data(), left.size() * sizeof(float),
-  //  cudaMemcpyDeviceToHost);
-
-  //std::cout << "left: " << std::endl;
-  //size_t shape1 = left_cpu.shape()[0];
-  //size_t shape2 = left_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << left_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
+  GPUTensor<float> left_gpu(left_shape);
+  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &left_gpu);
+  cudaMemcpy(left_cpu.data(), left_gpu.data(), left_cpu.size() * sizeof(float),
+    cudaMemcpyDeviceToHost);
 
   Shape right_shape(2);
-  right_shape[0] = 4;
-  right_shape[1] = 4;
+  right_shape[0] = 1024;
+  right_shape[1] = 1024;
   CPUTensor<float> right_cpu(right_shape);
-  GPUTensor<float> right(right_shape);
-  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right);
-  //cudaMemcpy(right_cpu.data(), right.data(), right.size() * sizeof(float),
-  //  cudaMemcpyDeviceToHost);
-
-  //std::cout << "right: " << std::endl;
-  //shape1 = right_cpu.shape()[0];
-  //shape2 = right_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << right_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
+  GPUTensor<float> right_gpu(right_shape);
+  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
+  cudaMemcpy(right_cpu.data(), right_gpu.data(), right_cpu.size() * sizeof(float),
+    cudaMemcpyDeviceToHost);
 
   Shape output_shape(2);
-  output_shape[0] = 4;
-  output_shape[1] = 4;
+  output_shape[0] = 1024;
+  output_shape[1] = 1024;
   CPUTensor<float> output_cpu(output_shape);
-  GPUTensor<float> output(output_shape);
-  Backend<GPUTensor, float>::MatrixDotFunc(&left, &right, true, false, 1, 0, &output, "asm");
-  //cudaMemcpy(output_cpu.data(), output.data(), output.size() * sizeof(float),
-  //  cudaMemcpyDeviceToHost);
+  GPUTensor<float> output_gpu(output_shape);
+  CPUTensor<float> output_copy(output_shape);
+  time_point<system_clock> start, end;
+  duration<double> time = duration<double>::zero();
+  start = system_clock::now();
+  Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
+    true, false, 1, 0, &output_gpu, "asm");
+  cudaDeviceSynchronize();
+  end = system_clock::now();
+  time = end - start;
+  std::cout << "GPU running time: " << time.count() << std::endl;
+  cudaMemcpy(output_copy.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
+    cudaMemcpyDeviceToHost);
 
-  //std::cout << "output: " << std::endl;
-  //shape1 = output_cpu.shape()[0];
-  //shape2 = output_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << output_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-  std::cout << "left transpose end" << std::endl;
+  start = system_clock::now();
+  Backend<CPUTensor, float>::MatrixDotFunc(&left_cpu, &right_cpu,
+    true, false, 1, 0, &output_cpu);
+  end = system_clock::now();
+  time = end - start;
+  std::cout << "CPU running time: " << time.count() << std::endl;
+
+  for (size_t i = 0; i < output_cpu.size(); ++i) {
+    if (!(output_copy[i] <= output_cpu[i] + 1e-3 && output_copy[i] >= output_cpu[i] - 1e-3)) {
+      std::cout << "index: " << i << " gpu: " <<
+        output_copy[i] << " cpu: " << output_cpu[i] << std::endl;
+    }
+  }
 }
 
 void right_transpose() {
   std::cout << "right transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 2;
-  left_shape[1] = 4;
+  left_shape[0] = 1024;
+  left_shape[1] = 1024;
 
   CPUTensor<float> left_cpu(left_shape);
-  GPUTensor<float> left(left_shape);
-  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &left);
-  //cudaMemcpy(left_cpu.data(), left.data(), left.size() * sizeof(float),
-  //  cudaMemcpyDeviceToHost);
-
-  //std::cout << "left: " << std::endl;
-  //size_t shape1 = left_cpu.shape()[0];
-  //size_t shape2 = left_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << left_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
+  GPUTensor<float> left_gpu(left_shape);
+  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &left_gpu);
+  cudaMemcpy(left_cpu.data(), left_gpu.data(), left_cpu.size() * sizeof(float),
+    cudaMemcpyDeviceToHost);
 
   Shape right_shape(2);
-  right_shape[0] = 1;
-  right_shape[1] = 4;
+  right_shape[0] = 1024;
+  right_shape[1] = 1024;
   CPUTensor<float> right_cpu(right_shape);
-  GPUTensor<float> right(right_shape);
-  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right);
-  //cudaMemcpy(right_cpu.data(), right.data(), right.size() * sizeof(float),
-  //  cudaMemcpyDeviceToHost);
-
-  //std::cout << "right: " << std::endl;
-  //shape1 = right_cpu.shape()[0];
-  //shape2 = right_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << right_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
+  GPUTensor<float> right_gpu(right_shape);
+  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
+  cudaMemcpy(right_cpu.data(), right_gpu.data(), right_cpu.size() * sizeof(float),
+    cudaMemcpyDeviceToHost);
 
   Shape output_shape(2);
-  output_shape[0] = 2;
-  output_shape[1] = 1;
+  output_shape[0] = 1024;
+  output_shape[1] = 1024;
   CPUTensor<float> output_cpu(output_shape);
-  GPUTensor<float> output(right_shape);
-  Backend<GPUTensor, float>::MatrixDotFunc(&left, &right, false, true, 1, 0, &output, "asm");
-  //cudaMemcpy(output_cpu.data(), output.data(), right.size() * sizeof(float),
-  //  cudaMemcpyDeviceToHost);
+  GPUTensor<float> output_gpu(output_shape);
+  CPUTensor<float> output_copy(output_shape);
+  time_point<system_clock> start, end;
+  duration<double> time = duration<double>::zero();
+  start = system_clock::now();
+  Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
+    false, true, 1, 0, &output_gpu, "asm");
+  cudaDeviceSynchronize();
+  end = system_clock::now();
+  time = end - start;
+  std::cout << "GPU running time: " << time.count() << std::endl;
+  cudaMemcpy(output_copy.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
+    cudaMemcpyDeviceToHost);
 
-  //std::cout << "output: " << std::endl;
-  //shape1 = output_cpu.shape()[0];
-  //shape2 = output_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << output_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-  std::cout << "right transpose end" << std::endl;
+  start = system_clock::now();
+  Backend<CPUTensor, float>::MatrixDotFunc(&left_cpu, &right_cpu,
+    false, true, 1, 0, &output_cpu);
+  end = system_clock::now();
+  time = end - start;
+  std::cout << "CPU running time: " << time.count() << std::endl;
+
+  for (size_t i = 0; i < output_cpu.size(); ++i) {
+    if (!(output_copy[i] <= output_cpu[i] + 1e-3 && output_copy[i] >= output_cpu[i] - 1e-3)) {
+      std::cout << "index: " << i << " gpu: " <<
+        output_copy[i] << " cpu: " << output_cpu[i] << std::endl;
+    }
+  }
 }
 
 void both_transpose() {
@@ -190,95 +174,55 @@ void both_transpose() {
 void no_transpose() {
   std::cout << "no transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 1000;
-  left_shape[1] = 1000;
+  left_shape[0] = 1024;
+  left_shape[1] = 1024;
 
   CPUTensor<float> left_cpu(left_shape);
   GPUTensor<float> left_gpu(left_shape);
-  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &left_gpu);
+  Backend<GPUTensor, float>::ConstantDistributionFunc(2, &left_gpu);
   cudaMemcpy(left_cpu.data(), left_gpu.data(), left_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
 
-  std::cout << "left: " << std::endl;
-  //size_t shape1 = left_cpu.shape()[0];
-  //size_t shape2 = left_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << left_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-
   Shape right_shape(2);
-  right_shape[0] = 1000;
-  right_shape[1] = 1000;
+  right_shape[0] = 1024;
+  right_shape[1] = 1024;
   CPUTensor<float> right_cpu(right_shape);
   GPUTensor<float> right_gpu(right_shape);
-  Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
-  std::cout << "right size " << right_cpu.shape().size() << std::endl;
+  Backend<GPUTensor, float>::ConstantDistributionFunc(2, &right_gpu);
   cudaMemcpy(right_cpu.data(), right_gpu.data(), right_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
 
-  std::cout << "right: " << std::endl;
-  //shape1 = right_cpu.shape()[0];
-  //shape2 = right_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << right_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-
   Shape output_shape(2);
-  output_shape[0] = 1000;
-  output_shape[1] = 1000;
+  output_shape[0] = 1024;
+  output_shape[1] = 1024;
   CPUTensor<float> output_cpu(output_shape);
   GPUTensor<float> output_gpu(output_shape);
+  CPUTensor<float> output_copy(output_shape);
   time_point<system_clock> start, end;
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
   Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
     false, false, 1, 0, &output_gpu, "asm");
+  cudaDeviceSynchronize();
   end = system_clock::now();
-  time += end - start;
-  LOG(INFO) << "Running time: " << time.count();
-  cudaMemcpy(output_cpu.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
-    cudaMemcpyDeviceToHost);
-  cudaMemcpy(left_cpu.data(), left_gpu.data(), left_cpu.size() * sizeof(float),
-    cudaMemcpyDeviceToHost);
-  cudaMemcpy(right_cpu.data(), right_gpu.data(), right_cpu.size() * sizeof(float),
+  time = end - start;
+  std::cout << "GPU running time: " << time.count() << std::endl;
+  cudaMemcpy(output_copy.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
 
-  std::cout << "left: " << std::endl;
-  //shape1 = left_cpu.shape()[0];
-  //shape2 = left_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << left_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
+  start = system_clock::now();
+  Backend<CPUTensor, float>::MatrixDotFunc(&left_cpu, &right_cpu,
+    false, false, 1, 0, &output_cpu);
+  end = system_clock::now();
+  time = end - start;
+  std::cout << "CPU running time: " << time.count() << std::endl;
 
-  std::cout << "right: " << std::endl;
-  //shape1 = right_cpu.shape()[0];
-  //shape2 = right_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << right_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-
-  std::cout << "output: " << std::endl;
-  //shape1 = output_cpu.shape()[0];
-  //shape2 = output_cpu.shape()[1];
-  //for (size_t i = 0; i < shape1; ++i) {
-  //  for (size_t j = 0; j < shape2; ++j) {
-  //    std::cout << output_cpu[i * shape2 + j] << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
-  std::cout << "no transpose end" << std::endl;
+  for (size_t i = 0; i < output_cpu.size(); ++i) {
+    if (!(output_copy[i] <= output_cpu[i] + 1e-3 && output_copy[i] >= output_cpu[i] - 1e-3)) {
+      std::cout << "index: " << i << " gpu: " <<
+        output_copy[i] << " cpu: " << output_cpu[i] << std::endl;
+    }
+  }
 }
 
 int main()
@@ -287,8 +231,10 @@ int main()
 
   for (int i = 0; i < 10; ++i)
     no_transpose();
-  //left_transpose();
-  //right_transpose();
+  for (int i = 0; i < 10; ++i)
+    left_transpose();
+  for (int i = 0; i < 10; ++i)
+    right_transpose();
 
   std::cout << "end" << std::endl;
   return 0;
