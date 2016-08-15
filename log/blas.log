@@ -1,0 +1,92 @@
+start
+no transpose start
+GPU running time: 0.119561
+CPU running time: 0.0129225
+no transpose start
+GPU running time: 0.00111041
+CPU running time: 0.00432482
+no transpose start
+GPU running time: 0.00110437
+CPU running time: 0.00431106
+no transpose start
+GPU running time: 0.00110465
+CPU running time: 0.00433387
+no transpose start
+GPU running time: 0.00110443
+CPU running time: 0.00433106
+no transpose start
+GPU running time: 0.00110527
+CPU running time: 0.00433722
+no transpose start
+GPU running time: 0.00110455
+CPU running time: 0.00432278
+no transpose start
+GPU running time: 0.00110495
+CPU running time: 0.0043237
+no transpose start
+GPU running time: 0.00110452
+CPU running time: 0.00434141
+no transpose start
+GPU running time: 0.00110519
+CPU running time: 0.00432378
+left transpose start
+GPU running time: 0.00110168
+CPU running time: 0.00451781
+left transpose start
+GPU running time: 0.00110158
+CPU running time: 0.00443121
+left transpose start
+GPU running time: 0.00109945
+CPU running time: 0.00441762
+left transpose start
+GPU running time: 0.00110121
+CPU running time: 0.00444425
+left transpose start
+GPU running time: 0.0011007
+CPU running time: 0.00443135
+left transpose start
+GPU running time: 0.00110052
+CPU running time: 0.00444011
+left transpose start
+GPU running time: 0.00110401
+CPU running time: 0.0044455
+left transpose start
+GPU running time: 0.00110099
+CPU running time: 0.00444397
+left transpose start
+GPU running time: 0.00110005
+CPU running time: 0.00443169
+left transpose start
+GPU running time: 0.00110281
+CPU running time: 0.00441267
+right transpose start
+GPU running time: 0.00130364
+CPU running time: 0.00416871
+right transpose start
+GPU running time: 0.00129818
+CPU running time: 0.00415394
+right transpose start
+GPU running time: 0.00130136
+CPU running time: 0.0041556
+right transpose start
+GPU running time: 0.00129886
+CPU running time: 0.00415851
+right transpose start
+GPU running time: 0.00130132
+CPU running time: 0.0042021
+right transpose start
+GPU running time: 0.00129987
+CPU running time: 0.00416484
+right transpose start
+GPU running time: 0.00129962
+CPU running time: 0.00415946
+right transpose start
+GPU running time: 0.00129877
+CPU running time: 0.00416607
+right transpose start
+GPU running time: 0.0012984
+CPU running time: 0.0041576
+right transpose start
+GPU running time: 0.00130142
+CPU running time: 0.00416292
+end

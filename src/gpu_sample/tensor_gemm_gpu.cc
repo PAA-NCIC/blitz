@@ -9,7 +9,7 @@
 
 using namespace blitz;
 
-void left_transpose() {
+void left_transpose(const string& kernel) {
   std::cout << "left transpose start" << std::endl;
   Shape left_shape(2);
   left_shape[0] = 1024;
@@ -40,7 +40,7 @@ void left_transpose() {
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
   Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-    true, false, 1, 0, &output_gpu, "asm");
+    true, false, 1, 0, &output_gpu, kernel);
   cudaDeviceSynchronize();
   end = system_clock::now();
   time = end - start;
@@ -63,7 +63,7 @@ void left_transpose() {
   }
 }
 
-void right_transpose() {
+void right_transpose(const string& kernel) {
   std::cout << "right transpose start" << std::endl;
   Shape left_shape(2);
   left_shape[0] = 1024;
@@ -94,7 +94,7 @@ void right_transpose() {
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
   Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-    false, true, 1, 0, &output_gpu, "asm");
+    false, true, 1, 0, &output_gpu, kernel);
   cudaDeviceSynchronize();
   end = system_clock::now();
   time = end - start;
@@ -171,7 +171,7 @@ void both_transpose() {
   std::cout << "both transpose end" << std::endl;
 }
 
-void no_transpose() {
+void no_transpose(const string& kernel) {
   std::cout << "no transpose start" << std::endl;
   Shape left_shape(2);
   left_shape[0] = 1024;
@@ -202,7 +202,7 @@ void no_transpose() {
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
   Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-    false, false, 1, 0, &output_gpu, "asm");
+    false, false, 1, 0, &output_gpu, kernel);
   cudaDeviceSynchronize();
   end = system_clock::now();
   time = end - start;
@@ -230,11 +230,11 @@ int main()
   std::cout << "start" << std::endl;
 
   for (int i = 0; i < 10; ++i)
-    no_transpose();
+    no_transpose("asm");
   for (int i = 0; i < 10; ++i)
-    left_transpose();
+    left_transpose("asm");
   for (int i = 0; i < 10; ++i)
-    right_transpose();
+    right_transpose("asm");
 
   std::cout << "end" << std::endl;
   return 0;
