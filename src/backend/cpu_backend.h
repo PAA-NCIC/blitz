@@ -102,7 +102,7 @@ class Backend<CPUTensor, DType> {
   static void GradientdescentFunc(
     const DType momentum_coef, const DType learning_rate,
     const DType decay, const int batch_size,
-    CPUTensor<DType>* weight,
+    CPUTensor<DType>* filter,
     CPUTensor<DType>* gradient,
     CPUTensor<DType>* velocity);
 
@@ -145,14 +145,14 @@ class Backend<CPUTensor, DType> {
     CPUTensor<DType>* output);
 
   static void Convolution2DForwardFunc(
-    const CPUTensor<DType>* input, const CPUTensor<DType>* weight,
+    const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     CPUTensor<DType>* unpack, CPUTensor<DType>* output,
     const string& kernel = "blas");
 
   static void Convolution2DBackwardFunc(
-    const CPUTensor<DType>* output, const CPUTensor<DType>* weight,
+    const CPUTensor<DType>* output, const CPUTensor<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     CPUTensor<DType>* pack, CPUTensor<DType>* input,
@@ -167,14 +167,14 @@ class Backend<CPUTensor, DType> {
 
   // batch parallel
   static void Convolution2DForwardFunc(
-    const CPUTensor<DType>* input, const CPUTensor<DType>* weight,
+    const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     vector<shared_ptr<CPUTensor<DType> > >* unpack_batch,
     CPUTensor<DType>* output);
 
   static void Convolution2DBackwardFunc(
-    const CPUTensor<DType>* output, const CPUTensor<DType>* weight,
+    const CPUTensor<DType>* output, const CPUTensor<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     vector<shared_ptr<CPUTensor<DType> > >* pack_batch,
@@ -202,7 +202,7 @@ class Backend<CPUTensor, DType> {
 
   // naive parallel
   static void Convolution2DForwardFunc(
-    const CPUTensor<DType>* input, const CPUTensor<DType>* weight,
+    const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
     const int stride_height, const int stride_width,
     CPUTensor<DType>* output);
 

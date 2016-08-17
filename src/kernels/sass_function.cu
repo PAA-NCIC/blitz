@@ -78,5 +78,20 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
   LOG(FATAL) << "sass kernel dost not support double precision";
 }
 
+template<>
+void BlitzSass2DConvolution(const int batch_size, const int input_channel, const int input_height,
+  const int input_width, const int filter_height, const int filter_width, const int output_channel,
+  const int output_height, const int output_width, const int stride_height, const int stride_width,
+  float* input, float* output, float* filter, const string& phase) {
+}
+
+template<>
+void BlitzSass2DConvolution(const int batch_size, const int input_channel, const int input_height,
+  const int input_width, const int filter_height, const int filter_width, const int output_channel,
+  const int output_height, const int output_width, const int stride_height, const int stride_width,
+  double* input, double* output, double* filter, const string& phase) {
+  LOG(FATAL) << "sass kernel dost not support double precision";
+}
+
 }  // namespace blitz
 

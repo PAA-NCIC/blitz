@@ -92,7 +92,7 @@ class Backend<GPUTensor, DType> {
   static void GradientdescentFunc(
     const DType momentum_coef, const DType learning_rate,
     const DType decay, const int batch_size,
-    GPUTensor<DType>* weight,
+    GPUTensor<DType>* filter,
     GPUTensor<DType>* gradient,
     GPUTensor<DType>* velocity);
 
@@ -179,9 +179,28 @@ class Backend<GPUTensor, DType> {
     vector<shared_ptr<GPUTensor<DType> > >* update_batch,
     GPUTensor<DType>* update);
 
+  // cudnn TODO(keren): modify to N dimension
+  static void ConvolutionCudnnForwardFunc(
+    const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
+    const int padding_height, const int padding_width,
+    const int stride_height, const int stride_width,
+    GPUTensor<DType>* output);
+
+  static void ConvolutionCudnnBackwardFunc(
+    const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
+    const int padding_height, const int padding_width,
+    const int stride_height, const int stride_width,
+    GPUTensor<DType>* input);
+
+  static void ConvolutionCudnnUpdateFunc(
+    const GPUTensor<DType>* input, const GPUTensor<DType>* output,
+    const int padding_height, const int padding_width,
+    const int stride_height, const int stride_width,
+    GPUTensor<DType>* update);
+
   // naive parallel
   static void Convolution2DForwardFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* weight,
+    const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
     const int stride_height, const int stride_width,
     GPUTensor<DType>* output);
 

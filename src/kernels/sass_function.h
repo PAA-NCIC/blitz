@@ -110,6 +110,12 @@ class CudaModule {
 template<typename DType>
 void BlitzSassGemm(const bool transa, const bool transb, const int M, const int N,
     const int K, DType* A, DType* B, DType* C, DType alpha, DType beta);
+
+template<typename DType>
+void BlitzSass2DConvolution(const int batch_size, const int input_channel, const int input_height,
+  const int input_width, const int filter_height, const int filter_width, const int output_channel,
+  const int output_height, const int output_width, const int stride_height, const int stride_width,
+  DType* input, DType* output, DType* filter, const string& phase);
 }  // namespace blitz
 
 #endif  // SRC_KERNERLS_SASS_FUNCTION_H_

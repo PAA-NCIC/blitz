@@ -120,8 +120,8 @@ void right_transpose(const string& kernel) {
 void both_transpose() {
   std::cout << "both transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 1;
-  left_shape[1] = 4;
+  left_shape[0] = 1024;
+  left_shape[1] = 1024;
 
   CPUTensor<float> left(left_shape);
   Backend<CPUTensor, float>::NormalDistributionFunc(0, 1, &left);
@@ -137,8 +137,8 @@ void both_transpose() {
   }
 
   Shape right_shape(2);
-  right_shape[0] = 4;
-  right_shape[1] = 1;
+  right_shape[0] = 1024;
+  right_shape[1] = 1024;
   CPUTensor<float> right(right_shape);
   Backend<CPUTensor, float>::NormalDistributionFunc(0, 1, &right);
   std::cout << "right size " << right.shape().size() << std::endl;
@@ -154,8 +154,8 @@ void both_transpose() {
   }
 
   Shape output_shape(2);
-  output_shape[0] = 4;
-  output_shape[1] = 4;
+  output_shape[0] = 1024;
+  output_shape[1] = 1024;
   CPUTensor<float> output(output_shape);
   Backend<CPUTensor, float>::MatrixDotFunc(&left, &right, true, true, 1, 0, &output);
 

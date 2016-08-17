@@ -42,10 +42,13 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   this->update_ = make_shared<TensorType<DType> >(shape_weight);
 
   // unpack one image in every iteration
-  Shape unpack_shape(2);
-  unpack_shape[0] = input_channel * filter_height * filter_width;
-  unpack_shape[1] = output_height * output_width;
-  this->unpack_ = make_shared<TensorType<DType> >(unpack_shape);
+
+  if (this->kernel_ == "asm" || this->kernel_ == "blas") {
+    Shape unpack_shape(2);
+    unpack_shape[0] = input_channel * filter_height * filter_width;
+    unpack_shape[1] = output_height * output_width;
+    this->unpack_ = make_shared<TensorType<DType> >(unpack_shape);
+  }
 
   LOG(INFO) << "Conv Layer: " << this->name_;
   LOG(INFO) << "input shape: " << input_channel << " * " << input_height <<

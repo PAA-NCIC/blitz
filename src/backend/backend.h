@@ -91,7 +91,7 @@ class Backend {
   static void GradientdescentFunc(
     const DType momentum_coef, const DType learning_rate,
     const DType decay, const int batch_size,
-    TensorType<DType>* weight,
+    TensorType<DType>* filter,
     TensorType<DType>* gradient,
     TensorType<DType>* velocity);
 
@@ -135,14 +135,14 @@ class Backend {
     TensorType<DType>* output);
 
   static void Convolution2DForwardFunc(
-    const TensorType<DType>* input, const TensorType<DType>* weight,
+    const TensorType<DType>* input, const TensorType<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     TensorType<DType>* unpack, TensorType<DType>* output,
     const string& kernel = "blas");
 
   static void Convolution2DBackwardFunc(
-    const TensorType<DType>* output, const TensorType<DType>* weight,
+    const TensorType<DType>* output, const TensorType<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     TensorType<DType>* pack, TensorType<DType>* input,
@@ -157,14 +157,14 @@ class Backend {
 
   // batch parallel
   static void Convolution2DForwardFunc(
-    const TensorType<DType>* input, const TensorType<DType>* weight,
+    const TensorType<DType>* input, const TensorType<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     vector<shared_ptr<TensorType<DType> > >* unpack_batch,
     TensorType<DType>* output);
 
   static void Convolution2DBackwardFunc(
-    const TensorType<DType>* output, const TensorType<DType>* weight,
+    const TensorType<DType>* output, const TensorType<DType>* filter,
     const int padding_height, const int padding_width,
     const int stride_height, const int stride_width,
     vector<shared_ptr<TensorType<DType> > >* pack_batch,
@@ -180,7 +180,7 @@ class Backend {
 
   // naive parallel
   static void Convolution2DForwardFunc(
-    const TensorType<DType>* input, const TensorType<DType>* weight,
+    const TensorType<DType>* input, const TensorType<DType>* filter,
     const int stride_height, const int stride_width,
     TensorType<DType>* output);
 
