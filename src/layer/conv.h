@@ -7,6 +7,10 @@
 #include "util/common.h"
 #include "transform/activation.h"
 
+#ifndef BLITZ_CPU_ONLY
+  #include "util/blitz_gpu_function.h"
+#endif
+
 namespace blitz {
 
 template<template <typename> class TensorType, typename DType>
@@ -43,6 +47,22 @@ class Conv : public ParamLayer<TensorType, DType> {
   const int padding_width_;
 
   const string kernel_;
+
+// cudnn handles
+#ifndef BLITZ_CPU_ONLY
+  cudnnHandle_t cudnn_handle_;
+
+  // algorithms for forward and backwards convolutions
+  cudnnConvolutionFwdAlgo_t forward_algorithm_;
+  cudnnConvolutionBwdFilterAlgo_t backward_filter_algorithm_;
+  cudnnConvolutionBwdDataAlgo_t backward_data_algorithm_;
+
+  cudnnTensorDescriptor_t input_desc_, output_desc_;
+  cudnnFilterDescriptor_t filter_desc_;
+  cudnnConvolutionDescriptor_t conv_desc_;
+
+  DType *cudnn_alpha_, *cudnn_beta_;
+#endif
 };
 
 }  // namespace blitz

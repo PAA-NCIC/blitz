@@ -236,7 +236,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       const_cast<DType*>(unpack->data()), const_cast<DType*>(output->data()),
       update->data(), "update");
     BlitzGPUTrans(input_channel * input_height * input_width, batch_size, 
-      const_cast<DType*>(unpack->data()), input->data()); 
+      unpack->data(), const_cast<DType*>(input->data())); 
     // Transpose to IC * IH * IW * batch_size
   } else {
     for (int batch_index = 0; batch_index < batch_size; ++batch_index) {

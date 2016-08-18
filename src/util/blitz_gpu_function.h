@@ -50,32 +50,70 @@ class CuBlasHandle {
       i < (n); \
       i += blockDim.x * gridDim.x)
 
-template <typename Dtype> class CudnnDataType;
+namespace cudnn {
 
-template<> class CudnnDataType<float>  {
+template <typename DType> class DataType;
+
+template<> class DataType<float>  {
  public:
   static const cudnnDataType_t type = CUDNN_DATA_FLOAT;
 };
 
-template<> class CudnnDataType<double> {
+template<> class DataType<double> {
  public:
   static const cudnnDataType_t type = CUDNN_DATA_DOUBLE;
 };
 
-template<typename DType>
-void BlitzGPUSetCudnn4dTensor(cudnnTensorDescriptor_t* tensor_descriptor,
-  int N, int C, int H, int W) {
-  cudnnTensorFormat_t format = CUDNN_TENSOR_NCHW;
-  cudnnSetTensor4dDescriptor(*tensor_descriptor, format,
-    CudnnDataType<DType>::type, N, C, H, W);
+// cudnn utilities brought from Caffe
+// http://caffe.berkeleyvision.org/
+template <typename DType>
+inline void createTensor4dDesc(cudnnTensorDescriptor_t* desc) {
+  cudnnCreateTensorDescriptor(desc);
 }
 
-template<typename DType>
-void BlitzGPUSetCudnn4dFilter(cudnnFilterDescriptor_t* filter_descriptor,
-  DType* data, int K, int C, int H, int W) {
-  cudnnTensorFormat_t format = CUDNN_TENSOR_NCHW;
-  cudnnSetFilter4dDescriptor(*filter_descriptor, format,
-    CudnnDataType<DType>::type, K, C, H, W);
+template <typename DType>
+inline void setTensor4dDesc(cudnnTensorDescriptor_t* desc,
+  int n, int c, int h, int w,
+  int stride_n, int stride_c, int stride_h, int stride_w) {
+  cudnnSetTensor4dDescriptorEx(*desc, DataType<DType>::type,
+    n, c, h, w, stride_n, stride_c, stride_h, stride_w);
+}
+
+template <typename DType>
+inline void setTensor4dDesc(cudnnTensorDescriptor_t* desc,
+    int n, int c, int h, int w) {
+  const int stride_w = 1;
+  const int stride_h = w * stride_w;
+  const int stride_c = h * stride_h;
+  const int stride_n = c * stride_c;
+  setTensor4dDesc<DType>(desc, n, c, h, w,
+    stride_n, stride_c, stride_h, stride_w);
+}
+
+template <typename DType>
+inline void createFilterDesc(cudnnFilterDescriptor_t* desc) {
+  cudnnCreateFilterDescriptor(desc);
+}
+
+template <typename DType>
+inline void setFilterDesc(cudnnFilterDescriptor_t* desc,
+    int n, int c, int h, int w) {
+  cudnnSetFilter4dDescriptor(*desc, DataType<DType>::type,
+    CUDNN_TENSOR_NCHW, n, c, h, w);
+}
+
+template <typename DType>
+inline void createConvolution2DDesc(cudnnConvolutionDescriptor_t* conv) {
+  cudnnCreateConvolutionDescriptor(conv);
+}
+
+template <typename DType>
+inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
+  int pad_h, int pad_w, int stride_h, int stride_w) {
+  cudnnSetConvolution2dDescriptor(*conv,
+    pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CROSS_CORRELATION);
+}
+
 }
 
 // TODO(keren) put into header file
