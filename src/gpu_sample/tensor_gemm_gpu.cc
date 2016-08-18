@@ -225,8 +225,7 @@ void no_transpose(const string& kernel) {
   }
 }
 
-int main()
-{
+int main() {
   std::cout << "start" << std::endl;
 
   for (int i = 0; i < 10; ++i)

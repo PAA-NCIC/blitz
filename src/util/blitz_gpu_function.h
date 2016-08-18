@@ -85,7 +85,7 @@ void BlitzGPUGemm(const bool transa, const bool transb,
   DType* A, DType* B, DType* C, DType alpha, DType beta);
 
 template<typename DType>
-void BlitzGPUTrans(const int M, const int N, DType* A);
+void BlitzGPUTrans(const int M, const int N, DType* input, DType* output);
 
 template<typename DType>
 DType BlitzGPUASum(const int N, const DType* data);

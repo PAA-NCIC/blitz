@@ -36,23 +36,19 @@ void BlitzGPUGemm(const bool transa, const bool transb,
 }
 
 template<>
-void BlitzGPUTrans(const int M, const int N, float* A) {
-  cublasHandle_t handle;
-  cublasStatus_t stat = cublasCreate_v2(&handle);
+void BlitzGPUTrans(const int M, const int N, float* input, float* output) {
   const float alpha = 1.0f;
   const float beta = 0.0f;
-  cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, M, N,
-    &alpha, A, N, &beta, A, N, A, N);
+  cublasSgeam(CuBlasHandle::GetInstance(), CUBLAS_OP_T, CUBLAS_OP_N,
+    M, N, &alpha, input, N, &beta, input, M, output, M);
 }
 
 template<>
-void BlitzGPUTrans(const int M, const int N, double* A) {
-  cublasHandle_t handle;
-  cublasStatus_t stat = cublasCreate_v2(&handle);
+void BlitzGPUTrans(const int M, const int N, double* input, double* output) {
   const double alpha = 1.0f;
   const double beta = 0.0f;
-  cublasDgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, M, N,
-    &alpha, A, N, &beta, A, N, A, N);
+  cublasDgeam(CuBlasHandle::GetInstance(), CUBLAS_OP_T, CUBLAS_OP_N,
+    M, N, &alpha, input, N, &beta, input, M, output, M);
 }
 
 template<>
