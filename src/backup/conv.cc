@@ -1,7 +1,9 @@
 #include "layer/conv.h"
 
 #include "backend/backends.h"
-#include "util/blitz_gpu_function.h"
+#ifndef BLITZ_CPU_ONLY
+  #include "util/blitz_gpu_function.h"
+#endif
 
 namespace blitz {
 
@@ -42,20 +44,26 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   this->weight_ = make_shared<TensorType<DType> >(shape_weight);
   this->update_ = make_shared<TensorType<DType> >(shape_weight);
 
+  // TODO(keren): adjust kernel names
   // unpack one image in every iteration
-
   if (this->kernel_ == "asm" || this->kernel_ == "blas") {
     Shape unpack_shape(2);
     unpack_shape[0] = input_channel * filter_height * filter_width;
     unpack_shape[1] = output_height * output_width;
     this->unpack_ = make_shared<TensorType<DType> >(unpack_shape);
-  } else if (this->kernel_ == "cudnn") {
+  }
+#ifndef BLITZ_CPU_ONLY
+  else if (this->kernel_ == "asm_direct") {
+  } 
+  else if (this->kernel_ == "cudnn") {
     // create val
     cudnn_alpha_ = new DType(1.0);
     cudnn_beta_ = new DType(0.0);
 
     // create handle
     cudnnCreate(&cudnn_handle_);
+    cudaStreamCreate(&cudnn_stream_);
+    cudnnSetStream(cudnn_handle_, cudnn_stream_);
 
     // create descriptors
     cudnn::createTensor4dDesc<DType>(&input_desc_);
@@ -65,11 +73,15 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
 
     // set descriptors
     cudnn::setTensor4dDesc<DType>(&input_desc_,
-      batch_size, input_channel, input_height, input_width);
+      batch_size, input_channel, input_height, input_width,
+      input_channel * input_height * input_width,
+      input_height * input_width, input_width, 1);
     cudnn::setTensor4dDesc<DType>(&output_desc_,
-      batch_size, output_channel, output_height, output_width);
+      batch_size, output_channel, output_height, output_width,
+      output_channel * output_height * output_width,
+      output_height * output_width, output_width, 1);
     cudnn::setFilterDesc<DType>(&filter_desc_, output_channel,
-      input_channel, filter_height, filter_width);
+      input_channel, input_height, input_width);
     cudnn::setConvolution2DDesc<DType>(&conv_desc_,
       padding_height_, padding_width_,
       stride_height_, stride_width_);
@@ -79,7 +91,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     backward_filter_algorithm_ = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0;
     backward_data_algorithm_ = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
   }
-
+#endif
 
   LOG(INFO) << "Conv Layer: " << this->name_;
   LOG(INFO) << "input shape: " << input_channel << " * " << input_height <<
@@ -94,49 +106,64 @@ template<template <typename> class TensorType, typename DType>
 void Conv<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
   // TODO(keren) fusing
+#ifndef BLITZ_CPU_ONLY
   if (this->kernel_ == "cudnn") {
     // start cudnn directly from the layer, not throught backend
     // because backend is a general engine
     cudnnConvolutionForward(cudnn_handle_, (void*)cudnn_alpha_,
-      input_desc_, forward_input->data(), filter_desc_, (this->weight_)->data(),
+      input_desc_, forward_input.get(), filter_desc_, (this->weight_).get(),
       conv_desc_, forward_algorithm_, NULL, 0, (void*)cudnn_beta_,
-      output_desc_, (this->forward_output_)->data());
+      output_desc_, (this->forward_output_).get());
   } else {
+#else
     Backend<TensorType, DType>::Convolution2DForwardFunc(
       forward_input.get(), (this->weight_).get(),
       padding_height_, padding_width_, stride_height_, stride_width_,
       (this->unpack_).get(), (this->forward_output_).get());
+#endif
+#ifndef BLITZ_CPU_ONLY
   }
+#endif
 }
 
 template<template <typename> class TensorType, typename DType>
 void Conv<TensorType, DType>::BackwardPropImpl(
   shared_ptr<TensorType<DType> > backward_input) {
   if (this->backward_prop_) {
+#ifndef BLITZ_CPU_ONLY
     if (this->kernel_ == "cudnn") {
       cudnnConvolutionBackwardData(cudnn_handle_, (void*)cudnn_alpha_,
-        filter_desc_, (this->weight_)->data(), output_desc_, backward_input->data(),
+        filter_desc_, (this->weight_).get(), output_desc_, backward_input.get(),
         conv_desc_, backward_data_algorithm_, NULL, 0,
-        (void*)cudnn_beta_, input_desc_, (this->backward_output_)->data());
+        (void*)cudnn_beta_, input_desc_, (this->backward_output_).get());
     } else {
+#else
       Backend<TensorType, DType>::Convolution2DBackwardFunc(
       backward_input.get(), (this->weight_).get(),
       padding_height_, padding_width_, stride_height_, stride_width_,
       (this->unpack_).get(), (this->backward_output_).get());
+#endif
+#ifndef BLITZ_CPU_ONLY
     }
+#endif
   }
+#ifndef BLITZ_CPU_ONLY
   if (this->kernel_ == "cudnn") {
     cudnnConvolutionBackwardFilter(cudnn_handle_, (void*)cudnn_alpha_,
-      input_desc_, (this->forward_input_)->data(),
-      output_desc_, backward_input->data(),
+      input_desc_, (this->forward_input_).get(),
+      output_desc_, backward_input.get(),
       conv_desc_, backward_filter_algorithm_, NULL, 0,
-      (void*)cudnn_alpha_, filter_desc_, (this->update_)->data());
+      (void*)cudnn_beta_, filter_desc_, (this->weight_).get());
   } else {
+#else
     Backend<TensorType, DType>::Convolution2DUpdateFunc(
       (this->forward_input_).get(), backward_input.get(),
       padding_height_, padding_width_, stride_height_, stride_width_,
       (this->unpack_).get(), (this->update_).get());
+#endif
+#ifndef BLITZ_CPU_ONLY
   }
+#endif
 }
 
 INSTANTIATE_CLASS(Conv);

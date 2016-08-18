@@ -5,10 +5,18 @@
 #include <cuda.h>
 #include <cudnn.h>
 #include <curand_kernel.h>
+#include <iostream>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/noncopyable.hpp>
+
+#define CUDNN_CHECK(condition) \
+  do { \
+    cudnnStatus_t status = condition; \
+    if (status != CUDNN_STATUS_SUCCESS) \
+      std::cout << cudnnGetErrorString(status); \
+  } while (0)
 
 namespace blitz {
 
@@ -68,50 +76,39 @@ template<> class DataType<double> {
 // http://caffe.berkeleyvision.org/
 template <typename DType>
 inline void createTensor4dDesc(cudnnTensorDescriptor_t* desc) {
-  cudnnCreateTensorDescriptor(desc);
-}
-
-template <typename DType>
-inline void setTensor4dDesc(cudnnTensorDescriptor_t* desc,
-  int n, int c, int h, int w,
-  int stride_n, int stride_c, int stride_h, int stride_w) {
-  cudnnSetTensor4dDescriptorEx(*desc, DataType<DType>::type,
-    n, c, h, w, stride_n, stride_c, stride_h, stride_w);
+  CUDNN_CHECK(cudnnCreateTensorDescriptor(desc));
 }
 
 template <typename DType>
 inline void setTensor4dDesc(cudnnTensorDescriptor_t* desc,
     int n, int c, int h, int w) {
-  const int stride_w = 1;
-  const int stride_h = w * stride_w;
-  const int stride_c = h * stride_h;
-  const int stride_n = c * stride_c;
-  setTensor4dDesc<DType>(desc, n, c, h, w,
-    stride_n, stride_c, stride_h, stride_w);
+  CUDNN_CHECK(cudnnSetTensor4dDescriptor(*desc,
+    CUDNN_TENSOR_NCHW, DataType<DType>::type, 
+    n, c, h, w));
 }
 
 template <typename DType>
 inline void createFilterDesc(cudnnFilterDescriptor_t* desc) {
-  cudnnCreateFilterDescriptor(desc);
+  CUDNN_CHECK(cudnnCreateFilterDescriptor(desc));
 }
 
 template <typename DType>
 inline void setFilterDesc(cudnnFilterDescriptor_t* desc,
     int n, int c, int h, int w) {
-  cudnnSetFilter4dDescriptor(*desc, DataType<DType>::type,
-    CUDNN_TENSOR_NCHW, n, c, h, w);
+  CUDNN_CHECK(cudnnSetFilter4dDescriptor(*desc, DataType<DType>::type,
+    CUDNN_TENSOR_NCHW, n, c, h, w));
 }
 
 template <typename DType>
 inline void createConvolution2DDesc(cudnnConvolutionDescriptor_t* conv) {
-  cudnnCreateConvolutionDescriptor(conv);
+  CUDNN_CHECK(cudnnCreateConvolutionDescriptor(conv));
 }
 
 template <typename DType>
 inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
   int pad_h, int pad_w, int stride_h, int stride_w) {
-  cudnnSetConvolution2dDescriptor(*conv,
-    pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CROSS_CORRELATION);
+  CUDNN_CHECK(cudnnSetConvolution2dDescriptor(*conv,
+    pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CROSS_CORRELATION));
 }
 
 }

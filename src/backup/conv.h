@@ -3,10 +3,13 @@
 
 #include <string>
 
-#include <cudnn.h>
+#ifndef BLITZ_CPU_ONLY
+  #include <cudnn.h>
+#endif
 #include "layer/param_layer.h"
 #include "util/common.h"
 #include "transform/activation.h"
+
 
 namespace blitz {
 
@@ -45,7 +48,10 @@ class Conv : public ParamLayer<TensorType, DType> {
 
   const string kernel_;
 
+// cudnn handles
+#ifndef BLITZ_CPU_ONLY
   cudnnHandle_t cudnn_handle_;
+  cudaStream_t cudnn_stream_;
 
   // algorithms for forward and backwards convolutions
   cudnnConvolutionFwdAlgo_t forward_algorithm_;
@@ -57,6 +63,7 @@ class Conv : public ParamLayer<TensorType, DType> {
   cudnnConvolutionDescriptor_t conv_desc_;
 
   DType *cudnn_alpha_, *cudnn_beta_;
+#endif
 };
 
 }  // namespace blitz
