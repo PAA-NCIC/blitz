@@ -59,6 +59,8 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
 
     // create handle
     cudnnCreate(&cudnn_handle_);
+    cudaStreamCreate(&cudnn_stream_);
+    cudnnSetStream(cudnn_handle_, cudnn_stream_);
 
     // create descriptors
     cudnn::createTensor4dDesc<DType>(&input_desc_);
@@ -82,9 +84,9 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
       stride_height_, stride_width_);
 
     // set algorithms
-    forward_algorithm_ = static_cast<cudnnConvolutionFwdAlgo_t>(0);
-    backward_filter_algorithm_ = static_cast<cudnnConvolutionBwdFilterAlgo_t>(0);
-    backward_data_algorithm_ = static_cast<cudnnConvolutionBwdDataAlgo_t>(0);
+    forward_algorithm_ = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+    backward_filter_algorithm_ = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0;
+    backward_data_algorithm_ = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
   }
 #endif
 

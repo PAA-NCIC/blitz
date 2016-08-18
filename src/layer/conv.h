@@ -51,6 +51,7 @@ class Conv : public ParamLayer<TensorType, DType> {
 // cudnn handles
 #ifndef BLITZ_CPU_ONLY
   cudnnHandle_t cudnn_handle_;
+  cudaStream_t cudnn_stream_;
 
   // algorithms for forward and backwards convolutions
   cudnnConvolutionFwdAlgo_t forward_algorithm_;
