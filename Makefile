@@ -47,13 +47,13 @@ endif
 #blitz
 ifeq ($(BLITZ_MODE), release)
   CXXFLAGS += -DBLITZ_RELEASE
-  NVCC_XCOMPILE := -DBLITZ_RELEASE
+  NVCC_XCOMPILE += -DBLITZ_RELEASE
 else ifeq ($(BLITZ_MODE), performance)
   CXXFLAGS += -DBLITZ_PERFORMANCE -g
-  NVCC_XCOMPILE := -DBLITZ_PERFORMANCE -g
+  NVCC_XCOMPILE += -DBLITZ_PERFORMANCE -g
 else ifeq ($(BLITZ_MODE), develop)
   CXXFLAGS += -DBLITZ_DEVELOP -g
-  NVCC_XCOMPILE := -DBLITZ_DEVELOP -g
+  NVCC_XCOMPILE += -DBLITZ_DEVELOP -g
 endif
 
 ifeq ($(BLITZ_AVX), 1)
@@ -154,8 +154,8 @@ else
 	  $(POSTCOMPILE)
 
   $(NVCC_OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cu $(BUILD_DIR)/%.d 
-	  $(NVCC) $(NVCC_FLAGS) -Xcompiler $(NVCC_XCOMPILE) $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
-	  $(NVCC) $(NVCC_FLAGS) -Xcompiler $(NVCC_XCOMPILE) $(NVCC_INC) -c $< -o $@
+	  $(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
+	  $(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -c $< -o $@
 endif
 
 clean:

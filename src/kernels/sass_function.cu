@@ -14,9 +14,11 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
   int lda, ldb, ldc = N;
 
 #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
-  time_point<system_clock> start, end;
-  duration<double> time = duration<double>::zero();
-  start = system_clock::now();
+  float elapsed_time = 0.0f;
+  CUevent event_start, event_stop;
+  cuEventCreate(&event_start, CU_EVENT_BLOCKING_SYNC);
+  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
+  cuEventRecord(event_start, NULL);
 #endif
 
   // create kernel
@@ -49,12 +51,14 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
     LOG(FATAL) << "Not support both matrice transport!";
   }
 
+  // kernel call, asynrhonize
   function = CudaModule::GetFunction(kernel);
 
 #ifdef BLITZ_PERFORMANCE
-    end = system_clock::now();
-    time += end - start;
-    LOG(INFO) << "Load kernel time: " << time.count();
+  cuEventRecord(event_stop, NULL);
+  cuEventSynchronize(event_stop);
+  cuEventElapsedTime(&elapsed_time, event_start, event_stop);
+  LOG(INFO) << "Load kernel time: " << elapsed_time / 1000.0;
 #endif  // BLITZ_PERFORMANCE
 
   void* params[] = {&A, &B, &C, &alpha, &beta, &lda, &ldb, &ldc, 
@@ -68,8 +72,20 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
   // TODO(keren): adjust number of threads
   int threads = 256;
 
-  // kernel call, asynrhonize
+#ifdef BLITZ_PERFORMANCE  // only valid for a single thread
+#endif
+  cuEventRecord(event_start, NULL);
   cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, 0);
+#ifdef BLITZ_PERFORMANCE
+  cuEventRecord(event_stop, NULL);
+  cuEventSynchronize(event_stop);
+  cuEventElapsedTime(&elapsed_time, event_start, event_stop);
+  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
+  LOG(INFO) << "Compute time: " << elapsed_time / 1000.0;
+
+  cuEventDestroy(event_start);
+  cuEventDestroy(event_stop);
+#endif  // BLITZ_PERFORMANCE
 }
 
 template<>
