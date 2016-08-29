@@ -1,0 +1,32 @@
+start
+no transpose start
+GPU running time: 0.192273
+CPU running time: 0.0135253
+no transpose start
+GPU running time: 0.00238901
+CPU running time: 0.00435078
+no transpose start
+GPU running time: 0.00246356
+CPU running time: 0.00435264
+no transpose start
+GPU running time: 0.00236018
+CPU running time: 0.00436758
+no transpose start
+GPU running time: 0.0023582
+CPU running time: 0.00434719
+no transpose start
+GPU running time: 0.00235811
+CPU running time: 0.00435008
+no transpose start
+GPU running time: 0.00247169
+CPU running time: 0.00433643
+no transpose start
+GPU running time: 0.00235646
+CPU running time: 0.00432512
+no transpose start
+GPU running time: 0.00236324
+CPU running time: 0.00432942
+no transpose start
+GPU running time: 0.00236157
+CPU running time: 0.00432159
+end

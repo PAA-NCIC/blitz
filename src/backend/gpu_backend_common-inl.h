@@ -228,6 +228,11 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
   int dim_common_right = gpu_transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
+#ifdef BLITZ_DEVELOP
+  LOG(INFO) << "dim left: " << dim_left;
+  LOG(INFO) << "dim common: " << dim_common_left;
+  LOG(INFO) << "dim right: " << dim_right;
+#endif
   if (kernel == "blas") {
     BlitzGPUGemm(gpu_transa, gpu_transb, dim_left, dim_right, dim_common_left,
       const_cast<GPUTensor<DType>*>(left)->data(),

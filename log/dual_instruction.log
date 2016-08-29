@@ -1,0 +1,53 @@
+start
+no transpose start
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0821 19:52:36.548254  4139 sass_function.cu:61] Load kernel time: 0
+I0821 19:52:36.548463  4139 sass_function.cu:84] Compute time: 0
+GPU running time: 0.192938
+CPU running time: 0.012597
+no transpose start
+I0821 19:52:36.583151  4139 sass_function.cu:61] Load kernel time: 5.28e-06
+I0821 19:52:36.584969  4139 sass_function.cu:84] Compute time: 0.00167766
+GPU running time: 0.00198339
+CPU running time: 0.00431696
+no transpose start
+I0821 19:52:36.602910  4139 sass_function.cu:61] Load kernel time: 4.544e-06
+I0821 19:52:36.604704  4139 sass_function.cu:84] Compute time: 0.0016736
+GPU running time: 0.00204061
+CPU running time: 0.00429805
+no transpose start
+I0821 19:52:36.621409  4139 sass_function.cu:61] Load kernel time: 5.248e-06
+I0821 19:52:36.623203  4139 sass_function.cu:84] Compute time: 0.00167408
+GPU running time: 0.00193291
+CPU running time: 0.00428565
+no transpose start
+I0821 19:52:36.640931  4139 sass_function.cu:61] Load kernel time: 4.704e-06
+I0821 19:52:36.642747  4139 sass_function.cu:84] Compute time: 0.001684
+GPU running time: 0.00196158
+CPU running time: 0.00434181
+no transpose start
+I0821 19:52:36.661520  4139 sass_function.cu:61] Load kernel time: 6.144e-06
+I0821 19:52:36.663331  4139 sass_function.cu:84] Compute time: 0.00168912
+GPU running time: 0.00195474
+CPU running time: 0.00432464
+no transpose start
+I0821 19:52:36.684149  4139 sass_function.cu:61] Load kernel time: 7.328e-06
+I0821 19:52:36.685935  4139 sass_function.cu:84] Compute time: 0.00166387
+GPU running time: 0.00202703
+CPU running time: 0.00435301
+no transpose start
+I0821 19:52:36.705778  4139 sass_function.cu:61] Load kernel time: 4.384e-06
+I0821 19:52:36.707530  4139 sass_function.cu:84] Compute time: 0.00166211
+GPU running time: 0.0018507
+CPU running time: 0.00438508
+no transpose start
+I0821 19:52:36.728976  4139 sass_function.cu:61] Load kernel time: 4.864e-06
+I0821 19:52:36.730754  4139 sass_function.cu:84] Compute time: 0.00168464
+GPU running time: 0.00188894
+CPU running time: 0.00437517
+no transpose start
+I0821 19:52:36.752164  4139 sass_function.cu:61] Load kernel time: 4.544e-06
+I0821 19:52:36.753942  4139 sass_function.cu:84] Compute time: 0.00168611
+GPU running time: 0.00188996
+CPU running time: 0.00437458
+end

@@ -5,7 +5,7 @@ backend_type: GPU
 # train or inference
 model_type: train 
 eval: true
-epoches: 1
+epoches: 2
 # for image is channel, width, height per image
 data_shape: [1, 28, 28]
 label_size: 10
