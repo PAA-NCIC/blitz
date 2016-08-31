@@ -26,7 +26,7 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
   if (transa == true && transb == false) {
     lda = M * 32;
     ldb = N * 32;
-    if (K % 4 == 0 && N % 4 == 0) {
+    if (M % 4 == 0 && N % 4 == 0) {
       kernel = "sgemm_tn_128x128_vec";
     } else {
       kernel = "sgemm_tn_128x128";
@@ -67,8 +67,8 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
 
   // TODO(keren): multiple kernels
   int sizeA = 128, sizeB = 128;
-  int gridA = M / sizeA + (N % sizeA !=0);
-  int gridB = N / sizeB + (N % sizeB !=0);
+  int gridA = M / sizeA + (M % sizeA != 0);
+  int gridB = N / sizeB + (N % sizeB != 0);
 
   // TODO(keren): adjust number of threads
   int threads = 256;
@@ -76,7 +76,7 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
 #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
   cuEventRecord(event_start, NULL);
 #endif
-  cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, 0);
+  cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
 #ifdef BLITZ_PERFORMANCE
   cuEventRecord(event_stop, NULL);
   cuEventSynchronize(event_stop);

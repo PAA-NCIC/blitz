@@ -152,7 +152,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
         const_cast<GPUTensor<DType>*>(output)->Slice(batch_output_offset),
         const_cast<GPUTensor<DType>*>(filter)->data(),
         pack->data(), static_cast<DType>(1), static_cast<DType>(0));
-      } else if (kernel == "sass") {
+      } else if (kernel == "asm") {
         BlitzSassGemm(true, false, dim_left, dim_right, dim_common,
         const_cast<GPUTensor<DType>*>(output)->Slice(batch_output_offset),
         const_cast<GPUTensor<DType>*>(filter)->data(),
@@ -271,7 +271,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
           const_cast<GPUTensor<DType>*>(output)->Slice(batch_output_offset),
           unpack->data(), update->data(),
           static_cast<DType>(1), static_cast<DType>(1));
-      } else if (kernel == "sass") {
+      } else if (kernel == "asm") {
         BlitzSassGemm(false, false, dim_left, dim_right, dim_common,
           const_cast<GPUTensor<DType>*>(output)->Slice(batch_output_offset),
           unpack->data(), update->data(),

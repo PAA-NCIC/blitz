@@ -10,11 +10,11 @@
 
 using namespace blitz;
 
-void left_transpose(const string& kernel) {
+void left_transpose(int left_dim, int common_dim, int right_dim, const string& kernel) {
   std::cout << "left transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 4096;
-  left_shape[1] = 4096;
+  left_shape[0] = common_dim;
+  left_shape[1] = left_dim;
 
   CPUTensor<float> left_cpu(left_shape);
   GPUTensor<float> left_gpu(left_shape);
@@ -23,8 +23,8 @@ void left_transpose(const string& kernel) {
     cudaMemcpyDeviceToHost);
 
   Shape right_shape(2);
-  right_shape[0] = 4096;
-  right_shape[1] = 4096;
+  right_shape[0] = common_dim;
+  right_shape[1] = right_dim;
   CPUTensor<float> right_cpu(right_shape);
   GPUTensor<float> right_gpu(right_shape);
   Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
@@ -32,8 +32,8 @@ void left_transpose(const string& kernel) {
     cudaMemcpyDeviceToHost);
 
   Shape output_shape(2);
-  output_shape[0] = 4096;
-  output_shape[1] = 4096;
+  output_shape[0] = left_dim;
+  output_shape[1] = right_dim;
   CPUTensor<float> output_cpu(output_shape);
   GPUTensor<float> output_gpu(output_shape);
   CPUTensor<float> output_copy(output_shape);
@@ -73,11 +73,11 @@ void left_transpose(const string& kernel) {
   }
 }
 
-void right_transpose(const string& kernel) {
+void right_transpose(int left_dim, int common_dim, int right_dim, const string& kernel) {
   std::cout << "right transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 4096;
-  left_shape[1] = 4096;
+  left_shape[0] = left_dim;
+  left_shape[1] = common_dim;
 
   CPUTensor<float> left_cpu(left_shape);
   GPUTensor<float> left_gpu(left_shape);
@@ -86,8 +86,8 @@ void right_transpose(const string& kernel) {
     cudaMemcpyDeviceToHost);
 
   Shape right_shape(2);
-  right_shape[0] = 4096;
-  right_shape[1] = 4096;
+  right_shape[0] = right_dim;
+  right_shape[1] = common_dim;
   CPUTensor<float> right_cpu(right_shape);
   GPUTensor<float> right_gpu(right_shape);
   Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
@@ -95,8 +95,8 @@ void right_transpose(const string& kernel) {
     cudaMemcpyDeviceToHost);
 
   Shape output_shape(2);
-  output_shape[0] = 4096;
-  output_shape[1] = 4096;
+  output_shape[0] = left_dim;
+  output_shape[1] = right_dim;
   CPUTensor<float> output_cpu(output_shape);
   GPUTensor<float> output_gpu(output_shape);
   CPUTensor<float> output_copy(output_shape);
@@ -130,8 +130,8 @@ void right_transpose(const string& kernel) {
 void both_transpose() {
   std::cout << "both transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 4096;
-  left_shape[1] = 4096;
+  left_shape[0] = 1024;
+  left_shape[1] = 1024;
 
   CPUTensor<float> left(left_shape);
   Backend<CPUTensor, float>::NormalDistributionFunc(0, 1, &left);
@@ -147,8 +147,8 @@ void both_transpose() {
   }
 
   Shape right_shape(2);
-  right_shape[0] = 4096;
-  right_shape[1] = 4096;
+  right_shape[0] = 1024;
+  right_shape[1] = 1024;
   CPUTensor<float> right(right_shape);
   Backend<CPUTensor, float>::NormalDistributionFunc(0, 1, &right);
   std::cout << "right size " << right.shape().size() << std::endl;
@@ -164,8 +164,8 @@ void both_transpose() {
   }
 
   Shape output_shape(2);
-  output_shape[0] = 4096;
-  output_shape[1] = 4096;
+  output_shape[0] = 1024;
+  output_shape[1] = 1024;
   CPUTensor<float> output(output_shape);
   Backend<CPUTensor, float>::MatrixDotFunc(&left, &right, true, true, 1, 0, &output);
 
@@ -181,11 +181,11 @@ void both_transpose() {
   std::cout << "both transpose end" << std::endl;
 }
 
-void no_transpose(const string& kernel) {
+void no_transpose(int left_dim, int common_dim, int right_dim, const string& kernel) {
   std::cout << "no transpose start" << std::endl;
   Shape left_shape(2);
-  left_shape[0] = 1024;
-  left_shape[1] = 1024;
+  left_shape[0] = left_dim;
+  left_shape[1] = common_dim;
 
   CPUTensor<float> left_cpu(left_shape);
   GPUTensor<float> left_gpu(left_shape);
@@ -194,8 +194,8 @@ void no_transpose(const string& kernel) {
     cudaMemcpyDeviceToHost);
 
   Shape right_shape(2);
-  right_shape[0] = 1024;
-  right_shape[1] = 1024;
+  right_shape[0] = common_dim;
+  right_shape[1] = right_dim;
   CPUTensor<float> right_cpu(right_shape);
   GPUTensor<float> right_gpu(right_shape);
   Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
@@ -203,8 +203,8 @@ void no_transpose(const string& kernel) {
     cudaMemcpyDeviceToHost);
 
   Shape output_shape(2);
-  output_shape[0] = 1024;
-  output_shape[1] = 1024;
+  output_shape[0] = left_dim;
+  output_shape[1] = right_dim;
   CPUTensor<float> output_cpu(output_shape);
   GPUTensor<float> output_gpu(output_shape);
   CPUTensor<float> output_copy(output_shape);
@@ -235,22 +235,76 @@ void no_transpose(const string& kernel) {
   }
 }
 
+void performance() {
+  for (int i = 0; i < 3; ++i)
+    no_transpose(4096, 4096, 4096, "asm");
+  for (int i = 0; i < 3; ++i)
+    no_transpose(4096, 4096, 4096, "blas");
+  for (int i = 0; i < 3; ++i)
+    left_transpose(4096, 4096, 4096, "asm");
+  for (int i = 0; i < 3; ++i)
+    left_transpose(4096, 4096, 4096, "blas");
+  for (int i = 0; i < 3; ++i)
+    right_transpose(4096, 4096, 4096, "asm");
+  for (int i = 0; i < 3; ++i)
+    right_transpose(4096, 4096, 4096, "blas");
+}
+
+void correct() {
+  no_transpose(1024, 1024, 1024, "asm");
+  no_transpose(1024, 1025, 1024, "asm");
+  no_transpose(1024, 1026, 1024, "asm");
+  no_transpose(1024, 1027, 1024, "asm");
+  no_transpose(1024, 1028, 1024, "asm");
+  no_transpose(1024, 1029, 1024, "asm");
+  no_transpose(1024, 1031, 1024, "asm");
+  no_transpose(1024, 1032, 1024, "asm");
+  no_transpose(1024, 1033, 1024, "asm");
+  no_transpose(1024, 1034, 1024, "asm");
+  no_transpose(1024, 1035, 1024, "asm");
+  no_transpose(1024, 1036, 1024, "asm");
+  no_transpose(1024, 1037, 1024, "asm");
+  no_transpose(1024, 1038, 1024, "asm");
+  no_transpose(1024, 1039, 1024, "asm");
+
+  left_transpose(1024, 1024, 1024, "asm");
+  left_transpose(1024, 1025, 1024, "asm");
+  left_transpose(1024, 1026, 1024, "asm");
+  left_transpose(1024, 1027, 1024, "asm");
+  left_transpose(1024, 1028, 1024, "asm");
+  left_transpose(1024, 1029, 1024, "asm");
+  left_transpose(1024, 1031, 1024, "asm");
+  left_transpose(1024, 1032, 1024, "asm");
+  left_transpose(1024, 1033, 1024, "asm");
+  left_transpose(1024, 1034, 1024, "asm");
+  left_transpose(1024, 1035, 1024, "asm");
+  left_transpose(1024, 1036, 1024, "asm");
+  left_transpose(1024, 1037, 1024, "asm");
+  left_transpose(1024, 1038, 1024, "asm");
+  left_transpose(1024, 1039, 1024, "asm");
+
+  right_transpose(1024, 1024, 1024, "asm");
+  right_transpose(1024, 1025, 1024, "asm");
+  right_transpose(1024, 1026, 1024, "asm");
+  right_transpose(1024, 1027, 1024, "asm");
+  right_transpose(1024, 1028, 1024, "asm");
+  right_transpose(1024, 1029, 1024, "asm");
+  right_transpose(1024, 1031, 1024, "asm");
+  right_transpose(1024, 1032, 1024, "asm");
+  right_transpose(1024, 1033, 1024, "asm");
+  right_transpose(1024, 1034, 1024, "asm");
+  right_transpose(1024, 1035, 1024, "asm");
+  right_transpose(1024, 1036, 1024, "asm");
+  right_transpose(1024, 1037, 1024, "asm");
+  right_transpose(1024, 1038, 1024, "asm");
+  right_transpose(1024, 1039, 1024, "asm");
+}
+
 int main() {
   std::cout << "start" << std::endl;
 
   cudaFree(0);
-  for (int i = 0; i < 3; ++i)
-    no_transpose("asm");
-  for (int i = 0; i < 3; ++i)
-    no_transpose("blas");
-  //for (int i = 0; i < 3; ++i)
-  //  left_transpose("asm");
-  //for (int i = 0; i < 3; ++i)
-  //  left_transpose("blas");
-  //for (int i = 0; i < 3; ++i)
-  //  right_transpose("asm");
-  //for (int i = 0; i < 3; ++i)
-  //  right_transpose("blas");
+  performance();
   cudaFree(0);
 
   std::cout << "end" << std::endl;
