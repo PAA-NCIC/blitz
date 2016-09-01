@@ -26,27 +26,27 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
   if (transa == true && transb == false) {
     lda = M * 32;
     ldb = N * 32;
-    if (M % 4 == 0 && N % 4 == 0) {
-      kernel = "sgemm_tn_128x128_vec";
-    } else {
+    //if (M % 4 == 0 && N % 4 == 0) {
+    //  kernel = "sgemm_tn_128x128_vec";
+    //} else {
       kernel = "sgemm_tn_128x128";
-    }
+    //}
   } else if (transa == false && transb == true) {
     lda = K;
     ldb = K;
-    if (K % 16 == 0) {
-      kernel = "sgemm_nt_128x128_vec";
-    } else {
+    //if (K % 16 == 0) {
+    //  kernel = "sgemm_nt_128x128_vec";
+    //} else {
       kernel = "sgemm_nt_128x128";
-    }
+    //}
   } else if (transa == false && transb == false) {
     lda = K;
     ldb = N * 32;
-    if (K % 16 == 0 && N % 4 == 0) {
-      kernel = "sgemm_nn_128x128_vec";
-    } else {
+    //if (K % 16 == 0 && N % 4 == 0) {
+    //  kernel = "sgemm_nn_128x128_vec";
+    //} else {
       kernel = "sgemm_nn_128x128";
-    }
+    //}
   } else {
     LOG(FATAL) << "Not support both matrice transport!";
   }
@@ -76,7 +76,8 @@ void BlitzSassGemm(const bool transa, const bool transb, const int M, const int 
 #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
   cuEventRecord(event_start, NULL);
 #endif
-  cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
+  CUresult status;
+  status = cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
 #ifdef BLITZ_PERFORMANCE
   cuEventRecord(event_stop, NULL);
   cuEventSynchronize(event_stop);

@@ -129,7 +129,8 @@ DType Backend<GPUTensor, DType>::CrossEntropyBinaryApplyFunc(
     BLITZ_NUM_GPU_THREADS>>>(input->data(), target->data(),
     input->size(), sum.data());
   thrust::device_ptr<DType> sptr = thrust::device_pointer_cast(sum.data());
-  return thrust::reduce(sptr, sptr + sum.size()) / (input->shape())[0];
+  DType loss = thrust::reduce(sptr, sptr + sum.size());
+  return loss / input->shape()[0];
 }
 
 template<typename DType>
@@ -239,10 +240,32 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
       const_cast<GPUTensor<DType>*>(right)->data(),
       output->data(), alpha, beta);
   } else if (kernel == "asm") {
+    //LOG(INFO) << "dim left: " << dim_left;
+    //LOG(INFO) << "dim common: " << dim_common_left;
+    //LOG(INFO) << "dim right: " << dim_right;
+    //DType left_cpu[left->size()];
+    //DType right_cpu[right->size()];
+    //DType output_cpu[output->size()];
+    //DType output_cpu_copy[output->size()];
+    //cudaMemcpy(left_cpu, left->data(), left->size() * sizeof(DType),
+    //  cudaMemcpyDeviceToHost);
+    //cudaMemcpy(right_cpu, right->data(), right->size() * sizeof(DType),
+    //  cudaMemcpyDeviceToHost);
+    //cudaMemcpy(output_cpu_copy, output->data(), output->size() * sizeof(DType),
+    //  cudaMemcpyDeviceToHost);
     BlitzSassGemm(gpu_transa, gpu_transb, dim_left, dim_right, dim_common_left,
       const_cast<GPUTensor<DType>*>(left)->data(),
       const_cast<GPUTensor<DType>*>(right)->data(),
       output->data(), alpha, beta);
+
+    //BlitzCPUGemm(gpu_transa, gpu_transb, dim_left, dim_right, dim_common_left,
+    //  left_cpu, right_cpu, output_cpu, alpha, beta);
+    //for (int i = 0; i < output->size(); ++i) {
+    //  if (!(output_cpu[i] >= output_cpu_copy[i] - 1e3 && output_cpu[i] <= output_cpu_copy[i] + 1e3)) {
+    //    std::cout << "index : " << i << " value : "
+    //      << output_cpu[i] << " : " << output_cpu_copy[i] << std::endl;
+    //  }
+    //}
   }
 }
 

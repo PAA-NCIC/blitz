@@ -229,14 +229,14 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   if (kernel == "asm_direct") {
     // Transpose to [IC * IH * IW] * [batch_size]
     BlitzGPUTrans(batch_size, input_channel * input_height * input_width,
-      const_cast<DType*>(input->data()), unpack->data()); 
+      const_cast<DType*>(input->data()), unpack->data());
     BlitzSass2DConvolution(batch_size, input_channel, input_height,
       input_width, filter_height, filter_width, output_channel,
       output_height, output_width, stride_height, stride_width,
       const_cast<DType*>(unpack->data()), const_cast<DType*>(output->data()),
       update->data(), "update");
-    BlitzGPUTrans(input_channel * input_height * input_width, batch_size, 
-      unpack->data(), const_cast<DType*>(input->data())); 
+    BlitzGPUTrans(input_channel * input_height * input_width, batch_size,
+      unpack->data(), const_cast<DType*>(input->data()));
     // Transpose to IC * IH * IW * batch_size
   } else {
     for (int batch_index = 0; batch_index < batch_size; ++batch_index) {

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "util/common.h"
+#include "util/blitz_cpu_function.h"
 #include "backend/backends.h"
 
 using namespace blitz;

@@ -1,4 +1,6 @@
 #include "backend/cpu_backend.h"
+#include "util/blitz_cpu_function.h"
+#include "util/blitz_cpu_avx.h"
 
 namespace blitz {
 

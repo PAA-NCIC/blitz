@@ -19,7 +19,7 @@ __global__ void GPUUnpack1024Kernel(const DType* input,
   const DType* p_input = input +
     (input_channel_index * input_height + height_offset) *
     input_width + width_offset;
-  DType* p_unpack = unpack + 
+  DType* p_unpack = unpack +
     (output_height_index * output_width + output_width_index) *
     filter_height * filter_width * input_channel +
     input_channel_index * filter_height * filter_width;
@@ -64,7 +64,7 @@ __global__ void GPUUnpackKernel(const DType* input,
     const DType* p_input = input +
       (input_channel_index * input_height + height_offset) *
       input_width + width_offset;
-    DType* p_unpack = unpack + 
+    DType* p_unpack = unpack +
       (output_height_index * output_width + output_width_index) *
       filter_height * filter_width * input_channel +
       input_channel_index * filter_height * filter_width;
@@ -132,15 +132,15 @@ __global__ void GPUPack1024Kernel(const DType* pack,
   const int input_height = blockDim.x;
   const int input_width = blockDim.y;
   const int input_channel = gridDim.x;
-  const int pack_width =  filter_height * filter_width * input_channel; 
+  const int pack_width =  filter_height * filter_width * input_channel;
 
   const int pack_height_start = input_height_padding < filter_height ?
     0 : (input_height_padding - filter_height) / stride_height + 1;
-  const int pack_height_end = 
+  const int pack_height_end =
     min(input_height_padding / stride_height + 1, output_height);
   const int pack_width_start = input_width_padding < filter_width ?
     0 : (input_width_padding - filter_width) / stride_width + 1;
-  const int pack_width_end = 
+  const int pack_width_end =
     min(input_width_padding / stride_width + 1, output_width);
 
   const DType *p_pack = pack + filter_width * filter_height * input_channel_index;
@@ -177,15 +177,15 @@ __global__ void GPUPackKernel(const DType* pack,
     const int input_channel_index = channel_height_offset % input_channel;
     const int input_height_padding = input_height_index + padding_height;
     const int input_width_padding = input_width_index + padding_width;
-    const int pack_width =  filter_height * filter_width * input_channel; 
+    const int pack_width =  filter_height * filter_width * input_channel;
 
     const int pack_height_start = input_height_padding < filter_height ?
       0 : (input_height_padding - filter_height) / stride_height + 1;
-    const int pack_height_end = 
+    const int pack_height_end =
       min(input_height_padding / stride_height + 1, output_height);
     const int pack_width_start = input_width_padding < filter_width ?
       0 : (input_width_padding - filter_width) / stride_width + 1;
-    const int pack_width_end = 
+    const int pack_width_end =
       min(input_width_padding / stride_width + 1, output_width);
 
     const DType *p_pack = pack + filter_width * filter_height * input_channel_index;

@@ -15,9 +15,9 @@ namespace blitz {
 class CudaLoadModule {
  public:
   CudaLoadModule() {
-    cuInit(0);
-    cuDeviceGet(&device_, 0);
-    cuCtxCreate(&context_, CU_CTX_BLOCKING_SYNC, device_);
+    //cuInit(0);
+    //cuDeviceGet(&device_, 0);
+    //cuCtxCreate(&context_, CU_CTX_BLOCKING_SYNC, device_);
 
     // init kernels list
     const size_t kernel_size = 6;
@@ -60,7 +60,7 @@ class CudaLoadModule {
     for (ModuleIterator it = modules_.begin(); it != modules_.end(); ++it) {
       cuModuleUnload(*it);
     }
-    cuCtxDestroy(context_);
+    //cuCtxDestroy(context_);
   }
 
   CUfunction GetFunction(const string& name) {
@@ -75,8 +75,8 @@ class CudaLoadModule {
   map<string, CUfunction> functions_;
   vector<CUmodule> modules_;
 
-  CUcontext context_;
-  CUdevice device_;
+  //CUcontext context_;
+  //CUdevice device_;
 };
 
 class CudaModule {

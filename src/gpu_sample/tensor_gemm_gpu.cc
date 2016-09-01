@@ -251,60 +251,66 @@ void performance() {
 }
 
 void correct() {
-  no_transpose(1024, 1024, 1024, "asm");
-  no_transpose(1024, 1025, 1024, "asm");
-  no_transpose(1024, 1026, 1024, "asm");
-  no_transpose(1024, 1027, 1024, "asm");
-  no_transpose(1024, 1028, 1024, "asm");
-  no_transpose(1024, 1029, 1024, "asm");
-  no_transpose(1024, 1031, 1024, "asm");
-  no_transpose(1024, 1032, 1024, "asm");
-  no_transpose(1024, 1033, 1024, "asm");
-  no_transpose(1024, 1034, 1024, "asm");
-  no_transpose(1024, 1035, 1024, "asm");
-  no_transpose(1024, 1036, 1024, "asm");
-  no_transpose(1024, 1037, 1024, "asm");
-  no_transpose(1024, 1038, 1024, "asm");
-  no_transpose(1024, 1039, 1024, "asm");
+  //no_transpose(512, 128, 500, "asm");
+  //no_transpose(1024, 1024, 1024, "asm");
+  //no_transpose(1024, 1025, 1024, "asm");
+  //no_transpose(1024, 1026, 1024, "asm");
+  //no_transpose(1024, 1027, 1024, "asm");
+  //no_transpose(1024, 1028, 1024, "asm");
+  //no_transpose(1024, 1029, 1024, "asm");
+  //no_transpose(1024, 1031, 1024, "asm");
+  //no_transpose(1024, 1032, 1024, "asm");
+  //no_transpose(1024, 1033, 1024, "asm");
+  //no_transpose(1024, 1034, 1024, "asm");
+  //no_transpose(1024, 1035, 1024, "asm");
+  //no_transpose(1024, 1036, 1024, "asm");
+  //no_transpose(1024, 1037, 1024, "asm");
+  //no_transpose(1024, 1038, 1024, "asm");
+  //no_transpose(1024, 1039, 1024, "asm");
 
-  left_transpose(1024, 1024, 1024, "asm");
-  left_transpose(1024, 1025, 1024, "asm");
-  left_transpose(1024, 1026, 1024, "asm");
-  left_transpose(1024, 1027, 1024, "asm");
-  left_transpose(1024, 1028, 1024, "asm");
-  left_transpose(1024, 1029, 1024, "asm");
-  left_transpose(1024, 1031, 1024, "asm");
-  left_transpose(1024, 1032, 1024, "asm");
-  left_transpose(1024, 1033, 1024, "asm");
-  left_transpose(1024, 1034, 1024, "asm");
-  left_transpose(1024, 1035, 1024, "asm");
-  left_transpose(1024, 1036, 1024, "asm");
-  left_transpose(1024, 1037, 1024, "asm");
-  left_transpose(1024, 1038, 1024, "asm");
-  left_transpose(1024, 1039, 1024, "asm");
+  for (int i = 0; i < 20; ++i) {
+    no_transpose(512, 128, 500, "asm");
+    left_transpose(512, 128, 500, "asm");
+    right_transpose(512, 128, 500, "asm");
+  }
+  //left_transpose(1024, 1024, 1024, "asm");
+  //left_transpose(1024, 1025, 1024, "asm");
+  //left_transpose(1024, 1026, 1024, "asm");
+  //left_transpose(1024, 1027, 1024, "asm");
+  //left_transpose(1024, 1028, 1024, "asm");
+  //left_transpose(1024, 1029, 1024, "asm");
+  //left_transpose(1024, 1031, 1024, "asm");
+  //left_transpose(1024, 1032, 1024, "asm");
+  //left_transpose(1024, 1033, 1024, "asm");
+  //left_transpose(1024, 1034, 1024, "asm");
+  //left_transpose(1024, 1035, 1024, "asm");
+  //left_transpose(1024, 1036, 1024, "asm");
+  //left_transpose(1024, 1037, 1024, "asm");
+  //left_transpose(1024, 1038, 1024, "asm");
+  //left_transpose(1024, 1039, 1024, "asm");
 
-  right_transpose(1024, 1024, 1024, "asm");
-  right_transpose(1024, 1025, 1024, "asm");
-  right_transpose(1024, 1026, 1024, "asm");
-  right_transpose(1024, 1027, 1024, "asm");
-  right_transpose(1024, 1028, 1024, "asm");
-  right_transpose(1024, 1029, 1024, "asm");
-  right_transpose(1024, 1031, 1024, "asm");
-  right_transpose(1024, 1032, 1024, "asm");
-  right_transpose(1024, 1033, 1024, "asm");
-  right_transpose(1024, 1034, 1024, "asm");
-  right_transpose(1024, 1035, 1024, "asm");
-  right_transpose(1024, 1036, 1024, "asm");
-  right_transpose(1024, 1037, 1024, "asm");
-  right_transpose(1024, 1038, 1024, "asm");
-  right_transpose(1024, 1039, 1024, "asm");
+  //right_transpose(1024, 1024, 1024, "asm");
+  //right_transpose(1024, 1025, 1024, "asm");
+  //right_transpose(1024, 1026, 1024, "asm");
+  //right_transpose(1024, 1027, 1024, "asm");
+  //right_transpose(1024, 1028, 1024, "asm");
+  //right_transpose(1024, 1029, 1024, "asm");
+  //right_transpose(1024, 1031, 1024, "asm");
+  //right_transpose(1024, 1032, 1024, "asm");
+  //right_transpose(1024, 1033, 1024, "asm");
+  //right_transpose(1024, 1034, 1024, "asm");
+  //right_transpose(1024, 1035, 1024, "asm");
+  //right_transpose(1024, 1036, 1024, "asm");
+  //right_transpose(1024, 1037, 1024, "asm");
+  //right_transpose(1024, 1038, 1024, "asm");
+  //right_transpose(1024, 1039, 1024, "asm");
 }
 
 int main() {
   std::cout << "start" << std::endl;
 
   cudaFree(0);
-  performance();
+  correct();
   cudaFree(0);
 
   std::cout << "end" << std::endl;

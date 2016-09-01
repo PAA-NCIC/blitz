@@ -104,7 +104,7 @@ void Backend<GPUTensor, DType>::MaxPooling2DBackwardFunc(
 
   // set zero
   input->Fill(0);
-  
+
   GPUMaxPoolingBackward<DType><<<BlitzGPUGetBlocks(output->size()),
     BLITZ_NUM_GPU_THREADS>>>(output->data(), output->size(),
     channel, input_height, input_width,

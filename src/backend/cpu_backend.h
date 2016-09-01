@@ -11,8 +11,6 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real.hpp>
 
-#include "util/blitz_cpu_function.h"
-#include "util/blitz_cpu_avx.h"
 #include "backend/cpu_tensor.h"
 
 namespace blitz {

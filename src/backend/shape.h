@@ -43,7 +43,7 @@ class Shape {
       for (size_t i = 0; i < dimension_; ++i) {
         if (shape_[i] != 0) {
           (*size_) *= shape_[i];
-        }      
+        }
       }
     }
 
