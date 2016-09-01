@@ -14,8 +14,10 @@ __global__ void GPUUnpack1024Kernel(const DType* input,
   const int input_channel_index = blockIdx.x;
   const int output_width = blockDim.y;
   const int input_channel = gridDim.x;
-  const int height_offset = output_height_index * stride_height - padding_height;
-  const int width_offset = output_width_index * stride_width - padding_width;
+  const int height_offset = output_height_index *
+    stride_height - padding_height;
+  const int width_offset = output_width_index *
+    stride_width - padding_width;
   const DType* p_input = input +
     (input_channel_index * input_height + height_offset) *
     input_width + width_offset;

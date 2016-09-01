@@ -1,7 +1,6 @@
 #ifndef SRC_BACKEND_CPU_BACKEND_POOL_INL_H_
 #define SRC_BACKEND_CPU_BACKEND_POOL_INL_H_
 
-
 template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   const CPUTensor<DType>* input,
@@ -33,7 +32,7 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   int batch_output_offset;
 
   // no padding
-  #pragma omp parallel for private(batch_input_offset, batch_output_offset,\
+  #pragma omp parallel for private(batch_input_offset, batch_output_offset, \
     channel_input_offset, channel_output_offset)
   for (int batch_index = 0; batch_index < batch_size; ++batch_index) {
     batch_input_offset = batch_index * input_single_offset;
@@ -103,7 +102,7 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   // set zero
   input->Fill(0);
   // no padding
-  #pragma omp parallel for private(batch_input_offset, batch_output_offset,\
+  #pragma omp parallel for private(batch_input_offset, batch_output_offset, \
     channel_input_offset, channel_output_offset)
   for (int batch_index = 0; batch_index < batch_size; ++batch_index) {
     batch_input_offset = batch_index * input_single_offset;

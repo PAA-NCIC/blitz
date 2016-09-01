@@ -32,7 +32,7 @@ void Model<TensorType, DType>::Inference(
 
     accuracy += layer_wrapper->Evaluate(target, eval_type);
 
-    (layer_wrapper->forward_output())->OutputCSV(os);
+    (layer_wrapper->forward_output())->OutputCSV(&os);
   }
 
   accuracy /= niteration;

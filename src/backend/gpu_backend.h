@@ -2,10 +2,11 @@
 #define SRC_BACKEND_GPU_BACKEND_H_
 
 #include "backend/backend.h"
-#include "backend/gpu_tensor.h"
 
 #include <string>
 #include <vector>
+
+#include "backend/gpu_tensor.h"
 
 namespace blitz {
 

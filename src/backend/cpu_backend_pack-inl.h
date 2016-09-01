@@ -42,8 +42,8 @@ void Backend<CPUTensor, DType>::Unpack2DParallelFunc(
               if (filter_width_offset < 0 || filter_width_offset >= input_width) {
                 unpack[unpack_index++] = 0;
               } else {
-                unpack[unpack_index++] = input_slice[filter_height_offset * input_width +
-                  filter_width_offset];
+                unpack[unpack_index++] = input_slice[
+                  filter_height_offset * input_width + filter_width_offset];
               }
               filter_width_offset += stride_width;
             }

@@ -21,7 +21,7 @@ class CPUTensor : public Tensor<DType> {
   virtual void Reshape();
   virtual DType* Slice(size_t index);
   virtual const DType* Slice(size_t index) const;
-  virtual void OutputCSV(ofstream& ofs) const;
+  virtual void OutputCSV(ofstream* ofs) const;
 
  protected:
   virtual void Allocate();

@@ -1,8 +1,6 @@
 #ifndef SRC_BACKEND_CPU_BACKEND_CONV_INL_H_
 #define SRC_BACKEND_CPU_BACKEND_CONV_INL_H_
 
-#include <vector>
-
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
@@ -388,7 +386,7 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   double average_pack_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 
-  #pragma omp parallel private(batch_input_offset, batch_output_offset)
+  #pragma omp parallel private(batch_input_offset, batch_output_offset) 
   {
     int tid = omp_get_thread_num();
 

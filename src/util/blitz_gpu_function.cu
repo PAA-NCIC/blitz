@@ -82,12 +82,14 @@ void BlitzGenerateNormal(curandGenerator_t* gen, double* data,
 }
 
 template<>
-void BlitzGenerateUniform(curandGenerator_t* gen, float* data, const int size) {
+void BlitzGenerateUniform(curandGenerator_t* gen,
+  float* data, const int size) {
   curandGenerateUniform(*gen, data, size);
 }
 
 template<>
-void BlitzGenerateUniform(curandGenerator_t* gen, double* data, const int size) {
+void BlitzGenerateUniform(curandGenerator_t* gen,
+  double* data, const int size) {
   curandGenerateUniformDouble(*gen, data, size);
 }
 

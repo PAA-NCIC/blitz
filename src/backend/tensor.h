@@ -66,7 +66,7 @@ class Tensor {
   virtual void Reshape() = 0;
   virtual DType* Slice(const size_t index) = 0;
   virtual const DType* Slice(const size_t index) const = 0;
-  virtual void OutputCSV(ofstream& ofs) const = 0;
+  virtual void OutputCSV(ofstream* ofs) const = 0;
 
  protected:
   virtual void Allocate() = 0;

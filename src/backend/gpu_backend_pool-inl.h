@@ -1,8 +1,6 @@
 #ifndef SRC_BACKEND_GPU_BACKEND_POOL_INL_H_
 #define SRC_BACKEND_GPU_BACKEND_POOL_INL_H_
 
-#include <cstdio>
-
 template<typename DType>
 __global__ void GPUMaxPoolingForward(const DType* input,
   const int size, const int channel,

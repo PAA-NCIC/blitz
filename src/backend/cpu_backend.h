@@ -4,12 +4,14 @@
 #include "backend/backend.h"
 
 #include <omp.h>
-#include <cmath>
-#include <string>
-#include <vector>
+
+#include <algorithm>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real.hpp>
+#include <cmath>
+#include <string>
+#include <vector>
 
 #include "backend/cpu_tensor.h"
 

@@ -58,15 +58,15 @@ inline void CPUTensor<DType>::Allocate() {
 }
 
 template<typename DType>
-inline void CPUTensor<DType>::OutputCSV(ofstream& ofs) const {
+inline void CPUTensor<DType>::OutputCSV(ofstream* ofs) const {
   size_t num_sample = this->shape_[0];
   size_t dim = this->size() / num_sample;
 
   for (size_t i = 0; i < num_sample; ++i) {
     for (size_t j = 0; j < dim; ++j) {
-      ofs << this->data_[i * dim + j] << ", " ;
+      (*ofs) << this->data_[i * dim + j] << ", ";
     }
-    ofs << std::endl;
+    (*ofs) << std::endl;
   }
 }
 

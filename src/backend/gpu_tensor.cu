@@ -47,7 +47,7 @@ inline void GPUTensor<DType>::Allocate() {
 }
 
 template<typename DType>
-inline void GPUTensor<DType>::OutputCSV(ofstream& ofs) const {
+inline void GPUTensor<DType>::OutputCSV(ofstream* ofs) const {
 }
 
 INSTANTIATE_TENSOR(GPUTensor);

@@ -1,10 +1,6 @@
 #ifndef SRC_BACKEND_CPU_BACKEND_COMMON_INL_H_
 #define SRC_BACKEND_CPU_BACKEND_COMMON_INL_H_
 
-#include <string>
-#include <algorithm>
-
-
 template<typename DType>
 void Backend<CPUTensor, DType>::RectlinApplyFunc(
   const CPUTensor<DType>* input,
@@ -24,7 +20,7 @@ void Backend<CPUTensor, DType>::RectlinApplyFunc(
     (*output)[i] = std::max((*input)[i], compare_value) +
       slope * std::min((*input)[i], compare_value);
   }
-  #pragma omp parallel for private(input_reg, output_reg, left_reg,\
+  #pragma omp parallel for private(input_reg, output_reg, left_reg, \
     right_reg)
   for (size_t i = remain; i < input->size(); i += avx_width) {
     BlitzAVXLoad<DType>(input->data() + i, &input_reg);
@@ -390,8 +386,9 @@ void Backend<CPUTensor, DType>::GradientdescentFunc(
     BlitzAVXLoad<DType>(velocity->data() + i, &velocity_reg);
     BlitzAVXLoad<DType>(weight->data() + i, &weight_reg);
     gradient_reg.v = gradient_reg.v / batch_size_reg.v;
-    velocity_reg.v = velocity_reg.v * momentum_coef_reg.v - learning_rate_reg.v *
-      (gradient_reg.v + decay_reg.v * weight_reg.v);
+    velocity_reg.v = velocity_reg.v * momentum_coef_reg.v -
+      learning_rate_reg.v * (gradient_reg.v + decay_reg.v *
+      weight_reg.v);
     weight_reg.v = weight_reg.v + velocity_reg.v;
     BlitzAVXStore<DType>(gradient->data() + i, &gradient_reg);
     BlitzAVXStore<DType>(velocity->data() + i, &velocity_reg);

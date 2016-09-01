@@ -51,7 +51,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     unpack_shape[0] = input_channel * filter_height * filter_width;
     unpack_shape[1] = output_height * output_width;
     this->unpack_ = make_shared<TensorType<DType> >(unpack_shape);
-  } 
+  }
 #ifndef BLITZ_CPU_ONLY
   else if (this->kernel_ == "cudnn") {
     // create val
@@ -102,9 +102,11 @@ void Conv<TensorType, DType>::ForwardPropImpl(
   if (this->kernel_ == "cudnn") {
     // start cudnn directly from the layer, not throught backend
     // because backend is a general engine
-    cudnnConvolutionForward(cudnn_handle_, (void*)cudnn_alpha_,
-      input_desc_, forward_input->data(), filter_desc_, (this->weight_)->data(),
-      conv_desc_, forward_algorithm_, NULL, 0, (void*)cudnn_beta_,
+    cudnnConvolutionForward(cudnn_handle_,
+      reinterpret_cast<void*>(cudnn_alpha_), input_desc_,
+      forward_input->data(), filter_desc_, (this->weight_)->data(),
+      conv_desc_, forward_algorithm_, NULL, 0,
+      reinterpret_cast<void*>(cudnn_beta_),
       output_desc_, (this->forward_output_)->data());
   } else {
     Backend<TensorType, DType>::Convolution2DForwardFunc(
@@ -126,10 +128,13 @@ void Conv<TensorType, DType>::BackwardPropImpl(
   if (this->backward_prop_) {
 #ifndef BLITZ_CPU_ONLY
     if (this->kernel_ == "cudnn") {
-      cudnnConvolutionBackwardData(cudnn_handle_, (void*)cudnn_alpha_,
-        filter_desc_, (this->weight_)->data(), output_desc_, backward_input->data(),
+      cudnnConvolutionBackwardData(cudnn_handle_,
+        reinterpret_cast<void*>(cudnn_alpha_),
+        filter_desc_, (this->weight_)->data(),
+        output_desc_, backward_input->data(),
         conv_desc_, backward_data_algorithm_, NULL, 0,
-        (void*)cudnn_beta_, input_desc_, (this->backward_output_)->data());
+        reinterpret_cast<void*>(cudnn_beta_), input_desc_,
+        (this->backward_output_)->data());
     } else {
       Backend<TensorType, DType>::Convolution2DBackwardFunc(
       backward_input.get(), (this->weight_).get(),
@@ -145,11 +150,13 @@ void Conv<TensorType, DType>::BackwardPropImpl(
   }
 #ifndef BLITZ_CPU_ONLY
   if (this->kernel_ == "cudnn") {
-    cudnnConvolutionBackwardFilter(cudnn_handle_, (void*)cudnn_alpha_,
+    cudnnConvolutionBackwardFilter(cudnn_handle_,
+      reinterpret_cast<void*>(cudnn_alpha_),
       input_desc_, (this->forward_input_)->data(),
       output_desc_, backward_input->data(),
       conv_desc_, backward_filter_algorithm_, NULL, 0,
-      (void*)cudnn_alpha_, filter_desc_, (this->update_)->data());
+      reinterpret_cast<void*>(cudnn_alpha_),
+      filter_desc_, (this->update_)->data());
   } else {
     Backend<TensorType, DType>::Convolution2DUpdateFunc(
       (this->forward_input_).get(), backward_input.get(),

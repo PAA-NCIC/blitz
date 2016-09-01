@@ -30,10 +30,9 @@ class CuBlasHandle {
 
   static void Create() {
     CuBlasHandle::instance_.reset(new cublasHandle_t());
-    cublasStatus_t stat = cublasCreate_v2(
-      CuBlasHandle::instance_.get());
+    cublasCreate_v2(CuBlasHandle::instance_.get());
   }
-  
+
   virtual ~CuBlasHandle();
 
  private:
@@ -83,7 +82,7 @@ template <typename DType>
 inline void setTensor4dDesc(cudnnTensorDescriptor_t* desc,
     int n, int c, int h, int w) {
   CUDNN_CHECK(cudnnSetTensor4dDescriptor(*desc,
-    CUDNN_TENSOR_NCHW, DataType<DType>::type, 
+    CUDNN_TENSOR_NCHW, DataType<DType>::type,
     n, c, h, w));
 }
 
@@ -111,7 +110,7 @@ inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
     pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CROSS_CORRELATION));
 }
 
-}
+}  // namespace cudnn
 
 // TODO(keren) put into header file
 template<typename DType>
