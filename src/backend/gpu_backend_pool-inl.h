@@ -62,7 +62,8 @@ void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
     channel, input_height, input_width,
     output_height, output_width,
     filter_height, filter_width,
-    stride_height, stride_width, max_index->data(), output->data());
+    stride_height, stride_width,
+    max_index->data(), output->data());
 }
 
 template<typename DType>

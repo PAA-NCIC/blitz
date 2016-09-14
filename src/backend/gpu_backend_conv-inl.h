@@ -30,12 +30,18 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   int dim_left = output_channel;
   int dim_right = output_height * output_width;
   int dim_common = input_channel * filter_height * filter_width;
+#ifdef BLITZ_DEVELOP
+  LOG(INFO) << "dim left: " << dim_left;
+  LOG(INFO) << "dim right: " << dim_right;
+  LOG(INFO) << "dim common: " << dim_common;
+#endif
 #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
-  time_point<system_clock> start, end;
-  duration<double> gemm_time =
-    duration<double>::zero();
-  duration<double> unpack_time =
-    duration<double>::zero();
+  cudaEvent_t start, stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  float gemm_time = 0;
+  float elapsed_time = 0;
+  float unpack_time = 0;
 #endif  // BLITZ_PERFORMANCE
 
   if (kernel == "asm_direct") {
@@ -47,7 +53,7 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   } else {
     for (int batch_index = 0; batch_index < batch_size; ++batch_index) {
 #ifdef BLITZ_PERFORMANCE
-      start = system_clock::now();
+      cudaEventRecord(start);
 #endif
       // unpack
       // (input_channel) *
@@ -61,12 +67,15 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
           padding_height, padding_width,
           stride_height, stride_width, unpack->data());
 #ifdef BLITZ_PERFORMANCE
-      end = system_clock::now();
-      unpack_time += end - start;
+      cudaEventRecord(stop);
+      cudaEventSynchronize(stop);
+      cudaEventElapsedTime(&elapsed_time, start, stop);
+      elapsed_time /= 1000.0;
+      unpack_time += elapsed_time;
 #endif
 
 #ifdef BLITZ_PERFORMANCE
-      start = system_clock::now();
+      cudaEventRecord(start);
 #endif
       // gemm generate
       // (output_channel) * (output_height * output_width)
@@ -82,8 +91,11 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
             static_cast<DType>(1), static_cast<DType>(0));
       }
 #ifdef BLITZ_PERFORMANCE
-      end = system_clock::now();
-      gemm_time += end - start;
+      cudaEventRecord(stop);
+      cudaEventSynchronize(stop);
+      cudaEventElapsedTime(&elapsed_time, start, stop);
+      elapsed_time /= 1000.0;
+      gemm_time += elapsed_time;
 #endif
 
       batch_input_offset += input_channel * input_height * input_width;
@@ -92,8 +104,8 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   }
 
 #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Forward convolution gemm: " << gemm_time.count();
-  LOG(INFO) << "Forward convolution unpack: " << unpack_time.count();
+  LOG(INFO) << "Forward convolution gemm: " << gemm_time;
+  LOG(INFO) << "Forward convolution unpack: " << unpack_time;
 #endif  // BLITZ_PERFORMANCE
 }
 
@@ -126,11 +138,19 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   int dim_left = output_height * output_width;
   int dim_right = input_channel * filter_height * filter_width;
   int dim_common = output_channel;
+#ifdef BLITZ_DEVELOP
+  LOG(INFO) << "dim left: " << dim_left;
+  LOG(INFO) << "dim right: " << dim_right;
+  LOG(INFO) << "dim common: " << dim_common;
+#endif
   input->Fill(0);
-  #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
-  time_point<system_clock> start, end;
-  duration<double> gemm_time = duration<double>::zero();
-  duration<double> pack_time = duration<double>::zero();
+  #ifdef BLITZ_PERFORMANCE
+  cudaEvent_t start, stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  float gemm_time = 0;
+  float elapsed_time = 0;
+  float pack_time = 0;
   #endif  // BLITZ_PERFORMANCE
 
   if (kernel == "asm_direct") {
@@ -142,7 +162,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   } else {
     for (int batch_index = 0; batch_index < batch_size; ++batch_index) {
       #ifdef BLITZ_PERFORMANCE
-      start = system_clock::now();
+      cudaEventRecord(start);
       #endif
       // gemm generate
       // (output_width * output_height) *
@@ -159,12 +179,15 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
         pack->data(), static_cast<DType>(1), static_cast<DType>(0));
       }
       #ifdef BLITZ_PERFORMANCE
-      end = system_clock::now();
-      gemm_time += end - start;
+      cudaEventRecord(stop);
+      cudaEventSynchronize(stop);
+      cudaEventElapsedTime(&elapsed_time, start, stop);
+      elapsed_time /= 1000.0;
+      gemm_time += elapsed_time;
       #endif
 
       #ifdef BLITZ_PERFORMANCE
-      start = system_clock::now();
+      cudaEventRecord(start);
       #endif
       // pack
       // (output_width * output_height)
@@ -177,8 +200,11 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
         padding_height, padding_width, stride_height, stride_width,
         input->Slice(batch_input_offset));
       #ifdef BLITZ_PERFORMANCE
-      end = system_clock::now();
-      pack_time += end - start;
+      cudaEventRecord(stop);
+      cudaEventSynchronize(stop);
+      cudaEventElapsedTime(&elapsed_time, start, stop);
+      elapsed_time /= 1000.0;
+      pack_time += elapsed_time;
       #endif
       batch_input_offset += input_channel * input_height * input_width;
       batch_output_offset += output_channel * output_height * output_width;
@@ -186,8 +212,8 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   }
 
   #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Backward convolution gemm: " << gemm_time.count();
-  LOG(INFO) << "Backward convolution pack: " << pack_time.count();
+  LOG(INFO) << "Backward convolution gemm: " << gemm_time;
+  LOG(INFO) << "Backward convolution pack: " << pack_time;
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -220,10 +246,18 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   int dim_left = output_channel;
   int dim_right = input_channel * filter_height * filter_width;
   int dim_common = output_height * output_width;
+#ifdef BLITZ_DEVELOP
+  LOG(INFO) << "dim left: " << dim_left;
+  LOG(INFO) << "dim right: " << dim_right;
+  LOG(INFO) << "dim common: " << dim_common;
+#endif
   #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
-  time_point<system_clock> start, end;
-  duration<double> gemm_time = duration<double>::zero();
-  duration<double> unpack_time = duration<double>::zero();
+  cudaEvent_t start, stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  float gemm_time = 0;
+  float elapsed_time = 0;
+  float unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
 
   if (kernel == "asm_direct") {
@@ -241,7 +275,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   } else {
     for (int batch_index = 0; batch_index < batch_size; ++batch_index) {
       #ifdef BLITZ_PERFORMANCE
-      start = system_clock::now();
+      cudaEventRecord(start);
       #endif
       // unpack
       // (input_channel) *
@@ -256,12 +290,15 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
         padding_height, padding_width,
         stride_height, stride_width, unpack->data());
       #ifdef BLITZ_PERFORMANCE
-      end = system_clock::now();
-      unpack_time += end - start;
+      cudaEventRecord(stop);
+      cudaEventSynchronize(stop);
+      cudaEventElapsedTime(&elapsed_time, start, stop);
+      elapsed_time /= 1000.0;
+      unpack_time += elapsed_time;
       #endif
 
       #ifdef BLITZ_PERFORMANCE
-      start = system_clock::now();
+      cudaEventRecord(start);
       #endif
       // gemm generate
       // (output_channel) *
@@ -280,15 +317,18 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       batch_input_offset += input_channel * input_height * input_width;
       batch_output_offset += output_channel * output_height * output_width;
       #ifdef BLITZ_PERFORMANCE
-      end = system_clock::now();
-      gemm_time += end - start;
+      cudaEventRecord(stop);
+      cudaEventSynchronize(stop);
+      cudaEventElapsedTime(&elapsed_time, start, stop);
+      elapsed_time /= 1000.0;
+      gemm_time += elapsed_time;
       #endif
     }
   }
 
   #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Backward convolution filter gemm: " << gemm_time.count();
-  LOG(INFO) << "Backward convolution filter unpack: " << unpack_time.count();
+  LOG(INFO) << "Backward convolution filter gemm: " << gemm_time;
+  LOG(INFO) << "Backward convolution filter unpack: " << unpack_time;
   #endif  // BLITZ_PERFORMANCE
 }
 

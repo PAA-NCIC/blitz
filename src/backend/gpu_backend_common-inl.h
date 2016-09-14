@@ -50,14 +50,39 @@ void Backend<GPUTensor, DType>::RectlinDerivativeFunc(
 }
 
 template<typename DType>
+__global__ void GPUSoftmaxApply(const DType* input,
+  const int num_sample, const int dim, DType* output) {
+  BLITZ_CUDA_LOOP(i, num_sample) {
+    DType sum = 0; 
+    for (size_t j = 0; j < dim; ++j) {
+      size_t index = i * dim + j;
+      output[index] = exp(input[index]);
+      sum += output[index];
+    }
+    for (size_t j = 0; j < dim; ++j) {
+      output[i * dim + j] /= sum;
+    }
+  }
+}
+
+template<typename DType>
 void Backend<GPUTensor, DType>::SoftmaxApplyFunc(
   const GPUTensor<DType>* input,
-  GPUTensor<DType>* output) {}
+  GPUTensor<DType>* output) {
+  CHECK_EQ(input->size(), output->size());
+  size_t num_sample = input->shape()[0];
+  size_t dim = input->size() / num_sample;
+  GPUSoftmaxApply<DType><<<BlitzGPUGetBlocks(num_sample),
+    BLITZ_NUM_GPU_THREADS>>>(input->data(), num_sample, dim,
+    output->data());
+}
 
 template<typename DType>
 void Backend<GPUTensor, DType>::SoftmaxDerivativeFunc(
   const GPUTensor<DType>* input,
-  GPUTensor<DType>* output) {}
+  GPUTensor<DType>* output) {
+  // TODO(keren) not short cut version
+}
 
 template<typename DType>
 DType Backend<GPUTensor, DType>::SquareMeanApplyFunc(
@@ -111,7 +136,7 @@ void Backend<GPUTensor, DType>::LogisticDerivativeFunc(
 }
 
 template<typename DType>
-__global__ void GPUCrossEntropyBinary(const DType* input,
+__global__ void GPUCrossEntropyBinaryApply(const DType* input,
   const DType* target, const int size, DType* sum) {
   BLITZ_CUDA_LOOP(i, size) {
     DType safe_input = BlitzGPUSafeLog(input[i]);
@@ -125,7 +150,7 @@ template<typename DType>
 DType Backend<GPUTensor, DType>::CrossEntropyBinaryApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   GPUTensor<DType> sum(input->shape());
-  GPUCrossEntropyBinary<DType><<<BlitzGPUGetBlocks(input->size()),
+  GPUCrossEntropyBinaryApply<DType><<<BlitzGPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), target->data(),
     input->size(), sum.data());
   thrust::device_ptr<DType> sptr = thrust::device_pointer_cast(sum.data());
@@ -141,30 +166,74 @@ void Backend<GPUTensor, DType>::CrossEntropyBinaryDerivativeFunc(
 }
 
 template<typename DType>
+__global__ void GPUCrossEntropyMultiApply(const DType* input,
+  const DType* target, const int size, DType* sum) {
+  BLITZ_CUDA_LOOP(i, size) {
+    sum[i] = BlitzGPUSafeLog(input[i]) * target[i];
+  }
+}
+
+template<typename DType>
 DType Backend<GPUTensor, DType>::CrossEntropyMultiApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   const Shape& input_shape = input->shape();
   const Shape& target_shape = target->shape();
-  // softmax loss
-  return 0;
+  GPUTensor<DType> sum(input->shape());
+  GPUCrossEntropyMultiApply<DType><<<BlitzGPUGetBlocks(input->size()),
+    BLITZ_NUM_GPU_THREADS>>>(input->data(), target->data(),
+    input->size(), sum.data());
+  thrust::device_ptr<DType> sptr = thrust::device_pointer_cast(sum.data());
+  DType loss = thrust::reduce(sptr, sptr + sum.size());
+  return loss / input->shape()[0];
 }
 
 template<typename DType>
 void Backend<GPUTensor, DType>::CrossEntropyMultiDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {
+  //MinusFunc(input, target, output);
+}
+
+template<typename DType>
+__global__ void GPUBiasForward(const DType* input,
+  const DType* bias, const int num_sample, const int size,
+  DType* output) {
+  BLITZ_CUDA_LOOP(i, size) {
+    const int dim_index = size % num_sample;
+    output[i] = input[i] + bias[dim_index];
+  }
 }
 
 template<typename DType>
 void Backend<GPUTensor, DType>::BiasForwardFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* bias,
   GPUTensor<DType>* output) {
+  CHECK_EQ(input->size(), output->size());
+  size_t num_sample = input->shape()[0];
+  GPUBiasForward<DType><<<BlitzGPUGetBlocks(input->size()),
+    BLITZ_NUM_GPU_THREADS>>>(input->data(), bias->data(),
+    num_sample, input->size(), output->data());
+}
+
+template<typename DType>
+__global__ void GPUBiasBackwardUpdate(const DType* input,
+  const int num_sample, const int dim, DType* update) {
+  BLITZ_CUDA_LOOP(i, dim) {
+    for (size_t j = 0; j < num_sample; ++j) {
+      update[i] += input[j * dim + i];
+    }
+  }
 }
 
 template<typename DType>
 void Backend<GPUTensor, DType>::BiasBackwardUpdateFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* update) {
+  size_t num_sample = input->shape()[0];
+  size_t dim = input->size() / input->shape()[0];
+  GPUBiasBackwardUpdate<DType><<<BlitzGPUGetBlocks(num_sample),
+    BLITZ_NUM_GPU_THREADS>>>(input->data(), num_sample, dim,
+    update->data());
 }
 
 template<typename DType>
@@ -229,6 +298,9 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
   int dim_common_right = gpu_transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
+  CHECK_NE(dim_left, 0);
+  CHECK_NE(dim_common_right, 0);
+  CHECK_NE(dim_right, 0);
 #ifdef BLITZ_DEVELOP
   LOG(INFO) << "dim left: " << dim_left;
   LOG(INFO) << "dim common: " << dim_common_left;
@@ -259,22 +331,19 @@ void Backend<GPUTensor, DType>::MaximumFunc(
   GPUTensor<DType>* output) {}
 
 template<typename DType>
-__global__ void GPUMinus(const DType* left,
-  const DType* right, const int size, DType* output) {
-  BLITZ_CUDA_LOOP(index, size) {
-    output[index] = left[index] - right[index];
-  }
-}
-
-template<typename DType>
 void Backend<GPUTensor, DType>::MinusFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
   CHECK_EQ(right->size(), output->size());
-  GPUMinus<DType><<<BlitzGPUGetBlocks(left->size()),
-    BLITZ_NUM_GPU_THREADS>>>(left->data(), right->data(),
-    left->size(), output->data());
+  thrust::device_ptr<DType> lptr = thrust::device_pointer_cast(
+    const_cast<DType*>(left->data()));
+  thrust::device_ptr<DType> rptr = thrust::device_pointer_cast(
+    const_cast<DType*>(right->data()));
+  thrust::device_ptr<DType> optr = thrust::device_pointer_cast(
+    output->data());
+  thrust::transform(lptr, lptr + left->size(),
+    rptr, optr, thrust::minus<DType>()); 
 }
 
 template<typename DType>
@@ -286,7 +355,9 @@ void Backend<GPUTensor, DType>::MinusFunc(
 template<typename DType>
 DType Backend<GPUTensor, DType>::SumFunc(
   const GPUTensor<DType>* input) {
-  return 0;
+  thrust::device_ptr<DType> ptr = thrust::device_pointer_cast(
+    const_cast<DType*>(input->data()));
+  return thrust::reduce(ptr, ptr + input->size());
 }
 
 template<typename DType>
@@ -297,7 +368,18 @@ void Backend<GPUTensor, DType>::AddFunc(
 template<typename DType>
 void Backend<GPUTensor, DType>::MultiplyFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
-  GPUTensor<DType>* output) {}
+  GPUTensor<DType>* output) {
+  CHECK_EQ(left->size(), right->size());
+  CHECK_EQ(right->size(), output->size());
+  thrust::device_ptr<DType> lptr = thrust::device_pointer_cast(
+    const_cast<DType*>(left->data()));
+  thrust::device_ptr<DType> rptr = thrust::device_pointer_cast(
+    const_cast<DType*>(right->data()));
+  thrust::device_ptr<DType> optr = thrust::device_pointer_cast(
+    output->data());
+  thrust::transform(lptr, lptr + left->size(),
+    rptr, optr, thrust::multiplies<DType>()); 
+}
 
 template<typename DType>
 void Backend<GPUTensor, DType>::MultiplyFunc(
@@ -305,9 +387,25 @@ void Backend<GPUTensor, DType>::MultiplyFunc(
   GPUTensor<DType>* output) {}
 
 template<typename DType>
+__global__ void GPUMakeBinaryMask(const int size,
+  const DType keep, DType* output) {
+  BLITZ_CUDA_LOOP(i, size) {
+    if (output[i] < keep) {
+      output[i] = DType(1);
+    } else {
+      output[i] = DType(0);
+    }
+  }
+}
+
+template<typename DType>
 void Backend<GPUTensor, DType>::MakeBinaryMaskFunc(
   const DType low, const DType high,
-  const DType keep, GPUTensor<DType>* output) {}
+  const DType keep, GPUTensor<DType>* output) {
+  UniformDistributionFunc(low, high, output);
+  GPUMakeBinaryMask<DType><<<BlitzGPUGetBlocks(output->size()),
+    BLITZ_NUM_GPU_THREADS>>>(output->size(), keep, output->data());
+}
 
 template<typename DType>
 void Backend<GPUTensor, DType>::ConstantDistributionFunc(
@@ -355,7 +453,7 @@ void Backend<GPUTensor, DType>::HostCopyToFunc(
 }
 
 template<typename DType>
-__global__ void GPUEvaluate(const DType* output, const DType* target,
+__global__ void GPUEvaluateClass(const DType* output, const DType* target,
   const int dim, const int size, DType* correct) {
   BLITZ_CUDA_LOOP(i, size) {
     DType max = output[i * dim];
@@ -387,7 +485,7 @@ float Backend<GPUTensor, DType>::EvaluateClassifyFunc(
   Shape shape(1);
   shape[0] = batch_size;
   GPUTensor<DType> correct(shape);
-  GPUEvaluate<DType><<<BlitzGPUGetBlocks(batch_size),
+  GPUEvaluateClass<DType><<<BlitzGPUGetBlocks(batch_size),
     BLITZ_NUM_GPU_THREADS>>>(output->data(), target->data(),
     dim, batch_size, correct.data());
   thrust::device_ptr<DType> rptr =

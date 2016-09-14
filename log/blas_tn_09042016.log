@@ -1,0 +1,245 @@
+start
+left transpose start
+GPU running time: 0.121313
+CPU running time: 0.005296
+left transpose start
+GPU running time: 7.4e-05
+CPU running time: 0.001248
+left transpose start
+GPU running time: 0.000114
+CPU running time: 0.001486
+left transpose start
+GPU running time: 0.000221
+CPU running time: 0.001871
+left transpose start
+GPU running time: 0.000264
+CPU running time: 0.002782
+left transpose start
+GPU running time: 0.000562
+CPU running time: 0.003344
+left transpose start
+GPU running time: 0.000662
+CPU running time: 0.004622
+left transpose start
+GPU running time: 0.001166
+CPU running time: 0.00579
+left transpose start
+GPU running time: 0.001457
+CPU running time: 0.007687
+left transpose start
+GPU running time: 0.00198
+CPU running time: 0.009414
+left transpose start
+GPU running time: 0.002463
+CPU running time: 0.011938
+left transpose start
+GPU running time: 0.003102
+CPU running time: 0.015067
+left transpose start
+GPU running time: 0.003873
+CPU running time: 0.01843
+left transpose start
+GPU running time: 0.00482
+CPU running time: 0.022205
+left transpose start
+GPU running time: 0.005711
+CPU running time: 0.027112
+left transpose start
+GPU running time: 0.007064
+CPU running time: 0.059803
+left transpose start
+GPU running time: 0.008361
+CPU running time: 0.623581
+left transpose start
+GPU running time: 0.010126
+CPU running time: 0.089384
+left transpose start
+GPU running time: 0.01163
+CPU running time: 0.104856
+left transpose start
+GPU running time: 0.013228
+CPU running time: 0.121967
+left transpose start
+GPU running time: 0.015463
+CPU running time: 0.140114
+left transpose start
+GPU running time: 0.017701
+CPU running time: 0.081785
+left transpose start
+GPU running time: 0.019924
+CPU running time: 0.093388
+left transpose start
+GPU running time: 0.022532
+CPU running time: 0.204643
+left transpose start
+GPU running time: 0.025711
+CPU running time: 0.23053
+left transpose start
+GPU running time: 0.028205
+CPU running time: 0.227261
+left transpose start
+GPU running time: 0.031984
+CPU running time: 0.150201
+left transpose start
+GPU running time: 0.035549
+CPU running time: 0.166764
+left transpose start
+GPU running time: 0.039484
+CPU running time: 0.185358
+left transpose start
+GPU running time: 0.044412
+CPU running time: 0.203478
+index: 2540087 gpu: 281.484 cpu: 281.483
+left transpose start
+GPU running time: 0.047857
+CPU running time: 0.225293
+index: 8615747 gpu: 299.973 cpu: 299.974
+left transpose start
+GPU running time: 0.052055
+CPU running time: 0.244602
+left transpose start
+GPU running time: 0.057332
+CPU running time: 0.270741
+index: 3746512 gpu: 300.575 cpu: 300.574
+index: 7818021 gpu: -221.535 cpu: -221.533
+index: 17672114 gpu: 155.524 cpu: 155.525
+left transpose start
+GPU running time: 0.06273
+CPU running time: 0.293585
+index: 265738 gpu: 320.459 cpu: 320.46
+index: 2704036 gpu: 253.448 cpu: 253.447
+index: 2997381 gpu: -294.3 cpu: -294.299
+index: 3497633 gpu: 224.112 cpu: 224.111
+index: 9019443 gpu: -178.586 cpu: -178.585
+index: 13911293 gpu: 334.695 cpu: 334.694
+left transpose start
+GPU running time: 0.06871
+CPU running time: 0.320924
+index: 5910226 gpu: 343.777 cpu: 343.776
+index: 11478279 gpu: -136.681 cpu: -136.68
+index: 12135304 gpu: 158.631 cpu: 158.63
+index: 14388152 gpu: 168.158 cpu: 168.159
+left transpose start
+GPU running time: 0.074993
+CPU running time: 0.348475
+index: 6852185 gpu: -301.274 cpu: -301.273
+index: 7850957 gpu: 253.169 cpu: 253.168
+index: 9111477 gpu: -281.486 cpu: -281.487
+index: 10441111 gpu: 179.584 cpu: 179.585
+index: 14302031 gpu: -155.965 cpu: -155.966
+index: 15421695 gpu: 307.174 cpu: 307.175
+index: 15632746 gpu: 236.645 cpu: 236.646
+index: 17697800 gpu: 158.246 cpu: 158.245
+index: 19872393 gpu: -351.469 cpu: -351.468
+left transpose start
+GPU running time: 0.080939
+CPU running time: 0.37709
+index: 1779865 gpu: -320.911 cpu: -320.912
+index: 2919201 gpu: 237.346 cpu: 237.345
+index: 4637499 gpu: 306.539 cpu: 306.54
+index: 6432568 gpu: 240.236 cpu: 240.237
+index: 6605511 gpu: -281.908 cpu: -281.909
+index: 6943989 gpu: -252.425 cpu: -252.424
+index: 8241070 gpu: 227.599 cpu: 227.598
+index: 10520954 gpu: 223.178 cpu: 223.18
+index: 11025015 gpu: 226.694 cpu: 226.695
+index: 13947076 gpu: -237.576 cpu: -237.577
+index: 14604693 gpu: -260.975 cpu: -260.976
+index: 15033602 gpu: 291.16 cpu: 291.161
+index: 18467935 gpu: 302.287 cpu: 302.286
+index: 19722443 gpu: -166.576 cpu: -166.575
+index: 20387383 gpu: -225.143 cpu: -225.142
+index: 21835466 gpu: -260.669 cpu: -260.668
+index: 22086938 gpu: 129.04 cpu: 129.041
+left transpose start
+GPU running time: 0.086991
+CPU running time: 0.406933
+index: 774958 gpu: 133.833 cpu: 133.834
+index: 1057433 gpu: -208.776 cpu: -208.777
+index: 3837086 gpu: -276.689 cpu: -276.688
+index: 4296421 gpu: 126.118 cpu: 126.117
+index: 6099772 gpu: 166.216 cpu: 166.215
+index: 7005804 gpu: -151.079 cpu: -151.08
+index: 7350947 gpu: -270.024 cpu: -270.023
+index: 7566956 gpu: 170.768 cpu: 170.769
+index: 10558614 gpu: 272.861 cpu: 272.86
+index: 12358756 gpu: 322.984 cpu: 322.986
+index: 13617244 gpu: -179.774 cpu: -179.773
+index: 14845720 gpu: -276.554 cpu: -276.555
+index: 15613824 gpu: 197.334 cpu: 197.333
+index: 19896269 gpu: -281.49 cpu: -281.489
+index: 20085075 gpu: 320.925 cpu: 320.924
+index: 23470244 gpu: 251.855 cpu: 251.856
+left transpose start
+GPU running time: 0.093626
+CPU running time: 0.440562
+index: 98258 gpu: 170.175 cpu: 170.174
+index: 1463579 gpu: 225.756 cpu: 225.757
+index: 2085823 gpu: 280.262 cpu: 280.263
+index: 3988512 gpu: 244.622 cpu: 244.621
+index: 4550710 gpu: 202.123 cpu: 202.122
+index: 5329669 gpu: 296.729 cpu: 296.73
+index: 5347906 gpu: -134.864 cpu: -134.865
+index: 5864084 gpu: -274.713 cpu: -274.712
+index: 6253160 gpu: -299.835 cpu: -299.836
+index: 6466745 gpu: 192.849 cpu: 192.848
+index: 6547959 gpu: -273.711 cpu: -273.712
+index: 7357447 gpu: 297.211 cpu: 297.21
+index: 7827963 gpu: 207.247 cpu: 207.248
+index: 16053356 gpu: -304.96 cpu: -304.959
+index: 16734528 gpu: 296.632 cpu: 296.633
+index: 20395508 gpu: -163.466 cpu: -163.468
+index: 21651302 gpu: 285.108 cpu: 285.109
+index: 22006199 gpu: 172.527 cpu: 172.526
+index: 22423416 gpu: -295.782 cpu: -295.783
+index: 22497449 gpu: -139.989 cpu: -139.988
+index: 23642691 gpu: -344.877 cpu: -344.876
+index: 23938555 gpu: -159.811 cpu: -159.812
+index: 24357940 gpu: -263.096 cpu: -263.097
+left transpose start
+GPU running time: 0.101332
+CPU running time: 0.479455
+index: 660910 gpu: -293.517 cpu: -293.516
+index: 1074210 gpu: -254.796 cpu: -254.795
+index: 1152360 gpu: -266.848 cpu: -266.85
+index: 1326508 gpu: 268.641 cpu: 268.64
+index: 2381988 gpu: -284.006 cpu: -284.005
+index: 3239165 gpu: -245.338 cpu: -245.339
+index: 3704079 gpu: 255.882 cpu: 255.883
+index: 3835082 gpu: 264.879 cpu: 264.88
+index: 3885767 gpu: -100.915 cpu: -100.914
+index: 4225361 gpu: 237.826 cpu: 237.827
+index: 4502244 gpu: -234.457 cpu: -234.455
+index: 5159598 gpu: -253.017 cpu: -253.018
+index: 5210499 gpu: 366.116 cpu: 366.117
+index: 5287371 gpu: 323.65 cpu: 323.651
+index: 5417315 gpu: 253.555 cpu: 253.554
+index: 6903912 gpu: -185.303 cpu: -185.304
+index: 7227877 gpu: 285.831 cpu: 285.83
+index: 7378759 gpu: 229.026 cpu: 229.027
+index: 8355596 gpu: 240.497 cpu: 240.496
+index: 8511302 gpu: -277.296 cpu: -277.297
+index: 9354470 gpu: 262.771 cpu: 262.772
+index: 10130635 gpu: 266.59 cpu: 266.589
+index: 10725800 gpu: 267.317 cpu: 267.318
+index: 14154633 gpu: 130.978 cpu: 130.979
+index: 14397230 gpu: 116.155 cpu: 116.156
+index: 15009252 gpu: -188.23 cpu: -188.229
+index: 15114647 gpu: 275.358 cpu: 275.357
+index: 15791486 gpu: 231.782 cpu: 231.783
+index: 16044204 gpu: -270.693 cpu: -270.692
+index: 16222204 gpu: -269.911 cpu: -269.91
+index: 17172662 gpu: 266.148 cpu: 266.149
+index: 17667117 gpu: -173.496 cpu: -173.495
+index: 19202331 gpu: -278.073 cpu: -278.072
+index: 19303695 gpu: 273.305 cpu: 273.303
+index: 19660782 gpu: -315.103 cpu: -315.104
+index: 22408233 gpu: 275.01 cpu: 275.011
+index: 23060518 gpu: -263.254 cpu: -263.253
+index: 23070842 gpu: -283.893 cpu: -283.894
+index: 24338400 gpu: -259.461 cpu: -259.462
+index: 24443997 gpu: 180.45 cpu: 180.451
+index: 24530414 gpu: -195.39 cpu: -195.389
+index: 24750536 gpu: 270.448 cpu: 270.447
+index: 25097394 gpu: 165.318 cpu: 165.317
+end

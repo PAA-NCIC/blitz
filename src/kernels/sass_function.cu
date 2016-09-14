@@ -37,7 +37,7 @@ void BlitzSassGemm(const bool transa, const bool transb,
   } else if (transa == false && transb == true) {
     lda = K;
     ldb = K;
-    if (K % 16 == 0) {
+    if (K % 4 == 0) {
       kernel = "sgemm_nt_128x128_vec";
     } else {
       kernel = "sgemm_nt_128x128";
@@ -45,7 +45,7 @@ void BlitzSassGemm(const bool transa, const bool transb,
   } else if (transa == false && transb == false) {
     lda = K;
     ldb = N * 32;
-    if (K % 16 == 0 && N % 4 == 0) {
+    if (K % 4 == 0 && N % 4 == 0) {
       kernel = "sgemm_nn_128x128_vec";
     } else {
       kernel = "sgemm_nn_128x128";

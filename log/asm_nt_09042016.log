@@ -1,0 +1,341 @@
+start
+right transpose start
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0903 21:10:07.420228 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.420384 11154 sass_function.cu:65] Load kernel time: 0.000765728
+I0903 21:10:07.420554 11154 sass_function.cu:88] Compute time: 7.7504e-05
+GPU running time: 0.00125412
+CPU running time: 0.00539186
+right transpose start
+I0903 21:10:07.449618 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.449641 11154 sass_function.cu:65] Load kernel time: 2.176e-06
+I0903 21:10:07.449821 11154 sass_function.cu:88] Compute time: 8.6528e-05
+GPU running time: 0.000445069
+CPU running time: 0.00139703
+right transpose start
+I0903 21:10:07.475900 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.475922 11154 sass_function.cu:65] Load kernel time: 3.488e-06
+I0903 21:10:07.476126 11154 sass_function.cu:88] Compute time: 0.000112416
+GPU running time: 0.000360067
+CPU running time: 0.00144402
+right transpose start
+I0903 21:10:07.504158 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.504179 11154 sass_function.cu:65] Load kernel time: 2.112e-06
+I0903 21:10:07.504518 11154 sass_function.cu:88] Compute time: 0.000247584
+GPU running time: 0.000413017
+CPU running time: 0.00195539
+right transpose start
+I0903 21:10:07.536362 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.536382 11154 sass_function.cu:65] Load kernel time: 2.336e-06
+I0903 21:10:07.536767 11154 sass_function.cu:88] Compute time: 0.000302464
+GPU running time: 0.00045835
+CPU running time: 0.00321602
+right transpose start
+I0903 21:10:07.572810 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.572832 11154 sass_function.cu:65] Load kernel time: 1.984e-06
+I0903 21:10:07.573431 11154 sass_function.cu:88] Compute time: 0.000515424
+GPU running time: 0.000676011
+CPU running time: 0.0044167
+right transpose start
+I0903 21:10:07.613271 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.613296 11154 sass_function.cu:65] Load kernel time: 3.552e-06
+I0903 21:10:07.614168 11154 sass_function.cu:88] Compute time: 0.000788704
+GPU running time: 0.000954751
+CPU running time: 0.00631267
+right transpose start
+I0903 21:10:07.658702 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.658730 11154 sass_function.cu:65] Load kernel time: 3.648e-06
+I0903 21:10:07.659903 11154 sass_function.cu:88] Compute time: 0.00108566
+GPU running time: 0.00125802
+CPU running time: 0.00879025
+right transpose start
+I0903 21:10:07.710191 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.710222 11154 sass_function.cu:65] Load kernel time: 4.096e-06
+I0903 21:10:07.712064 11154 sass_function.cu:88] Compute time: 0.00175949
+GPU running time: 0.00196851
+CPU running time: 0.0120882
+right transpose start
+I0903 21:10:07.769704 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.769744 11154 sass_function.cu:65] Load kernel time: 5.12e-06
+I0903 21:10:07.772001 11154 sass_function.cu:88] Compute time: 0.00216736
+GPU running time: 0.00243541
+CPU running time: 0.015785
+right transpose start
+I0903 21:10:07.837528 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.837566 11154 sass_function.cu:65] Load kernel time: 5.6e-06
+I0903 21:10:07.840764 11154 sass_function.cu:88] Compute time: 0.00313987
+GPU running time: 0.0033279
+CPU running time: 0.0207113
+right transpose start
+I0903 21:10:07.915369 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.915406 11154 sass_function.cu:65] Load kernel time: 5.536e-06
+I0903 21:10:07.919764 11154 sass_function.cu:88] Compute time: 0.0042953
+GPU running time: 0.00445308
+CPU running time: 0.0145845
+right transpose start
+I0903 21:10:07.993306 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:07.993346 11154 sass_function.cu:65] Load kernel time: 5.248e-06
+I0903 21:10:07.998224 11154 sass_function.cu:88] Compute time: 0.00480355
+GPU running time: 0.00497528
+CPU running time: 0.0181604
+right transpose start
+I0903 21:10:08.080673 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:08.080713 11154 sass_function.cu:65] Load kernel time: 5.664e-06
+I0903 21:10:08.087620 11154 sass_function.cu:88] Compute time: 0.00683059
+GPU running time: 0.00715513
+CPU running time: 0.0222894
+right transpose start
+I0903 21:10:08.179626 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:08.179664 11154 sass_function.cu:65] Load kernel time: 5.12e-06
+I0903 21:10:08.187749 11154 sass_function.cu:88] Compute time: 0.00801405
+GPU running time: 0.00833404
+CPU running time: 0.0276504
+right transpose start
+I0903 21:10:08.291399 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:08.291437 11154 sass_function.cu:65] Load kernel time: 5.344e-06
+I0903 21:10:08.299787 11154 sass_function.cu:88] Compute time: 0.00827872
+GPU running time: 0.00858761
+CPU running time: 0.0338416
+right transpose start
+I0903 21:10:08.416384 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:08.416424 11154 sass_function.cu:65] Load kernel time: 5.92e-06
+I0903 21:10:08.428076 11154 sass_function.cu:88] Compute time: 0.011581
+GPU running time: 0.0119062
+CPU running time: 0.607214
+right transpose start
+I0903 21:10:09.125370 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:09.125413 11154 sass_function.cu:65] Load kernel time: 5.152e-06
+I0903 21:10:09.139353 11154 sass_function.cu:88] Compute time: 0.0138372
+GPU running time: 0.0142528
+CPU running time: 0.0480778
+right transpose start
+I0903 21:10:09.285370 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:09.285413 11154 sass_function.cu:65] Load kernel time: 5.568e-06
+I0903 21:10:09.300580 11154 sass_function.cu:88] Compute time: 0.0150614
+GPU running time: 0.0152814
+CPU running time: 0.102458
+right transpose start
+I0903 21:10:09.509887 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:09.509919 11154 sass_function.cu:65] Load kernel time: 1.92e-06
+I0903 21:10:09.528602 11154 sass_function.cu:88] Compute time: 0.0184699
+GPU running time: 0.019269
+CPU running time: 0.118469
+right transpose start
+I0903 21:10:09.762153 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:09.762195 11154 sass_function.cu:65] Load kernel time: 1.984e-06
+I0903 21:10:09.784673 11154 sass_function.cu:88] Compute time: 0.0222651
+GPU running time: 0.0230063
+CPU running time: 0.137824
+right transpose start
+I0903 21:10:10.046036 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:10.046075 11154 sass_function.cu:65] Load kernel time: 1.92e-06
+I0903 21:10:10.071009 11154 sass_function.cu:88] Compute time: 0.0246717
+GPU running time: 0.0254441
+CPU running time: 0.0835893
+right transpose start
+I0903 21:10:10.287971 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:10.288014 11154 sass_function.cu:65] Load kernel time: 1.952e-06
+I0903 21:10:10.314925 11154 sass_function.cu:88] Compute time: 0.0266495
+GPU running time: 0.0276623
+CPU running time: 0.0959123
+right transpose start
+I0903 21:10:10.553604 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:10.553649 11154 sass_function.cu:65] Load kernel time: 1.952e-06
+I0903 21:10:10.587322 11154 sass_function.cu:88] Compute time: 0.0334019
+GPU running time: 0.0342076
+CPU running time: 0.109275
+right transpose start
+I0903 21:10:10.850237 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:10.850284 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:10.885633 11154 sass_function.cu:88] Compute time: 0.0350825
+GPU running time: 0.036017
+CPU running time: 0.1219
+right transpose start
+I0903 21:10:11.172276 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:11.172323 11154 sass_function.cu:65] Load kernel time: 2.112e-06
+I0903 21:10:11.210522 11154 sass_function.cu:88] Compute time: 0.0379165
+GPU running time: 0.0387702
+CPU running time: 0.13558
+right transpose start
+I0903 21:10:11.521976 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:11.522022 11154 sass_function.cu:65] Load kernel time: 2.112e-06
+I0903 21:10:11.568610 11154 sass_function.cu:88] Compute time: 0.0463136
+GPU running time: 0.0471535
+CPU running time: 0.151686
+right transpose start
+I0903 21:10:11.908517 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:11.908565 11154 sass_function.cu:65] Load kernel time: 2.112e-06
+I0903 21:10:11.962548 11154 sass_function.cu:88] Compute time: 0.053713
+GPU running time: 0.0545467
+CPU running time: 0.168338
+right transpose start
+I0903 21:10:12.331570 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:12.331616 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:12.387627 11154 sass_function.cu:88] Compute time: 0.0557215
+GPU running time: 0.0565789
+CPU running time: 0.186242
+right transpose start
+I0903 21:10:12.788405 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:12.788451 11154 sass_function.cu:65] Load kernel time: 2.112e-06
+I0903 21:10:12.847884 11154 sass_function.cu:88] Compute time: 0.0591452
+GPU running time: 0.0600151
+CPU running time: 0.204851
+right transpose start
+I0903 21:10:13.279979 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:13.280026 11154 sass_function.cu:65] Load kernel time: 2.048e-06
+I0903 21:10:13.351894 11154 sass_function.cu:88] Compute time: 0.0715955
+GPU running time: 0.0725343
+CPU running time: 0.225699
+index: 13508866 gpu: -263.609 cpu: -263.608
+right transpose start
+I0903 21:10:13.817991 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:13.818037 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:13.882038 11154 sass_function.cu:88] Compute time: 0.0637353
+GPU running time: 0.0645672
+CPU running time: 0.245883
+index: 2826023 gpu: 319.226 cpu: 319.227
+index: 12678379 gpu: 288.206 cpu: 288.207
+right transpose start
+I0903 21:10:14.383128 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:14.383174 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:14.465111 11154 sass_function.cu:88] Compute time: 0.0816644
+GPU running time: 0.0825183
+CPU running time: 0.318417
+index: 4918570 gpu: 307.587 cpu: 307.586
+index: 9154466 gpu: 168.501 cpu: 168.503
+index: 14905592 gpu: 184.635 cpu: 184.636
+index: 17585875 gpu: -190.635 cpu: -190.636
+right transpose start
+I0903 21:10:15.053557 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:15.053598 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:15.146559 11154 sass_function.cu:88] Compute time: 0.0926905
+GPU running time: 0.0935378
+CPU running time: 0.293936
+index: 95495 gpu: -200.795 cpu: -200.794
+index: 11219587 gpu: 274.304 cpu: 274.303
+index: 17062238 gpu: 151.148 cpu: 151.149
+index: 17790387 gpu: -184.956 cpu: -184.957
+index: 18729535 gpu: -179.304 cpu: -179.305
+right transpose start
+I0903 21:10:15.726274 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:15.726318 11154 sass_function.cu:65] Load kernel time: 2.048e-06
+I0903 21:10:15.829121 11154 sass_function.cu:88] Compute time: 0.102538
+GPU running time: 0.103549
+CPU running time: 0.320099
+index: 957502 gpu: -258.657 cpu: -258.656
+index: 10250447 gpu: 283.196 cpu: 283.195
+index: 11922385 gpu: -318.867 cpu: -318.868
+index: 12145899 gpu: 260.305 cpu: 260.304
+index: 13759098 gpu: 294.665 cpu: 294.664
+index: 19422255 gpu: 118.562 cpu: 118.561
+right transpose start
+I0903 21:10:16.450240 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:16.450285 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:16.569046 11154 sass_function.cu:88] Compute time: 0.118491
+GPU running time: 0.119337
+CPU running time: 0.347124
+index: 1846083 gpu: 251.638 cpu: 251.636
+index: 12549637 gpu: -258.772 cpu: -258.773
+index: 20427379 gpu: 118.263 cpu: 118.264
+right transpose start
+I0903 21:10:17.233417 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:17.233464 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:17.363893 11154 sass_function.cu:88] Compute time: 0.130134
+GPU running time: 0.130984
+CPU running time: 0.376327
+index: 4504194 gpu: -295.617 cpu: -295.616
+index: 4532219 gpu: -161.328 cpu: -161.329
+index: 6943752 gpu: -155.782 cpu: -155.78
+index: 7196106 gpu: 277.307 cpu: 277.306
+index: 8924701 gpu: 189.767 cpu: 189.766
+index: 9313468 gpu: 203.294 cpu: 203.293
+index: 13605215 gpu: 170.256 cpu: 170.255
+index: 14750963 gpu: -123.267 cpu: -123.266
+index: 16805930 gpu: 175.538 cpu: 175.539
+index: 21185248 gpu: -232.502 cpu: -232.503
+right transpose start
+I0903 21:10:18.074298 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:18.074345 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:18.212083 11154 sass_function.cu:88] Compute time: 0.137468
+GPU running time: 0.138302
+CPU running time: 0.405524
+index: 148177 gpu: -264.07 cpu: -264.069
+index: 1101564 gpu: 254.711 cpu: 254.712
+index: 1510961 gpu: 184.781 cpu: 184.78
+index: 1528720 gpu: -267.231 cpu: -267.23
+index: 4376067 gpu: 223.196 cpu: 223.198
+index: 4492003 gpu: -260.443 cpu: -260.442
+index: 5389633 gpu: -228.54 cpu: -228.541
+index: 8111287 gpu: 312.144 cpu: 312.145
+index: 11778612 gpu: 181.392 cpu: 181.391
+index: 14631781 gpu: -273.673 cpu: -273.674
+index: 15816980 gpu: -185.543 cpu: -185.542
+index: 15891809 gpu: 144.757 cpu: 144.758
+index: 18755246 gpu: 130.151 cpu: 130.15
+index: 21087524 gpu: -169.121 cpu: -169.122
+index: 21301856 gpu: 356.621 cpu: 356.62
+index: 22111969 gpu: 208.158 cpu: 208.159
+index: 23640982 gpu: -188.616 cpu: -188.617
+right transpose start
+I0903 21:10:18.969007 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:18.969053 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:19.122925 11154 sass_function.cu:88] Compute time: 0.153605
+GPU running time: 0.154572
+CPU running time: 0.438755
+index: 200401 gpu: -285.324 cpu: -285.322
+index: 883960 gpu: 288.822 cpu: 288.821
+index: 1071463 gpu: 263.462 cpu: 263.463
+index: 1714396 gpu: 305.152 cpu: 305.153
+index: 6623254 gpu: -220.026 cpu: -220.027
+index: 8242706 gpu: -298.971 cpu: -298.973
+index: 11097670 gpu: -344.276 cpu: -344.275
+index: 16335943 gpu: -353.131 cpu: -353.132
+index: 16729932 gpu: 291.443 cpu: 291.442
+index: 17599231 gpu: 259.651 cpu: 259.65
+index: 18550846 gpu: -250.068 cpu: -250.067
+index: 20615267 gpu: 130.894 cpu: 130.893
+index: 20962946 gpu: 253.375 cpu: 253.376
+index: 23043470 gpu: 350.159 cpu: 350.158
+index: 23518138 gpu: 264.755 cpu: 264.754
+right transpose start
+I0903 21:10:19.929389 11154 sass_function.cu:64] Load kernel: sgemm_nt_128x128_vec
+I0903 21:10:19.929435 11154 sass_function.cu:65] Load kernel time: 2.08e-06
+I0903 21:10:20.089251 11154 sass_function.cu:88] Compute time: 0.159532
+GPU running time: 0.160474
+CPU running time: 0.685208
+index: 992318 gpu: -288.322 cpu: -288.321
+index: 1429439 gpu: -148.017 cpu: -148.018
+index: 2198101 gpu: -279.8 cpu: -279.799
+index: 2598099 gpu: 285.889 cpu: 285.888
+index: 2665753 gpu: 130.976 cpu: 130.977
+index: 2754006 gpu: 306.226 cpu: 306.225
+index: 3224494 gpu: -177.327 cpu: -177.326
+index: 4259742 gpu: -135.195 cpu: -135.194
+index: 5254816 gpu: -170.733 cpu: -170.734
+index: 5337083 gpu: 160.983 cpu: 160.982
+index: 6040706 gpu: -154.876 cpu: -154.877
+index: 6365686 gpu: -285.144 cpu: -285.143
+index: 7216308 gpu: -169.279 cpu: -169.278
+index: 9117893 gpu: 175.55 cpu: 175.549
+index: 9267087 gpu: -275.777 cpu: -275.776
+index: 9734300 gpu: -280.594 cpu: -280.593
+index: 10216777 gpu: -158.531 cpu: -158.532
+index: 13143316 gpu: -279.632 cpu: -279.634
+index: 15144677 gpu: -308.699 cpu: -308.701
+index: 15206813 gpu: -240.409 cpu: -240.408
+index: 15697078 gpu: 264.142 cpu: 264.141
+index: 16691036 gpu: 145.253 cpu: 145.254
+index: 16920894 gpu: 276.991 cpu: 276.992
+index: 17153067 gpu: 289.812 cpu: 289.813
+index: 17216537 gpu: -202.795 cpu: -202.796
+index: 18477405 gpu: 309.186 cpu: 309.187
+index: 18503621 gpu: 266.743 cpu: 266.742
+index: 18563409 gpu: 216.166 cpu: 216.167
+index: 19676489 gpu: 228.199 cpu: 228.198
+index: 21073487 gpu: -251.312 cpu: -251.313
+index: 21782496 gpu: 277.989 cpu: 277.99
+index: 22203100 gpu: 287.073 cpu: 287.074
+index: 22612721 gpu: -271.886 cpu: -271.885
+index: 24698311 gpu: -270.386 cpu: -270.385
+index: 25423707 gpu: -144.154 cpu: -144.155
+end

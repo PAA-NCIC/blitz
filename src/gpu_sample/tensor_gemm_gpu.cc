@@ -7,6 +7,7 @@
 #include "sys/time.h"
 
 #include "backend/backends.h"
+#include "util/blitz_cpu_function.h"
 
 using namespace blitz;
 
@@ -30,6 +31,7 @@ void left_transpose(int left_dim, int common_dim, int right_dim, const string& k
   Backend<GPUTensor, float>::NormalDistributionFunc(0, 1, &right_gpu);
   cudaMemcpy(right_cpu.data(), right_gpu.data(), right_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
+  cudaDeviceSynchronize();
 
   Shape output_shape(2);
   output_shape[0] = left_dim;
@@ -37,23 +39,28 @@ void left_transpose(int left_dim, int common_dim, int right_dim, const string& k
   CPUTensor<float> output_cpu(output_shape);
   GPUTensor<float> output_gpu(output_shape);
   CPUTensor<float> output_copy(output_shape);
-  timeval t1, t2; 
-  double elapsed_time = 0.0f;
 
-  cudaDeviceSynchronize();
-  gettimeofday(&t1, NULL);
-  Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-    true, false, 1, 0, &output_gpu, kernel);
-  cudaDeviceSynchronize();
-  gettimeofday(&t2, NULL);
-  elapsed_time = (t2.tv_sec - t1.tv_sec) * 1000.0;
-  elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
+  cudaEvent_t start, stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+
+  cudaEventRecord(start);
+  for (int i = 0; i < 100; ++i) {
+    Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
+      true, false, 1, 0, &output_gpu, kernel);
+  }
+  cudaEventRecord(stop);
+  cudaEventSynchronize(stop);
+
+  float elapsed_time = 0;
+  cudaEventElapsedTime(&elapsed_time, start, stop);
   elapsed_time /= 1000.0;
   std::cout << "GPU running time: " << elapsed_time << std::endl;
 
   cudaMemcpy(output_copy.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
   cudaDeviceSynchronize();
+  timeval t1, t2;
   gettimeofday(&t1, NULL);
   
   Backend<CPUTensor, float>::MatrixDotFunc(&left_cpu, &right_cpu,
@@ -109,6 +116,7 @@ void right_transpose(int left_dim, int common_dim, int right_dim, const string& 
   end = system_clock::now();
   time = end - start;
   std::cout << "GPU running time: " << time.count() << std::endl;
+
   cudaMemcpy(output_copy.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
 
@@ -211,12 +219,15 @@ void no_transpose(int left_dim, int common_dim, int right_dim, const string& ker
   time_point<system_clock> start, end;
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
-  Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-    false, false, 1, 0, &output_gpu, kernel);
+  for (int i = 0; i < 100; ++i) {
+    Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
+      false, false, 1, 0, &output_gpu, kernel);
+  }
   cudaDeviceSynchronize();
   end = system_clock::now();
   time = end - start;
   std::cout << "GPU running time: " << time.count() << std::endl;
+
   cudaMemcpy(output_copy.data(), output_gpu.data(), output_cpu.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
 
@@ -236,18 +247,33 @@ void no_transpose(int left_dim, int common_dim, int right_dim, const string& ker
 }
 
 void performance() {
-  for (int i = 0; i < 3; ++i)
-    no_transpose(4096, 4096, 4096, "asm");
-  for (int i = 0; i < 3; ++i)
-    no_transpose(4096, 4096, 4096, "blas");
-  for (int i = 0; i < 3; ++i)
-    left_transpose(4096, 4096, 4096, "asm");
-  for (int i = 0; i < 3; ++i)
-    left_transpose(4096, 4096, 4096, "blas");
-  for (int i = 0; i < 3; ++i)
-    right_transpose(4096, 4096, 4096, "asm");
-  for (int i = 0; i < 3; ++i)
-    right_transpose(4096, 4096, 4096, "blas");
+  // no transpose
+  //for (int i = 1; i <= 40; ++i) {
+  //  int current_dim = i * 128;
+  //  no_transpose(current_dim, current_dim, current_dim, "asm");
+  //}
+  //for (int i = 1; i <= 40; ++i) {
+  //  int current_dim = i * 128;
+  //  no_transpose(current_dim, current_dim, current_dim, "blas");
+  //}
+  // left transpose
+  //for (int i = 1; i <= 40; ++i) {
+  //  int current_dim = i * 128;
+  //  left_transpose(current_dim, current_dim, current_dim, "asm");
+  //}
+  //for (int i = 1; i <= 40; ++i) {
+  //  int current_dim = i * 128;
+  //  left_transpose(current_dim, current_dim, current_dim, "blas");
+  //}
+  // right transpose
+  //for (int i = 1; i <= 40; ++i) {
+  //  int current_dim = i * 128;
+  //  right_transpose(current_dim, current_dim, current_dim, "asm");
+  //}
+  for (int i = 1; i <= 40; ++i) {
+    int current_dim = i * 128;
+    right_transpose(current_dim, current_dim, current_dim, "blas");
+  }
 }
 
 void correct() {
@@ -268,12 +294,43 @@ void correct() {
   //no_transpose(1024, 1038, 1024, "asm");
   //no_transpose(1024, 1039, 1024, "asm");
 
-  for (int i = 0; i < 20; ++i) {
-    no_transpose(512, 128, 500, "asm");
-    left_transpose(512, 128, 500, "asm");
-    right_transpose(512, 128, 500, "asm");
-  }
+  //for (int i = 0; i < 20; ++i) {
+  //  no_transpose(512, 128, 500, "asm");
+  //  left_transpose(512, 128, 500, "asm");
+  //  right_transpose(512, 128, 500, "asm");
+  //}
   //left_transpose(1024, 1024, 1024, "asm");
+  //left_transpose(1024, 1024, 1024, "blas");
+  //std::cout << "conv5" << std::endl;
+  //no_transpose(256, 172, 2304, "asm");
+  //no_transpose(256, 169, 2304, "blas");
+  //std::cout << "conv4" << std::endl;
+  //no_transpose(256, 172, 3456, "asm");
+  //no_transpose(256, 169, 3456, "blas");
+  //std::cout << "conv3" << std::endl;
+  //no_transpose(384, 172, 1728, "asm");
+  //no_transpose(384, 169, 1728, "blas");
+  //std::cout << "conv2" << std::endl;
+  //no_transpose(192, 732, 1600, "asm");
+  //no_transpose(192, 729, 1600, "blas");
+  //std::cout << "conv1" << std::endl;
+  //no_transpose(64, 3028, 363, "asm");
+  //no_transpose(64, 3025, 363, "blas");
+
+  //std::cout << "conv5" << std::endl;
+  //left_transpose(2304, 256, 172, "asm");
+  //left_transpose(2304, 256, 169, "blas");
+  //std::cout << "conv4" << std::endl;
+  //left_transpose(3456, 256, 172, "asm");
+  //left_transpose(3456, 256, 169, "blas");
+  //std::cout << "conv3" << std::endl;
+  //left_transpose(1728, 384, 172, "asm");
+  //left_transpose(1728, 384, 169, "blas");
+  //std::cout << "conv2" << std::endl;
+  right_transpose(4096, 4092, 4096, "asm");
+  right_transpose(4096, 4092, 4096, "blas");
+  right_transpose(4096, 4092, 4096, "asm");
+  right_transpose(4096, 4092, 4096, "blas");
   //left_transpose(1024, 1025, 1024, "asm");
   //left_transpose(1024, 1026, 1024, "asm");
   //left_transpose(1024, 1027, 1024, "asm");
@@ -310,6 +367,7 @@ int main() {
   std::cout << "start" << std::endl;
 
   cudaFree(0);
+  //performance();
   correct();
   cudaFree(0);
 

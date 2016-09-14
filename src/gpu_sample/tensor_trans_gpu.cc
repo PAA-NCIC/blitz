@@ -33,7 +33,7 @@ void transpose() {
   // batch_size
   input_shape[0] = 128;
   // input channel
-  input_shape[1] = 100;
+  input_shape[1] = 1000;
   GPUTensor<float> input_gpu(input_shape);
   GPUTensor<float> input_gpu_trans(input_shape);
   Backend<GPUTensor, float>::ConstantDistributionFunc(2, &input_gpu);
@@ -41,6 +41,7 @@ void transpose() {
   time_point<system_clock> start, end;
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
+  cudaDeviceSynchronize();
 
   BlitzGPUTrans(128, 100, input_gpu.data(), input_gpu_trans.data());
 
