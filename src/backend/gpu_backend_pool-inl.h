@@ -3,21 +3,21 @@
 
 template<typename DType>
 __global__ void GPUMaxPoolingForward(const DType* input,
-  const int size, const int channel,
-  const int input_height, const int input_width,
-  const int output_height, const int output_width,
-  const int filter_height, const int filter_width,
-  const int stride_height, const int stride_width,
-  int* max_index, DType* output) {
+  size_t size, size_t channel,
+  size_t input_height, size_t input_width,
+  size_t output_height, size_t output_width,
+  size_t filter_height, size_t filter_width,
+  size_t stride_height, size_t stride_width,
+  size_t* max_index, DType* output) {
   BLITZ_CUDA_LOOP(index, size) {
-    const int output_width_index = index % output_width;
-    const int output_height_index = (index / output_width) % output_height;
-    const int channel_index = (index / (output_width * output_height)) % channel;
-    const int batch_index = index / (output_width * output_height * channel);
-    const int height_start = output_height_index * stride_height;
-    const int width_start = output_width_index * stride_width;
-    const int height_end = height_start + filter_height;
-    const int width_end = width_start + filter_width;
+    size_t output_width_index = index % output_width;
+    size_t output_height_index = (index / output_width) % output_height;
+    size_t channel_index = (index / (output_width * output_height)) % channel;
+    size_t batch_index = index / (output_width * output_height * channel);
+    size_t height_start = output_height_index * stride_height;
+    size_t width_start = output_width_index * stride_width;
+    size_t height_end = height_start + filter_height;
+    size_t width_end = width_start + filter_width;
     int max_idx = height_start * input_width + width_start;
     const DType* input_slice = input +
       (batch_index * channel + channel_index) *
@@ -38,20 +38,20 @@ __global__ void GPUMaxPoolingForward(const DType* input,
 template<typename DType>
 void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
   const GPUTensor<DType>* input,
-  const int filter_height, const int filter_width,
-  const int stride_height, const int stride_width,
-  GPUTensor<int>* max_index, GPUTensor<DType>* output) {
+  size_t filter_height, size_t filter_width,
+  size_t stride_height, size_t stride_width,
+  GPUTensor<size_t>* max_index, GPUTensor<DType>* output) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  const int channel = input_shape[1];
-  const int input_height = input_shape[2];
-  const int input_width = input_shape[3];
+  size_t channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  const int output_channel = output_shape[1];
-  const int output_height = output_shape[2];
-  const int output_width = output_shape[3];
+  size_t output_channel = output_shape[1];
+  size_t output_height = output_shape[2];
+  size_t output_width = output_shape[3];
 
   CHECK_EQ(channel, output_channel);
 
@@ -68,15 +68,15 @@ void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
 
 template<typename DType>
 __global__ void GPUMaxPoolingBackward(const DType* output,
-  const int size, const int channel,
-  const int input_height, const int input_width,
-  const int output_height, const int output_width,
-  const int filter_height, const int filter_width,
-  const int stride_height, const int stride_width,
-  const int* max_index, DType* input) {
+  size_t size, size_t channel,
+  size_t input_height, size_t input_width,
+  size_t output_height, size_t output_width,
+  size_t filter_height, size_t filter_width,
+  size_t stride_height, size_t stride_width,
+  const size_t* max_index, DType* input) {
   BLITZ_CUDA_LOOP(i, size) {
-    const int channel_index = (i / (output_width * output_height)) % channel;
-    const int batch_index = i / (output_width * output_height * channel);
+    size_t channel_index = (i / (output_width * output_height)) % channel;
+    size_t batch_index = i / (output_width * output_height * channel);
      DType* input_slice = input +
       (batch_index * channel + channel_index) *
       input_height * input_width;
@@ -86,20 +86,20 @@ __global__ void GPUMaxPoolingBackward(const DType* output,
 
 template<typename DType>
 void Backend<GPUTensor, DType>::MaxPooling2DBackwardFunc(
-  const GPUTensor<DType>* output, const GPUTensor<int>* max_index,
-  const int filter_height, const int filter_width,
-  const int stride_height, const int stride_width,
+  const GPUTensor<DType>* output, const GPUTensor<size_t>* max_index,
+  size_t filter_height, size_t filter_width,
+  size_t stride_height, size_t stride_width,
   GPUTensor<DType>* input) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  const int channel = input_shape[1];
-  const int input_height = input_shape[2];
-  const int input_width = input_shape[3];
+  size_t channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  const int output_height = output_shape[2];
-  const int output_width = output_shape[3];
+  size_t output_height = output_shape[2];
+  size_t output_width = output_shape[3];
 
   // set zero
   input->Fill(0);
@@ -109,7 +109,8 @@ void Backend<GPUTensor, DType>::MaxPooling2DBackwardFunc(
     channel, input_height, input_width,
     output_height, output_width,
     filter_height, filter_width,
-    stride_height, stride_width, max_index->data(), input->data());
+    stride_height, stride_width,
+    max_index->data(), input->data());
 }
 
 

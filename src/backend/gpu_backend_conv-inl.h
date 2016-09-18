@@ -4,8 +4,8 @@
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   GPUTensor<DType>* unpack, GPUTensor<DType>* output,
   const string& kernel) {
   // shape decode
@@ -112,8 +112,8 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   GPUTensor<DType>* pack, GPUTensor<DType>* input,
   const string& kernel) {
   // shape decode
@@ -220,8 +220,8 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* output,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   GPUTensor<DType>* unpack, GPUTensor<DType>* update,
   const string& kernel) {
   // shape decode
@@ -336,24 +336,24 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   vector<shared_ptr<GPUTensor<DType> > >* unpack_batch,
   GPUTensor<DType>* output) {}
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   vector<shared_ptr<GPUTensor<DType> > >* pack_batch,
   GPUTensor<DType>* input) {}
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* output,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   vector<shared_ptr<GPUTensor<DType> > >* unpack_batch,
   vector<shared_ptr<GPUTensor<DType> > >* update_batch,
   GPUTensor<DType>* update) {}
@@ -362,7 +362,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-  const int stride_height, const int stride_width,
+  size_t stride_height, size_t stride_width,
   GPUTensor<DType>* output) {}
 
 #endif  // SRC_BACKEND_GPU_BACKEND_CONV_INL_H_

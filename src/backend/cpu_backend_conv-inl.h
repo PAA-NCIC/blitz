@@ -4,8 +4,8 @@
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   CPUTensor<DType>* unpack, CPUTensor<DType>* output,
   const string& kernel) {
   // shape decode
@@ -85,8 +85,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   const CPUTensor<DType>* output, const CPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   CPUTensor<DType>* pack, CPUTensor<DType>* input,
   const string& kernel) {
   // shape decode
@@ -164,8 +164,8 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* output,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   CPUTensor<DType>* unpack, CPUTensor<DType>* update,
   const string& kernel) {
   // shape decode
@@ -244,34 +244,34 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   vector<shared_ptr<CPUTensor<DType> > >* unpack_batch,
   CPUTensor<DType>* output) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  const int batch_size = input_shape[0];
-  const int input_channel = input_shape[1];
-  const int input_height = input_shape[2];
-  const int input_width = input_shape[3];
+  size_t batch_size = input_shape[0];
+  size_t input_channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // filter
   const Shape& filter_shape = filter->shape();
-  const int filter_height = filter_shape[2];
-  const int filter_width = filter_shape[3];
+  size_t filter_height = filter_shape[2];
+  size_t filter_width = filter_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  const int output_channel = output_shape[1];
-  const int output_height = output_shape[2];
-  const int output_width = output_shape[3];
+  size_t output_channel = output_shape[1];
+  size_t output_height = output_shape[2];
+  size_t output_width = output_shape[3];
 
   int batch_input_offset;
   int batch_output_offset;
-  const int input_batch_offset = input_channel * input_height * input_width;
-  const int output_batch_offset = output_channel * output_height * output_width;
-  const int dim_left = output_channel;
-  const int dim_right = output_height * output_width;
-  const int dim_common = input_channel * filter_height * filter_width;
+  size_t input_batch_offset = input_channel * input_height * input_width;
+  size_t output_batch_offset = output_channel * output_height * output_width;
+  size_t dim_left = output_channel;
+  size_t dim_right = output_height * output_width;
+  size_t dim_common = input_channel * filter_height * filter_width;
 
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
@@ -348,34 +348,34 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   const CPUTensor<DType>* output, const CPUTensor<DType>* filter,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   vector<shared_ptr<CPUTensor<DType> > >* pack_batch,
   CPUTensor<DType>* input) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  const int batch_size = input_shape[0];
-  const int input_channel = input_shape[1];
-  const int input_height = input_shape[2];
-  const int input_width = input_shape[3];
+  size_t batch_size = input_shape[0];
+  size_t input_channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // filter
   const Shape& filter_shape = filter->shape();
-  const int filter_height = filter_shape[2];
-  const int filter_width = filter_shape[3];
+  size_t filter_height = filter_shape[2];
+  size_t filter_width = filter_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  const int output_channel = output_shape[1];
-  const int output_height = output_shape[2];
-  const int output_width = output_shape[3];
+  size_t output_channel = output_shape[1];
+  size_t output_height = output_shape[2];
+  size_t output_width = output_shape[3];
 
   int batch_input_offset;
   int batch_output_offset;
-  const int input_batch_offset = input_channel * input_height * input_width;
-  const int output_batch_offset = output_channel * output_height * output_width;
-  const int dim_left = input_channel * filter_height * filter_width;
-  const int dim_right = output_height * output_width;
-  const int dim_common = output_channel;
+  size_t input_batch_offset = input_channel * input_height * input_width;
+  size_t output_batch_offset = output_channel * output_height * output_width;
+  size_t dim_left = input_channel * filter_height * filter_width;
+  size_t dim_right = output_height * output_width;
+  size_t dim_common = output_channel;
   input->Fill(0);
 
   #ifdef BLITZ_PERFORMANCE
@@ -454,35 +454,35 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* output,
-  const int padding_height, const int padding_width,
-  const int stride_height, const int stride_width,
+  size_t padding_height, size_t padding_width,
+  size_t stride_height, size_t stride_width,
   vector<shared_ptr<CPUTensor<DType> > >* unpack_batch,
   vector<shared_ptr<CPUTensor<DType> > >* update_batch,
   CPUTensor<DType>* update) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  const int batch_size = input_shape[0];
-  const int input_channel = input_shape[1];
-  const int input_height = input_shape[2];
-  const int input_width = input_shape[3];
+  size_t batch_size = input_shape[0];
+  size_t input_channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // filter
   const Shape& filter_shape = update->shape();
-  const int filter_height = filter_shape[2];
-  const int filter_width = filter_shape[3];
+  size_t filter_height = filter_shape[2];
+  size_t filter_width = filter_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  const int output_channel = output_shape[1];
-  const int output_height = output_shape[2];
-  const int output_width = output_shape[3];
+  size_t output_channel = output_shape[1];
+  size_t output_height = output_shape[2];
+  size_t output_width = output_shape[3];
 
   int batch_input_offset;
   int batch_output_offset;
-  const int input_batch_offset = input_channel * input_height * input_width;
-  const int output_batch_offset = output_channel * output_height * output_width;
-  const int dim_left = output_channel;
-  const int dim_right = input_channel * filter_height * filter_width;
-  const int dim_common = output_height * output_width;
+  size_t input_batch_offset = input_channel * input_height * input_width;
+  size_t output_batch_offset = output_channel * output_height * output_width;
+  size_t dim_left = output_channel;
+  size_t dim_right = input_channel * filter_height * filter_width;
+  size_t dim_common = output_height * output_width;
 
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
@@ -567,7 +567,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* filter,
-  const int stride_height, const int stride_width,
+  size_t stride_height, size_t stride_width,
   CPUTensor<DType>* output) {
 }
 

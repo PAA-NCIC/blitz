@@ -31,7 +31,16 @@ class Tensor {
     return row_major_;
   }
 
+  const DType* data() const {
+    return data_;
+  }
+
+  DType* data() {
+    return data_;
+  }
+
   // operator
+  // one dimension data
   DType& operator[](size_t index) const {
 #ifdef BLITZ_DEVELOP
     CHECK_LT(index, this->shape_.size());
@@ -46,14 +55,7 @@ class Tensor {
     return data_[index];
   }
 
-  const DType* data() const {
-    return data_;
-  }
-
-  DType* data() {
-    return data_;
-  }
-
+  // setter
   void set_row_major() {
     this->row_major_ = true;
   }
@@ -85,6 +87,7 @@ class Tensor {
   template class tensor<float>; \
   template class tensor<double>; \
   template class tensor<int>; \
+  template class tensor<size_t>; \
   template class tensor<short> \
 
 }  // namespace blitz

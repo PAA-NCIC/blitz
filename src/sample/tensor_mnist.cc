@@ -105,7 +105,7 @@ void inline forward_conv(
 }
 
 void inline forward_pool(
-  CPUTensor<float>& input, CPUTensor<int>& max_index,
+  CPUTensor<float>& input, CPUTensor<size_t>& max_index,
   CPUTensor<float>& output, int tid, int num_threads, const bool barrier) {
   const int stride_height = 2;
   const int stride_width = 2;
@@ -155,7 +155,7 @@ void inline forward_pool(
           channel_input_offset);
         float* output_slice = output.Slice(batch_output_offset +
           channel_output_offset);
-        int* max_index_slice = max_index.Slice(batch_output_offset +
+        size_t* max_index_slice = max_index.Slice(batch_output_offset +
           channel_output_offset);
         for (int output_height_index = 0; output_height_index < output_height;
           ++output_height_index) {
@@ -384,7 +384,7 @@ void forward_mnist(const int batch_size, const int iteration, const int thread) 
   }
   // pool1
   CPUTensor<float> output2(output_shape2);
-  CPUTensor<int> max_index1(max_index_shape1);
+  CPUTensor<size_t> max_index1(max_index_shape1);
   // conv2
   CPUTensor<float> filter2(filter_shape2);
   CPUTensor<float> output3(output_shape3);
@@ -395,7 +395,7 @@ void forward_mnist(const int batch_size, const int iteration, const int thread) 
   }
   // pool2
   CPUTensor<float> output4(output_shape4);
-  CPUTensor<int> max_index2(max_index_shape2);
+  CPUTensor<size_t> max_index2(max_index_shape2);
   // affine1
   CPUTensor<float> weight1(weight_shape1);
   CPUTensor<float> output5(output_shape5);

@@ -4,9 +4,9 @@
 template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   const CPUTensor<DType>* input,
-  const int filter_height, const int filter_width,
-  const int stride_width, const int stride_height,
-  CPUTensor<int>* max_index, CPUTensor<DType>* output) {
+  size_t filter_height, size_t filter_width,
+  size_t stride_width, size_t stride_height,
+  CPUTensor<size_t>* max_index, CPUTensor<DType>* output) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
@@ -22,14 +22,14 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
 
   CHECK_EQ(input_channel, output_channel);
 
-  const int input_single_offset = input_channel * input_height * input_width;
-  const int input_channel_offset = input_height * input_width;
-  const int output_single_offset = output_channel * output_height * output_width;
-  const int output_channel_offset = output_height * output_width;
-  int channel_input_offset;
-  int channel_output_offset;
-  int batch_input_offset;
-  int batch_output_offset;
+  size_t input_single_offset = input_channel * input_height * input_width;
+  size_t input_channel_offset = input_height * input_width;
+  size_t output_single_offset = output_channel * output_height * output_width;
+  size_t output_channel_offset = output_height * output_width;
+  size_t channel_input_offset;
+  size_t channel_output_offset;
+  size_t batch_input_offset;
+  size_t batch_output_offset;
 
   // no padding
   #pragma omp parallel for private(batch_input_offset, batch_output_offset, \
@@ -44,22 +44,22 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
         channel_input_offset);
       DType* output_slice = output->Slice(batch_output_offset +
         channel_output_offset);
-      int* max_index_slice = max_index->Slice(batch_output_offset +
+      size_t* max_index_slice = max_index->Slice(batch_output_offset +
         channel_output_offset);
       for (int output_height_index = 0; output_height_index < output_height;
         ++output_height_index) {
         for (int output_width_index = 0; output_width_index < output_width;
           ++output_width_index) {
-          const int height_start = output_height_index * stride_height;
-          const int width_start = output_width_index * stride_width;
-          const int height_end = height_start + filter_height;
-          const int width_end = width_start + filter_width;
-          const int pool_index = output_height_index * output_width +
+          size_t height_start = output_height_index * stride_height;
+          size_t width_start = output_width_index * stride_width;
+          size_t height_end = height_start + filter_height;
+          size_t width_end = width_start + filter_width;
+          size_t pool_index = output_height_index * output_width +
             output_width_index;
           int max_index_tmp = height_start * input_width + width_start;
           for (int h = height_start; h < height_end; ++h) {
             for (int w = width_start; w < width_end; ++w) {
-              const int index = h * input_width + w;
+              size_t index = h * input_width + w;
               if (input_slice[index] > input_slice[max_index_tmp]) {
                 max_index_tmp = index;
               }
@@ -75,9 +75,9 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
-  const CPUTensor<DType>* output, const CPUTensor<int>* max_index,
-  const int filter_height, const int filter_width,
-  const int stride_height, const int stride_width,
+  const CPUTensor<DType>* output, const CPUTensor<size_t>* max_index,
+  size_t filter_height, size_t filter_width,
+  size_t stride_height, size_t stride_width,
   CPUTensor<DType>* input) {
   // shape decode
   // input
@@ -91,14 +91,14 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   int output_height = output_shape[2];
   int output_width = output_shape[3];
 
-  const int input_single_offset = channel * input_height * input_width;
-  const int input_channel_offset = input_height * input_width;
-  const int output_single_offset = channel * output_height * output_width;
-  const int output_channel_offset = output_height * output_width;
-  int batch_input_offset;
-  int batch_output_offset;
-  int channel_input_offset;
-  int channel_output_offset;
+  size_t input_single_offset = channel * input_height * input_width;
+  size_t input_channel_offset = input_height * input_width;
+  size_t output_single_offset = channel * output_height * output_width;
+  size_t output_channel_offset = output_height * output_width;
+  size_t batch_input_offset;
+  size_t batch_output_offset;
+  size_t channel_input_offset;
+  size_t channel_output_offset;
   // set zero
   input->Fill(0);
   // no padding
@@ -114,13 +114,13 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
         channel_input_offset);
       const DType* output_slice = output->Slice(batch_output_offset +
         channel_output_offset);
-      const int* max_index_slice = max_index->Slice(batch_output_offset +
+      const size_t* max_index_slice = max_index->Slice(batch_output_offset +
         channel_output_offset);
       for (int output_height_index = 0; output_height_index < output_height;
         ++output_height_index) {
         for (int output_width_index = 0; output_width_index < output_width;
           ++output_width_index) {
-          const int index = output_height_index * output_width +
+          size_t index = output_height_index * output_width +
             output_width_index;
           input_slice[max_index_slice[index]] = output_slice[index];
         }

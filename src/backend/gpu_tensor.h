@@ -14,8 +14,7 @@ class GPUTensor : public Tensor<DType> {
   }
 
   explicit GPUTensor(DType* data, const Shape& shape) :
-    Tensor<DType>(data, shape) {
-  }
+    Tensor<DType>(data, shape) {}
 
   ~GPUTensor();
 

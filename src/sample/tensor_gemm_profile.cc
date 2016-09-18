@@ -53,9 +53,6 @@ double gemm(const int dim_left, const int dim_right, const int dim_common)
 
 int main() {
   std::cout << "start" << std::endl;
-  int input_channel, input_height, input_width;
-  int output_channel, output_height, output_width;
-  int filter_height, filter_width;
   int dim_left, dim_right, dim_common;
   long computations = 0;
   double interval;

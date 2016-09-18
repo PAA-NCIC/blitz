@@ -16,10 +16,6 @@ class Shape {
     size_(0), dimension_(shape.size()),
     shape_(shape) {}
 
-  size_t dimension() {
-    return dimension_;
-  }
-
   size_t dimension() const {
     return dimension_;
   }

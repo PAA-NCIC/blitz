@@ -27,7 +27,7 @@ void PoolingLayer<TensorType, DType>::InitImpl(const Shape& input_shape) {
   this->backward_output_ = make_shared<TensorType<DType> >(input_shape);
 
   if (op_ == "max") {
-    this->max_index_ = make_shared<TensorType<int> >(output_shape);
+    this->max_index_ = make_shared<TensorType<size_t> >(output_shape);
   } else {
     LOG(ERROR) << "Pooling type: " << op_ << " not exist";
   }

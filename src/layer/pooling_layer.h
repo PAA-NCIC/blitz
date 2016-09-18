@@ -30,7 +30,7 @@ class PoolingLayer : public Layer<TensorType, DType> {
   string op_;
 
   // according to different op
-  shared_ptr<TensorType<int> > max_index_;
+  shared_ptr<TensorType<size_t> > max_index_;
 };
 
 }  // namespace blitz

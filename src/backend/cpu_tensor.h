@@ -8,7 +8,8 @@ namespace blitz {
 template<typename DType = float>
 class CPUTensor : public Tensor<DType> {
  public:
-  explicit CPUTensor(const Shape& shape) : Tensor<DType>(shape) {
+  explicit CPUTensor(const Shape& shape) :
+    Tensor<DType>(shape) {
     this->Allocate();
   }
 

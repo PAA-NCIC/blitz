@@ -57,7 +57,7 @@ void report_pool_forward(CPUTensor<float>& output) {
  * 5 3
  * 12 11
  */
-void report_pool_max_index(CPUTensor<int>& max_index) {
+void report_pool_max_index(CPUTensor<size_t>& max_index) {
   std::cout << "pool max_index result: " << std::endl;
   const Shape& max_index_shape = max_index.shape();
   for (size_t i = 0; i < max_index_shape[0]; ++i) {
@@ -122,7 +122,7 @@ int main() {
   max_index_shape[2] = 2;
   // output width
   max_index_shape[3] = 2;
-  CPUTensor<int> max_index(max_index_shape);
+  CPUTensor<size_t> max_index(max_index_shape);
 
   Shape output_shape(4);
   // batch_size

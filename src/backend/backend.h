@@ -136,44 +136,44 @@ class Backend {
 
   static void Convolution2DForwardFunc(
     const TensorType<DType>* input, const TensorType<DType>* filter,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     TensorType<DType>* unpack, TensorType<DType>* output,
     const string& kernel = "blas");
 
   static void Convolution2DBackwardFunc(
     const TensorType<DType>* output, const TensorType<DType>* filter,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     TensorType<DType>* pack, TensorType<DType>* input,
     const string& kernel = "blas");
 
   static void Convolution2DUpdateFunc(
     const TensorType<DType>* input, const TensorType<DType>* output,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     TensorType<DType>* unpack, TensorType<DType>* update,
     const string& kernel = "blas");
 
   // batch parallel
   static void Convolution2DForwardFunc(
     const TensorType<DType>* input, const TensorType<DType>* filter,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     vector<shared_ptr<TensorType<DType> > >* unpack_batch,
     TensorType<DType>* output);
 
   static void Convolution2DBackwardFunc(
     const TensorType<DType>* output, const TensorType<DType>* filter,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     vector<shared_ptr<TensorType<DType> > >* pack_batch,
     TensorType<DType>* input);
 
   static void Convolution2DUpdateFunc(
     const TensorType<DType>* input, const TensorType<DType>* output,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     vector<shared_ptr<TensorType<DType> > >* unpack_batch,
     vector<shared_ptr<TensorType<DType> > >* update_batch,
     TensorType<DType>* update);
@@ -181,19 +181,19 @@ class Backend {
   // naive parallel
   static void Convolution2DForwardFunc(
     const TensorType<DType>* input, const TensorType<DType>* filter,
-    const int stride_height, const int stride_width,
+    size_t stride_height, size_t stride_width,
     TensorType<DType>* output);
 
   static void MaxPooling2DForwardFunc(
     const TensorType<DType>* input,
-    const int filter_height, const int filter_width,
-    const int stride_height, const int stride_width,
-    TensorType<int>* max_index, TensorType<DType>* output);
+    size_t filter_height, size_t filter_width,
+    size_t stride_height, size_t stride_width,
+    TensorType<size_t>* max_index, TensorType<DType>* output);
 
   static void MaxPooling2DBackwardFunc(
-    const TensorType<DType>* output, const TensorType<int>* max_index,
-    const int filter_height, const int filter_width,
-    const int stride_height, const int stride_width,
+    const TensorType<DType>* output, const TensorType<size_t>* max_index,
+    size_t filter_height, size_t filter_width,
+    size_t stride_height, size_t stride_width,
     TensorType<DType>* input);
 
   static void MakeBinaryMaskFunc(const DType low, const DType high,
@@ -220,39 +220,39 @@ class Backend {
     const TensorType<DType>* output, const TensorType<DType>* target);
 
   static void Unpack2DParallelFunc(
-    const DType* input, const int channel,
-    const int input_height, const int input_width,
-    const int filter_height, const int filter_width,
-    const int output_height, const int output_width,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    const DType* input, size_t channel,
+    size_t input_height, size_t input_width,
+    size_t filter_height, size_t filter_width,
+    size_t output_height, size_t output_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     DType* unpack);
 
   static void Pack2DParallelFunc(
-    const DType* pack, const int channel,
-    const int input_height, const int input_width,
-    const int filter_height, const int filter_width,
-    const int output_height, const int output_width,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    const DType* pack, size_t channel,
+    size_t input_height, size_t input_width,
+    size_t filter_height, size_t filter_width,
+    size_t output_height, size_t output_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     DType* input);
 
   static void Unpack2DFunc(
-    const DType* input, const int channel,
-    const int input_height, const int input_width,
-    const int filter_height, const int filter_width,
-    const int output_height, const int output_width,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    const DType* input, size_t channel,
+    size_t input_height, size_t input_width,
+    size_t filter_height, size_t filter_width,
+    size_t output_height, size_t output_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     DType* unpack);
 
   static void Pack2DFunc(
-    const DType* pack, const int channel,
-    const int input_height, const int input_width,
-    const int filter_height, const int filter_width,
-    const int output_height, const int output_width,
-    const int padding_height, const int padding_width,
-    const int stride_height, const int stride_width,
+    const DType* pack, size_t channel,
+    size_t input_height, size_t input_width,
+    size_t filter_height, size_t filter_width,
+    size_t output_height, size_t output_width,
+    size_t padding_height, size_t padding_width,
+    size_t stride_height, size_t stride_width,
     DType* input);
 };
 
