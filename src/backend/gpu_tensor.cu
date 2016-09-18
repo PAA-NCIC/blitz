@@ -25,10 +25,6 @@ inline void GPUTensor<DType>::Fill(DType value) {
 }
 
 template<typename DType>
-inline void GPUTensor<DType>::Reshape() {
-}
-
-template<typename DType>
 inline DType* GPUTensor<DType>::Slice(size_t index) {
   // TODO(keren) error
   return this->data_ + index;

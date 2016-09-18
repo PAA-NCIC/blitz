@@ -16,23 +16,12 @@ class Shape {
     size_(0), dimension_(shape.size()),
     shape_(shape) {}
 
-  size_t dimension() const {
-    return dimension_;
-  }
-
   size_t dimension() {
     return dimension_;
   }
 
-  // operator
-  const size_t& operator[](size_t index) const {
-    // TODO(keren) index range check
-    return shape_[index];
-  }
-
-  size_t& operator[](size_t index) {
-    // TODO(keren) index range check
-    return shape_[index];
+  size_t dimension() const {
+    return dimension_;
   }
 
   size_t size() const {
@@ -50,9 +39,32 @@ class Shape {
     return *(size_);
   }
 
+  // operator
+  size_t operator[](size_t index) const {
+    // TODO(keren) index range check
+    return shape_[index];
+  }
+
+  size_t& operator[](size_t index) {
+    // TODO(keren) index range check
+    return shape_[index];
+  }
+
+  Shape& operator=(const Shape& other) {  // check for self-assignment
+    if(&other == this)
+      return *this;  // reuse storage when possible
+
+    // copy data fields
+    size_ = 0;
+    dimension_ = other.dimension_;
+    shape_ = other.shape_;
+
+    return *this;
+  }  // note: copy-and-swap would always cause a reallocation
+
  private:
   mutable size_t* size_;
-  const size_t dimension_;
+  size_t dimension_;
   std::vector<size_t> shape_;
 };
 

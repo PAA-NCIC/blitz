@@ -101,7 +101,7 @@ class Backend<CPUTensor, DType> {
 
   static void GradientdescentFunc(
     const DType momentum_coef, const DType learning_rate,
-    const DType decay, const int batch_size,
+    const DType decay, size_t batch_size,
     CPUTensor<DType>* filter,
     CPUTensor<DType>* gradient,
     CPUTensor<DType>* velocity);

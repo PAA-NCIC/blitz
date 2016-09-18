@@ -45,10 +45,8 @@ void left_transpose(int left_dim, int common_dim, int right_dim, const string& k
   cudaEventCreate(&stop);
 
   cudaEventRecord(start);
-  for (int i = 0; i < 100; ++i) {
-    Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-      true, false, 1, 0, &output_gpu, kernel);
-  }
+  Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
+    true, false, 1, 0, &output_gpu, kernel);
   cudaEventRecord(stop);
   cudaEventSynchronize(stop);
 
@@ -110,8 +108,10 @@ void right_transpose(int left_dim, int common_dim, int right_dim, const string& 
   time_point<system_clock> start, end;
   duration<double> time = duration<double>::zero();
   start = system_clock::now();
-  Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
-    false, true, 1, 0, &output_gpu, kernel);
+  for (int i = 0; i < 100; ++i) {
+    Backend<GPUTensor, float>::MatrixDotFunc(&left_gpu, &right_gpu,
+      false, true, 1, 0, &output_gpu, kernel);
+  }
   cudaDeviceSynchronize();
   end = system_clock::now();
   time = end - start;
@@ -327,10 +327,41 @@ void correct() {
   //left_transpose(1728, 384, 172, "asm");
   //left_transpose(1728, 384, 169, "blas");
   //std::cout << "conv2" << std::endl;
-  right_transpose(4096, 4092, 4096, "asm");
-  right_transpose(4096, 4092, 4096, "blas");
-  right_transpose(4096, 4092, 4096, "asm");
-  right_transpose(4096, 4092, 4096, "blas");
+  //left_transpose(1024, 1024, 1024, "asm");
+  //left_transpose(1024, 1024, 1024, "blas");
+  //std::cout << "affine1" << std::endl;
+  //right_transpose(128, 9216, 4096, "asm");
+  //right_transpose(128, 9216, 4096, "blas");
+  //std::cout << "affine2" << std::endl;
+  //right_transpose(128, 4096, 4096, "asm");
+  //right_transpose(128, 4096, 4096, "blas");
+  //std::cout << "affine3" << std::endl;
+  //right_transpose(128, 4096, 1000, "asm");
+  //right_transpose(128, 4096, 1000, "blas");
+
+  //std::cout << "affine1" << std::endl;
+  //no_transpose(9216, 128, 4096, "asm");
+  //no_transpose(9216, 128, 4096, "blas");
+  //std::cout << "affine2" << std::endl;
+  //no_transpose(4096, 128, 4096, "asm");
+  //no_transpose(4096, 128, 4096, "blas");
+  //std::cout << "affine3" << std::endl;
+  //no_transpose(4096, 128, 1000, "asm");
+  //no_transpose(4096, 128, 1000, "blas");
+
+  //std::cout << "affine1" << std::endl;
+  //left_transpose(128, 4096, 9216, "asm");
+  //left_transpose(128, 4096, 9216, "blas");
+  //std::cout << "affine2" << std::endl;
+  //left_transpose(128, 4096, 4096, "asm");
+  //left_transpose(128, 4096, 4096, "blas");
+  //std::cout << "affine3" << std::endl;
+  //left_transpose(128, 1000, 4096, "asm");
+  //left_transpose(128, 1000, 4096, "blas");
+  left_transpose(4096, 4096, 4096, "asm");
+  left_transpose(4096, 4096, 4096, "blas");
+  left_transpose(4096, 4096, 4096, "asm");
+  left_transpose(4096, 4096, 4096, "blas");
   //left_transpose(1024, 1025, 1024, "asm");
   //left_transpose(1024, 1026, 1024, "asm");
   //left_transpose(1024, 1027, 1024, "asm");

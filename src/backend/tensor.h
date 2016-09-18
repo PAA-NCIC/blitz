@@ -46,11 +46,11 @@ class Tensor {
     return data_[index];
   }
 
-  DType* data() {
+  const DType* data() const {
     return data_;
   }
 
-  const DType* data() const {
+  DType* data() {
     return data_;
   }
 
@@ -62,8 +62,12 @@ class Tensor {
     this->row_major_ = false;
   }
 
+  // reshape
+  void Reshape(const Shape& shape) {
+    this->shape_ = shape;
+  }
+
   virtual void Fill(const DType value) = 0;
-  virtual void Reshape() = 0;
   virtual DType* Slice(const size_t index) = 0;
   virtual const DType* Slice(const size_t index) const = 0;
   virtual void OutputCSV(ofstream* ofs) const = 0;
@@ -72,7 +76,7 @@ class Tensor {
   virtual void Allocate() = 0;
 
   DType* data_;
-  const Shape shape_;
+  Shape shape_;
   bool row_major_;
 };
 

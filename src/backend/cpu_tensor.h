@@ -18,7 +18,6 @@ class CPUTensor : public Tensor<DType> {
   ~CPUTensor();
 
   virtual void Fill(DType value);
-  virtual void Reshape();
   virtual DType* Slice(size_t index);
   virtual const DType* Slice(size_t index) const;
   virtual void OutputCSV(ofstream* ofs) const;

@@ -20,7 +20,6 @@ class GPUTensor : public Tensor<DType> {
   ~GPUTensor();
 
   virtual void Fill(const DType value);
-  virtual void Reshape();
   virtual DType* Slice(const size_t index);
   virtual const DType* Slice(size_t index) const;
   virtual void OutputCSV(ofstream* ofs) const;

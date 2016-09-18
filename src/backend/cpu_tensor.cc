@@ -21,10 +21,6 @@ inline void CPUTensor<DType>::Fill(DType value) {
 }
 
 template<typename DType>
-inline void CPUTensor<DType>::Reshape() {
-}
-
-template<typename DType>
 inline DType* CPUTensor<DType>::Slice(size_t index) {
 #ifdef BLITZ_DEVELOP
   CHECK_LT(index, this->shape_.size());
