@@ -1,3 +1,3 @@
 # blitz
 
-Be a Light and Efficient Deep Learning System
+Be a light, efficient, and cross-platform deep learning system
