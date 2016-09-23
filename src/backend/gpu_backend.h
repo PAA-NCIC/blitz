@@ -157,54 +157,6 @@ class Backend<GPUTensor, DType> {
     GPUTensor<DType>* unpack, GPUTensor<DType>* update,
     const string& kernel = "blas");
 
-  // batch parallel
-  static void Convolution2DForwardFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    vector<shared_ptr<GPUTensor<DType> > >* unpack_batch,
-    GPUTensor<DType>* output);
-
-  static void Convolution2DBackwardFunc(
-    const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    vector<shared_ptr<GPUTensor<DType> > >* pack_batch,
-    GPUTensor<DType>* input);
-
-  static void Convolution2DUpdateFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* output,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    vector<shared_ptr<GPUTensor<DType> > >* unpack_batch,
-    vector<shared_ptr<GPUTensor<DType> > >* update_batch,
-    GPUTensor<DType>* update);
-
-  // cudnn TODO(keren): modify to N dimension
-  static void ConvolutionCudnnForwardFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* output);
-
-  static void ConvolutionCudnnBackwardFunc(
-    const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* input);
-
-  static void ConvolutionCudnnUpdateFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* output,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* update);
-
-  // naive parallel
-  static void Convolution2DForwardFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-    size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* output);
-
   static void MaxPooling2DForwardFunc(
     const GPUTensor<DType>* input,
     size_t filter_height, size_t filter_width,
@@ -239,24 +191,6 @@ class Backend<GPUTensor, DType> {
 
   static float EvaluateRegressFunc(
     const GPUTensor<DType>* output, const GPUTensor<DType>* target);
-
-  static void Unpack2DParallelFunc(
-    const DType* input, size_t channel,
-    size_t input_height, size_t input_width,
-    size_t filter_height, size_t filter_width,
-    size_t output_height, size_t output_width,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    DType* unpack);
-
-  static void Pack2DParallelFunc(
-    const DType* pack, size_t channel,
-    size_t input_height, size_t input_width,
-    size_t filter_height, size_t filter_width,
-    size_t output_height, size_t output_width,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    DType* input);
 
   static void Unpack2DFunc(
     const DType* input, size_t channel,

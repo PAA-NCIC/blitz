@@ -46,27 +46,31 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
 
   // unpack one image in every iteration
 
+  Shape workspace_shape(1);
   if (this->kernel_ == "asm" || this->kernel_ == "blas") {
-    Shape unpack_shape(2);
-    unpack_shape[0] = input_channel * filter_height * filter_width;
-    unpack_shape[1] = output_height * output_width;
-    this->unpack_ = make_shared<TensorType<DType> >(unpack_shape);
+    workspace_shape[0] = input_channel *
+      filter_height * filter_width * output_height * output_width;
+    this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
+  } else if (this->kernel_ == "batch_asm" || this->kernel_ == "batch_blas") {
+    size_t workspace_unpack_size = BLITZ_NUM_THREADS * input_channel *
+      filter_height * filter_width * output_height * output_width;
+    size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *
+      input_channel * filter_height * filter_width;
+    workspace_shape[0] = workspace_unpack_size + workspace_update_size;
+    this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
   }
 #ifndef BLITZ_CPU_ONLY
   else if (this->kernel_ == "cudnn") {
     // create val
     cudnn_alpha_ = new DType(1.0);
     cudnn_beta_ = new DType(0.0);
-
     // create handle
     cudnnCreate(&cudnn_handle_);
-
     // create descriptors
     cudnn::createTensor4dDesc<DType>(&input_desc_);
     cudnn::createTensor4dDesc<DType>(&output_desc_);
     cudnn::createFilterDesc<DType>(&filter_desc_);
     cudnn::createConvolution2DDesc<DType>(&conv_desc_);
-
     // set descriptors
     cudnn::setTensor4dDesc<DType>(&input_desc_,
       batch_size, input_channel, input_height, input_width);
@@ -77,14 +81,12 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     cudnn::setConvolution2DDesc<DType>(&conv_desc_,
       padding_height_, padding_width_,
       stride_height_, stride_width_);
-
     // set algorithms
     forward_algorithm_ = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
     backward_filter_algorithm_ = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0;
     backward_data_algorithm_ = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
   }
 #endif
-
   LOG(INFO) << "Conv Layer: " << this->name_;
   LOG(INFO) << "input shape: " << input_channel << " * " << input_height <<
     " * " << input_width;
@@ -112,13 +114,13 @@ void Conv<TensorType, DType>::ForwardPropImpl(
     Backend<TensorType, DType>::Convolution2DForwardFunc(
       forward_input.get(), (this->weight_).get(),
       padding_height_, padding_width_, stride_height_, stride_width_,
-      (this->unpack_).get(), (this->forward_output_).get(), this->kernel_);
+      (this->workspace_).get(), (this->forward_output_).get(), this->kernel_);
   }
 #else
   Backend<TensorType, DType>::Convolution2DForwardFunc(
     forward_input.get(), (this->weight_).get(),
     padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->unpack_).get(), (this->forward_output_).get());
+    (this->workspace_).get(), (this->forward_output_).get());
 #endif
 }
 
@@ -139,13 +141,13 @@ void Conv<TensorType, DType>::BackwardPropImpl(
       Backend<TensorType, DType>::Convolution2DBackwardFunc(
       backward_input.get(), (this->weight_).get(),
       padding_height_, padding_width_, stride_height_, stride_width_,
-      (this->unpack_).get(), (this->backward_output_).get(), this->kernel_);
+      (this->workspace_).get(), (this->backward_output_).get(), this->kernel_);
     }
 #else
     Backend<TensorType, DType>::Convolution2DBackwardFunc(
     backward_input.get(), (this->weight_).get(),
     padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->unpack_).get(), (this->backward_output_).get());
+    (this->workspace_).get(), (this->backward_output_).get());
 #endif
   }
 #ifndef BLITZ_CPU_ONLY
@@ -161,13 +163,13 @@ void Conv<TensorType, DType>::BackwardPropImpl(
     Backend<TensorType, DType>::Convolution2DUpdateFunc(
       (this->forward_input_).get(), backward_input.get(),
       padding_height_, padding_width_, stride_height_, stride_width_,
-      (this->unpack_).get(), (this->update_).get(), this->kernel_);
+      (this->workspace_).get(), (this->update_).get(), this->kernel_);
   }
 #else
   Backend<TensorType, DType>::Convolution2DUpdateFunc(
     (this->forward_input_).get(), backward_input.get(),
     padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->unpack_).get(), (this->update_).get());
+    (this->workspace_).get(), (this->update_).get());
 #endif
 }
 

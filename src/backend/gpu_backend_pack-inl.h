@@ -26,15 +26,15 @@ __global__ void GPUUnpack1024Kernel(const DType* input,
     filter_height * filter_width * input_channel +
     input_channel_index * filter_height * filter_width;
 
-  int height_offset_index, width_offset_index;
-  for (int i = 0; i < filter_height; ++i) {
+  size_t height_offset_index, width_offset_index;
+  for (size_t i = 0; i < filter_height; ++i) {
     height_offset_index = height_offset + i;
     if (height_offset_index < 0 || height_offset_index >= input_height) {
-      for (int j = 0; j < filter_width; ++j) {
+      for (size_t j = 0; j < filter_width; ++j) {
         *p_unpack++ = 0;
       }
     } else {
-      for (int j = 0; j < filter_width; ++j) {
+      for (size_t j = 0; j < filter_width; ++j) {
         width_offset_index = width_offset + j;
         if (width_offset_index < 0 || width_offset_index >= input_width) {
           *p_unpack++ = 0;
@@ -71,15 +71,15 @@ __global__ void GPUUnpackKernel(const DType* input,
       filter_height * filter_width * input_channel +
       input_channel_index * filter_height * filter_width;
 
-    int height_offset_index, width_offset_index;
-    for (int i = 0; i < filter_height; ++i) {
+    size_t height_offset_index, width_offset_index;
+    for (size_t i = 0; i < filter_height; ++i) {
       height_offset_index = height_offset + i;
       if (height_offset_index < 0 || height_offset_index >= input_height) {
-        for (int j = 0; j < filter_width; ++j) {
+        for (size_t j = 0; j < filter_width; ++j) {
           *p_unpack++ = 0;
         }
       } else {
-        for (int j = 0; j < filter_width; ++j) {
+        for (size_t j = 0; j < filter_width; ++j) {
           width_offset_index = width_offset + j;
           if (width_offset_index < 0 || width_offset_index >= input_width) {
             *p_unpack++ = 0;
@@ -93,7 +93,7 @@ __global__ void GPUUnpackKernel(const DType* input,
 }
 
 template<typename DType>
-void Backend<GPUTensor, DType>::Unpack2DParallelFunc(
+void Backend<GPUTensor, DType>::Unpack2DFunc(
   const DType* input, size_t channel,
   size_t input_height, size_t input_width,
   size_t filter_height, size_t filter_width,
@@ -150,9 +150,9 @@ __global__ void GPUPack1024Kernel(const DType* pack,
     input_height_index * input_width + input_width_index;
 
   DType sum = 0.0;
-  int filter_height_index, filter_width_index;
-  for (int i = pack_height_start; i < pack_height_end; ++i) {
-    for (int j = pack_width_start; j < pack_width_end; ++j) {
+  size_t filter_height_index, filter_width_index;
+  for (size_t i = pack_height_start; i < pack_height_end; ++i) {
+    for (size_t j = pack_width_start; j < pack_width_end; ++j) {
       filter_height_index = (input_height_padding - i * stride_height);
       filter_width_index = (input_width_padding - j * stride_width);
       sum += p_pack[(i * output_width + j) * pack_width +
@@ -195,9 +195,9 @@ __global__ void GPUPackKernel(const DType* pack,
       input_height_index * input_width + input_width_index;
 
     DType sum = 0.0;
-    int filter_height_index, filter_width_index;
-    for (int i = pack_height_start; i < pack_height_end; ++i) {
-      for (int j = pack_width_start; j < pack_width_end; ++j) {
+    size_t filter_height_index, filter_width_index;
+    for (size_t i = pack_height_start; i < pack_height_end; ++i) {
+      for (size_t j = pack_width_start; j < pack_width_end; ++j) {
         filter_height_index = (input_height_padding - i * stride_height);
         filter_width_index = (input_width_padding - j * stride_width);
         sum += p_pack[(i * output_width + j) * pack_width +
@@ -209,7 +209,7 @@ __global__ void GPUPackKernel(const DType* pack,
 }
 
 template<typename DType>
-void Backend<GPUTensor, DType>::Pack2DParallelFunc(
+void Backend<GPUTensor, DType>::Pack2DFunc(
   const DType* pack, size_t channel,
   size_t input_height, size_t input_width,
   size_t filter_height, size_t filter_width,
@@ -230,25 +230,5 @@ void Backend<GPUTensor, DType>::Pack2DParallelFunc(
       padding_height, padding_width, stride_height, stride_width, input);
   }
 }
-
-template<typename DType>
-void Backend<GPUTensor, DType>::Unpack2DFunc(
-  const DType* input, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* unpack) {}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::Pack2DFunc(
-  const DType* pack, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* input) {}
 
 #endif  // SRC_BACKEND_GPU_BACKEND_PACK_INL_H_

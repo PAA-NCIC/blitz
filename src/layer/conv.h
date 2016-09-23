@@ -38,7 +38,7 @@ class Conv : public ParamLayer<TensorType, DType> {
   // TODO(keren) bias
   const Shape filter_shape_;
 
-  shared_ptr<TensorType<DType> > unpack_;
+  shared_ptr<TensorType<DType> > workspace_;
 
   const int stride_height_;
   const int stride_width_;

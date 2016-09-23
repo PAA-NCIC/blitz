@@ -138,51 +138,25 @@ class Backend {
     const TensorType<DType>* input, const TensorType<DType>* filter,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    TensorType<DType>* unpack, TensorType<DType>* output,
+    TensorType<DType>* workspace,
+    TensorType<DType>* output,
     const string& kernel = "blas");
 
   static void Convolution2DBackwardFunc(
     const TensorType<DType>* output, const TensorType<DType>* filter,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    TensorType<DType>* pack, TensorType<DType>* input,
+    TensorType<DType>* workspace,
+    TensorType<DType>* input,
     const string& kernel = "blas");
 
   static void Convolution2DUpdateFunc(
     const TensorType<DType>* input, const TensorType<DType>* output,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    TensorType<DType>* unpack, TensorType<DType>* update,
+    TensorType<DType>* workspace,
+    TensorType<DType>* update,
     const string& kernel = "blas");
-
-  // batch parallel
-  static void Convolution2DForwardFunc(
-    const TensorType<DType>* input, const TensorType<DType>* filter,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    vector<shared_ptr<TensorType<DType> > >* unpack_batch,
-    TensorType<DType>* output);
-
-  static void Convolution2DBackwardFunc(
-    const TensorType<DType>* output, const TensorType<DType>* filter,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    vector<shared_ptr<TensorType<DType> > >* pack_batch,
-    TensorType<DType>* input);
-
-  static void Convolution2DUpdateFunc(
-    const TensorType<DType>* input, const TensorType<DType>* output,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    vector<shared_ptr<TensorType<DType> > >* unpack_batch,
-    vector<shared_ptr<TensorType<DType> > >* update_batch,
-    TensorType<DType>* update);
-
-  // naive parallel
-  static void Convolution2DForwardFunc(
-    const TensorType<DType>* input, const TensorType<DType>* filter,
-    size_t stride_height, size_t stride_width,
-    TensorType<DType>* output);
 
   static void MaxPooling2DForwardFunc(
     const TensorType<DType>* input,
@@ -218,24 +192,6 @@ class Backend {
 
   static float EvaluateRegressFunc(
     const TensorType<DType>* output, const TensorType<DType>* target);
-
-  static void Unpack2DParallelFunc(
-    const DType* input, size_t channel,
-    size_t input_height, size_t input_width,
-    size_t filter_height, size_t filter_width,
-    size_t output_height, size_t output_width,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    DType* unpack);
-
-  static void Pack2DParallelFunc(
-    const DType* pack, size_t channel,
-    size_t input_height, size_t input_width,
-    size_t filter_height, size_t filter_width,
-    size_t output_height, size_t output_width,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    DType* input);
 
   static void Unpack2DFunc(
     const DType* input, size_t channel,

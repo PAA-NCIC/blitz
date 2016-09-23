@@ -411,13 +411,13 @@ void Backend<CPUTensor, DType>::MatrixDotFunc(
   const bool transa, const bool transb,
   const DType alpha, const DType beta,
   CPUTensor<DType>* output, const string& kernel) {
-  int dim_left = transa ? left->size() / (left->shape())[0] :
+  size_t dim_left = transa ? left->size() / (left->shape())[0] :
     (left->shape())[0];
-  int dim_right = transb ? (right->shape())[0] :
+  size_t dim_right = transb ? (right->shape())[0] :
     right->size() / (right->shape())[0];
-  int dim_common_left = transa ? (left->shape())[0] :
+  size_t dim_common_left = transa ? (left->shape())[0] :
     left->size() / (left->shape())[0];
-  int dim_common_right = transb ? right->size() / (right->shape())[0] :
+  size_t dim_common_right = transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
 #ifdef BLITZ_DEVELOP

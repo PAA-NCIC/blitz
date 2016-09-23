@@ -18,12 +18,12 @@ __global__ void GPUMaxPoolingForward(const DType* input,
     size_t width_start = output_width_index * stride_width;
     size_t height_end = height_start + filter_height;
     size_t width_end = width_start + filter_width;
-    int max_idx = height_start * input_width + width_start;
+    size_t max_idx = height_start * input_width + width_start;
     const DType* input_slice = input +
       (batch_index * channel + channel_index) *
       input_height * input_width;
-    for (int i = height_start; i < height_end; ++i) {
-      for (int j = width_start; j < width_end; ++j) {
+    for (size_t i = height_start; i < height_end; ++i) {
+      for (size_t j = width_start; j < width_end; ++j) {
         if (input_slice[i * input_width + j] > input_slice[max_idx]) {
           max_idx = i * input_width + j;
         }

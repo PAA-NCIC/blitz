@@ -57,8 +57,8 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
           size_t pool_index = output_height_index * output_width +
             output_width_index;
           size_t max_index_tmp = height_start * input_width + width_start;
-          for (int h = height_start; h < height_end; ++h) {
-            for (int w = width_start; w < width_end; ++w) {
+          for (size_t h = height_start; h < height_end; ++h) {
+            for (size_t w = width_start; w < width_end; ++w) {
               size_t index = h * input_width + w;
               if (input_slice[index] > input_slice[max_index_tmp]) {
                 max_index_tmp = index;

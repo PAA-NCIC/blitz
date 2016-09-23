@@ -289,13 +289,13 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
   GPUTensor<DType>* output, const string& kernel) {
   bool gpu_transa = left->row_major()? transa : !transa;
   bool gpu_transb = right->row_major()? transb : !transb;
-  int dim_left = gpu_transa ? left->size() / (left->shape())[0] :
+  size_t dim_left = gpu_transa ? left->size() / (left->shape())[0] :
     (left->shape())[0];
-  int dim_right = gpu_transb ? (right->shape())[0] :
+  size_t dim_right = gpu_transb ? (right->shape())[0] :
     right->size() / (right->shape())[0];
-  int dim_common_left = gpu_transa ? (left->shape())[0] :
+  size_t dim_common_left = gpu_transa ? (left->shape())[0] :
     left->size() / (left->shape())[0];
-  int dim_common_right = gpu_transb ? right->size() / (right->shape())[0] :
+  size_t dim_common_right = gpu_transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
   CHECK_NE(dim_left, 0);
@@ -480,8 +480,8 @@ float Backend<GPUTensor, DType>::EvaluateRegressFunc(
 template<typename DType>
 float Backend<GPUTensor, DType>::EvaluateClassifyFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* target) {
-  int batch_size = output->shape()[0];
-  int dim = output->size() / batch_size;
+  size_t batch_size = output->shape()[0];
+  size_t dim = output->size() / batch_size;
   Shape shape(1);
   shape[0] = batch_size;
   GPUTensor<DType> correct(shape);
