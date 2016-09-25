@@ -22,33 +22,33 @@ void forward_compare() {
   // input channel
   input_shape[1] = 3;
   // input height
-  input_shape[2] = 28;
+  input_shape[2] = 224;
   // input width
-  input_shape[3] = 28;
+  input_shape[3] = 224;
 
   Shape filter_shape(4);
   // output channel
-  filter_shape[0] = 16;
+  filter_shape[0] = 64;
   // input channel
   filter_shape[1] = 3;
   // filter height
-  filter_shape[2] = 5;
+  filter_shape[2] = 11;
   // filter width
-  filter_shape[3] = 5;
+  filter_shape[3] = 11;
 
   Shape output_shape(4);
   // batch_size
   output_shape[0] = 128;
   // output channel
-  output_shape[1] = 16;
+  output_shape[1] = 64;
   // output height
-  output_shape[2] = 24;
+  output_shape[2] = 55;
   // output width
-  output_shape[3] = 24;
+  output_shape[3] = 55;
 
   Shape unpack_shape(2);
-  unpack_shape[0] = 24 * 24;
-  unpack_shape[1] = 5 * 5 * 3;
+  unpack_shape[0] = 55 * 55;
+  unpack_shape[1] = 11 * 11 * 3;
 
   CPUTensor<float> input(input_shape);
   CPUTensor<float> filter(filter_shape);
@@ -68,9 +68,9 @@ void forward_compare() {
     filter.size(), filter_gpu.data());
 
   Backend<CPUTensor, float>::Convolution2DForwardFunc(&input, &filter,
-    0, 0, 1, 1, &unpack, &output);
+    3, 3, 4, 4, &unpack, &output);
   Backend<GPUTensor, float>::Convolution2DForwardFunc(&input_gpu, &filter_gpu,
-    0, 0, 1, 1, &unpack_gpu, &output_gpu);
+    3, 3, 4, 4, &unpack_gpu, &output_gpu);
   cudaMemcpy(output_copy.data(), output_gpu.data(), output_copy.size() * sizeof(float),
     cudaMemcpyDeviceToHost);
 

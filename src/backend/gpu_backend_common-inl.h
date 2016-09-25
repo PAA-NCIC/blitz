@@ -42,7 +42,6 @@ void Backend<GPUTensor, DType>::RectlinDerivativeFunc(
   const DType slope,
   GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
-
   DType compara_value = static_cast<DType>(0);
   GPURectlinDerivative<DType><<<BlitzGPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), output->data(),
@@ -73,8 +72,8 @@ void Backend<GPUTensor, DType>::SoftmaxApplyFunc(
   size_t num_sample = input->shape()[0];
   size_t dim = input->size() / num_sample;
   GPUSoftmaxApply<DType><<<BlitzGPUGetBlocks(num_sample),
-    BLITZ_NUM_GPU_THREADS>>>(input->data(), num_sample, dim,
-    output->data());
+    BLITZ_NUM_GPU_THREADS>>>(input->data(),
+    num_sample, dim, output->data());
 }
 
 template<typename DType>
@@ -121,7 +120,6 @@ void Backend<GPUTensor, DType>::LogisticApplyFunc(
   const GPUTensor<DType>* input,
   GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
-
   GPULogisticApply<DType><<<BlitzGPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), output->data(),
     input->size());
@@ -169,7 +167,7 @@ template<typename DType>
 __global__ void GPUCrossEntropyMultiApply(const DType* input,
   const DType* target, size_t size, DType* sum) {
   BLITZ_CUDA_LOOP(i, size) {
-    sum[i] = BlitzGPUSafeLog(input[i]) * target[i];
+    sum[i] = -BlitzGPUSafeLog(input[i]) * target[i];
   }
 }
 
@@ -192,7 +190,7 @@ template<typename DType>
 void Backend<GPUTensor, DType>::CrossEntropyMultiDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {
-  //MinusFunc(input, target, output);
+  MinusFunc(input, target, output);
 }
 
 template<typename DType>
