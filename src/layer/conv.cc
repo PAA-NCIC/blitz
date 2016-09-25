@@ -51,7 +51,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     workspace_shape[0] = input_channel *
       filter_height * filter_width * output_height * output_width;
     this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
-  } else if (this->kernel_ == "batch_asm" || this->kernel_ == "batch_blas") {
+  } else if (this->kernel_ == "asm_batch" || this->kernel_ == "blas_batch") {
     size_t workspace_unpack_size = BLITZ_NUM_THREADS * input_channel *
       filter_height * filter_width * output_height * output_width;
     size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *

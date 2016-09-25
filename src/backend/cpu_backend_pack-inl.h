@@ -22,19 +22,21 @@ void Backend<CPUTensor, DType>::Unpack2DFunc(
         ++filter_height_index) {
       for (size_t filter_width_index = 0; filter_width_index < filter_width;
           ++filter_width_index) {
-        size_t filter_height_offset = -padding_height + filter_height_index;
+        int filter_height_offset = -padding_height + filter_height_index;
         for (size_t output_height_index = 0; output_height_index < output_height;
             ++output_height_index) {
-          if (filter_height_offset < 0 || filter_height_offset >= input_height) {
+          if (filter_height_offset < 0 || filter_height_offset >=
+            static_cast<int>(input_height)) {
             for (size_t output_width_index = 0; output_width_index < output_width;
                 ++output_width_index) {
               unpack[unpack_index++] = 0;
             }
           } else {
-            size_t filter_width_offset = -padding_width + filter_width_index;
+            int filter_width_offset = -padding_width + filter_width_index;
             for (size_t output_width_index = 0; output_width_index < output_width;
                 ++output_width_index) {
-              if (filter_width_offset < 0 || filter_width_offset >= input_width) {
+              if (filter_width_offset < 0 || filter_width_offset >=
+                static_cast<int>(input_width)) {
                 unpack[unpack_index++] = 0;
               } else {
                 unpack[unpack_index++] = input_slice[filter_height_offset *
@@ -69,16 +71,18 @@ void Backend<CPUTensor, DType>::Pack2DFunc(
         ++filter_height_index) {
       for (size_t filter_width_index = 0; filter_width_index < filter_width;
           ++filter_width_index) {
-        size_t filter_height_offset = -padding_height + filter_height_index;
+        int filter_height_offset = -padding_height + filter_height_index;
         for (size_t output_height_index = 0; output_height_index < output_height;
             ++output_height_index) {
-          if (filter_height_offset < 0 || filter_height_offset >= input_height) {
+          if (filter_height_offset < 0 || filter_height_offset >=
+            static_cast<int>(input_height)) {
             pack_index += output_width;
           } else {
-            size_t filter_width_offset = -padding_width + filter_width_index;
+            int filter_width_offset = -padding_width + filter_width_index;
             for (size_t output_width_index = 0; output_width_index < output_width;
                 ++output_width_index) {
-              if (filter_width_offset >= 0 && filter_width_offset < input_width) {
+              if (filter_width_offset >= 0 && filter_width_offset <
+                static_cast<int>(input_width)) {
                 input_slice[filter_height_offset * input_width +
                   filter_width_offset] += pack[pack_index];
               }

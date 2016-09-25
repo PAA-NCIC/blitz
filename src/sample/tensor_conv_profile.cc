@@ -8,8 +8,7 @@ void forward_profile(
   const CPUTensor<float>& input, const CPUTensor<float>& weight,
   const int stride_height, const int stride_width,
   const int padding_height, const int padding_width,
-  CPUTensor<float>& unpack, vector<shared_ptr<CPUTensor<float> > >& unpack_batch,
-  CPUTensor<float>& output) {
+  CPUTensor<float>& unpack, CPUTensor<float>& output) {
   // gemm parallel
   // std::cout << "gemm parallel:" << std::endl;
   // Backend<CPUTensor, float>::Convolution2DForwardFunc(
@@ -17,30 +16,6 @@ void forward_profile(
   //   stride_height, stride_width, &unpack, &output);
   // output.Fill(0);
   // naive parallel
-  std::cout << "naive parallel:" << std::endl;
-  if (padding_height == 0 && padding_width == 0) {
-    for (int i = 0; i < ITER; ++i) {
-      Backend<CPUTensor, float>::Convolution2DForwardFunc(
-        &input, &weight, stride_height, stride_width, &output);
-    }
-  } else {
-    Shape input_shape(4);
-    // batch_size
-    input_shape[0] = input.shape()[0];
-    // input channel
-    input_shape[1] = input.shape()[1];
-    // input height
-    input_shape[2] = input.shape()[2] + 2 * padding_height;
-    // input width
-    input_shape[3] = input.shape()[3] + 2 * padding_width;
-    CPUTensor<float> padding_input(input_shape);
-    Backend<CPUTensor, float>::UniformDistributionFunc(0.0f, 100.0f, &padding_input);
-    for (int i = 0; i < ITER; ++i) {
-      Backend<CPUTensor, float>::Convolution2DForwardFunc(
-        &padding_input, &weight, stride_height, stride_width, &output);
-    }
-  }
-
   // batch gemm parallel
   std::cout << "batch gemm parallel:" << std::endl;
   for (int i = 0; i < ITER; ++i) {
@@ -49,7 +24,7 @@ void forward_profile(
     start = system_clock::now();
     Backend<CPUTensor, float>::Convolution2DForwardFunc(
         &input, &weight, padding_height, padding_width,
-        stride_height, stride_width, &unpack_batch, &output);
+        stride_height, stride_width, &unpack, &output);
     end = system_clock::now();
     time = end - start;
     std::cout << time.count() << std::endl;
@@ -96,16 +71,11 @@ void mnist1()
   output_shape[3] = 24;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -113,7 +83,7 @@ void mnist1()
   int padding_width = 0;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void mnist2()
@@ -154,16 +124,11 @@ void mnist2()
   output_shape[3] = 8;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -171,7 +136,7 @@ void mnist2()
   int padding_width = 0;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void cifar1()
@@ -212,16 +177,11 @@ void cifar1()
   output_shape[3] = 28;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -229,7 +189,7 @@ void cifar1()
   int padding_width = 0;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void alexnet1()
@@ -270,16 +230,11 @@ void alexnet1()
   output_shape[3] = 55;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 4;
   int stride_width = 4;
@@ -287,7 +242,7 @@ void alexnet1()
   int padding_width = 3;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void alexnet2()
@@ -328,16 +283,11 @@ void alexnet2()
   output_shape[3] = 27;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -345,7 +295,7 @@ void alexnet2()
   int padding_width = 2;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void alexnet3()
@@ -386,16 +336,11 @@ void alexnet3()
   output_shape[3] = 13;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -403,7 +348,7 @@ void alexnet3()
   int padding_width = 1;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void alexnet4()
@@ -444,16 +389,11 @@ void alexnet4()
   output_shape[3] = 13;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -461,7 +401,7 @@ void alexnet4()
   int padding_width = 1;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 void alexnet5()
@@ -502,16 +442,11 @@ void alexnet5()
   output_shape[3] = 13;
   CPUTensor<float> output(output_shape);
 
-  Shape unpack_shape(2);
-  unpack_shape[0] = filter_shape[1] * filter_shape[2] * filter_shape[3];
-  unpack_shape[1] = output_shape[2] * output_shape[3];
+  Shape unpack_shape(1);
+  unpack_shape[0] = BLITZ_NUM_THREADS *
+    filter_shape[1] * filter_shape[2] * filter_shape[3] *
+    output_shape[2] * output_shape[3];
   CPUTensor<float> unpack(unpack_shape);
-
-  vector<shared_ptr<CPUTensor<float> > > unpack_batch;
-  unpack_batch.resize(16);
-  for (size_t i = 0; i < unpack_batch.size(); ++i) {
-    unpack_batch[i] = make_shared<CPUTensor<float> >(unpack_shape);
-  }
 
   int stride_height = 1;
   int stride_width = 1;
@@ -519,7 +454,7 @@ void alexnet5()
   int padding_width = 1;
 
   forward_profile(input, weight, stride_height, stride_width, padding_height,
-    padding_width, unpack, unpack_batch, output);
+    padding_width, unpack, output);
 }
 
 int main() {

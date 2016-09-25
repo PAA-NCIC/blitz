@@ -20,7 +20,7 @@ fillers:
 
 layers:
 -
-    type: ConvBatch
+    type: Conv
     name: ConvBatch1
     stride: 1
     padding: 0
@@ -29,6 +29,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kerenl: blas_batch
 -
     type: Pooling
     name: Pooling1
@@ -36,7 +37,7 @@ layers:
     stride: 2
     op: max
 -
-    type: ConvBatch
+    type: Conv
     name: ConvBatch2
     stride: 1
     padding: 0
@@ -45,6 +46,7 @@ layers:
     activation:
         type: Rectlin
     optimizer: op1
+    kerenl: blas_batch
 -
     type: Pooling
     name: Pooling1
@@ -85,4 +87,4 @@ scheduler:
 callbacks:
 -
     type: Progressbar
-    step: 100
+    step: 1

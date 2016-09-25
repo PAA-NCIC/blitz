@@ -14,9 +14,9 @@ __global__ void GPUUnpack1024Kernel(const DType* input,
   size_t input_channel_index = blockIdx.x;
   size_t output_width = blockDim.y;
   size_t input_channel = gridDim.x;
-  size_t height_offset = output_height_index *
+  int height_offset = output_height_index *
     stride_height - padding_height;
-  size_t width_offset = output_width_index *
+  int width_offset = output_width_index *
     stride_width - padding_width;
   const DType* p_input = input +
     (input_channel_index * input_height + height_offset) *
@@ -26,17 +26,19 @@ __global__ void GPUUnpack1024Kernel(const DType* input,
     filter_height * filter_width * input_channel +
     input_channel_index * filter_height * filter_width;
 
-  size_t height_offset_index, width_offset_index;
+  int height_offset_index, width_offset_index;
   for (size_t i = 0; i < filter_height; ++i) {
     height_offset_index = height_offset + i;
-    if (height_offset_index < 0 || height_offset_index >= input_height) {
+    if (height_offset_index < 0 || height_offset_index >=
+      static_cast<int>(input_height)) {
       for (size_t j = 0; j < filter_width; ++j) {
         *p_unpack++ = 0;
       }
     } else {
       for (size_t j = 0; j < filter_width; ++j) {
         width_offset_index = width_offset + j;
-        if (width_offset_index < 0 || width_offset_index >= input_width) {
+        if (width_offset_index < 0 || width_offset_index >=
+          static_cast<int>(input_width)) {
           *p_unpack++ = 0;
         } else {
           *p_unpack++ = p_input[i * input_width + j];
@@ -61,8 +63,8 @@ __global__ void GPUUnpackKernel(const DType* input,
     size_t output_height_index = channel_output_offset % output_height;
     size_t output_width_index = index % output_width;
     size_t input_channel_index = channel_output_offset / output_height;
-    size_t height_offset = output_height_index * stride_height - padding_height;
-    size_t width_offset = output_width_index * stride_width - padding_width;
+    int height_offset = output_height_index * stride_height - padding_height;
+    int width_offset = output_width_index * stride_width - padding_width;
     const DType* p_input = input +
       (input_channel_index * input_height + height_offset) *
       input_width + width_offset;
@@ -71,17 +73,19 @@ __global__ void GPUUnpackKernel(const DType* input,
       filter_height * filter_width * input_channel +
       input_channel_index * filter_height * filter_width;
 
-    size_t height_offset_index, width_offset_index;
+    int height_offset_index, width_offset_index;
     for (size_t i = 0; i < filter_height; ++i) {
       height_offset_index = height_offset + i;
-      if (height_offset_index < 0 || height_offset_index >= input_height) {
+      if (height_offset_index < 0 || height_offset_index >=
+        static_cast<int>(input_height)) {
         for (size_t j = 0; j < filter_width; ++j) {
           *p_unpack++ = 0;
         }
       } else {
         for (size_t j = 0; j < filter_width; ++j) {
           width_offset_index = width_offset + j;
-          if (width_offset_index < 0 || width_offset_index >= input_width) {
+          if (width_offset_index < 0 || width_offset_index >=
+            static_cast<int>(input_width)) {
             *p_unpack++ = 0;
           } else {
             *p_unpack++ = p_input[i * input_width + j];

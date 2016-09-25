@@ -61,7 +61,7 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       // to
       // (output_width * output_height)
       // (input_channel * filter_height * filter_width)
-      Unpack2DParallelFunc(input->Slice(batch_input_offset),
+      Unpack2DFunc(input->Slice(batch_input_offset),
           input_channel, input_height, input_width,
           filter_height, filter_width, output_height, output_width,
           padding_height, padding_width,
@@ -195,7 +195,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
       // to
       // (input_channel) *
       // (input_height * input_width)
-      Pack2DParallelFunc(pack->data(), input_channel, input_height, input_width,
+      Pack2DFunc(pack->data(), input_channel, input_height, input_width,
         filter_height, filter_width, output_height, output_width,
         padding_height, padding_width, stride_height, stride_width,
         input->Slice(batch_input_offset));
@@ -251,7 +251,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   LOG(INFO) << "dim right: " << dim_right;
   LOG(INFO) << "dim common: " << dim_common;
 #endif
-  #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
+#ifdef BLITZ_PERFORMANCE  // only valid for a single thread
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
@@ -283,7 +283,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       // to
       // (output_width * output_height)
       // (input_channel * filter_height * filter_width)
-      Unpack2DParallelFunc(input->Slice(batch_input_offset),
+      Unpack2DFunc(input->Slice(batch_input_offset),
         input_channel, input_height, input_width,
         filter_height, filter_width,
         output_height, output_width,
@@ -296,7 +296,6 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       elapsed_time /= 1000.0;
       unpack_time += elapsed_time;
       #endif
-
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(start);
       #endif
@@ -331,38 +330,5 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   LOG(INFO) << "Backward convolution filter unpack: " << unpack_time;
   #endif  // BLITZ_PERFORMANCE
 }
-
-// batch parallel
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
-  const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  vector<shared_ptr<GPUTensor<DType> > >* unpack_batch,
-  GPUTensor<DType>* output) {}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
-  const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  vector<shared_ptr<GPUTensor<DType> > >* pack_batch,
-  GPUTensor<DType>* input) {}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
-  const GPUTensor<DType>* input, const GPUTensor<DType>* output,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  vector<shared_ptr<GPUTensor<DType> > >* unpack_batch,
-  vector<shared_ptr<GPUTensor<DType> > >* update_batch,
-  GPUTensor<DType>* update) {}
-
-// naive parallel
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
-  const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-  size_t stride_height, size_t stride_width,
-  GPUTensor<DType>* output) {}
 
 #endif  // SRC_BACKEND_GPU_BACKEND_CONV_INL_H_

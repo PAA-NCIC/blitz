@@ -86,7 +86,7 @@ void unpack_input() {
   CPUTensor<float> unpack(unpack_shape);
   GPUTensor<float> unpack_gpu(unpack_shape);
 
-  Backend<GPUTensor, float>::Unpack2DParallelFunc(input_gpu.data(), input_shape[1],
+  Backend<GPUTensor, float>::Unpack2DFunc(input_gpu.data(), input_shape[1],
     input_shape[2], input_shape[3], filter_shape[2], filter_shape[3], 2,
     2, padding_height, padding_width, stride_height, stride_width, unpack_gpu.data());
 
@@ -152,7 +152,7 @@ void pack_input() {
   CPUTensor<float> input(input_shape);
   GPUTensor<float> input_gpu(input_shape);
 
-  Backend<GPUTensor, float>::Pack2DParallelFunc(pack_gpu.data(), input_shape[1],
+  Backend<GPUTensor, float>::Pack2DFunc(pack_gpu.data(), input_shape[1],
     input_shape[2], input_shape[3], filter_shape[2], filter_shape[3], 2,
     2, padding_height, padding_width, stride_height, stride_width, input_gpu.data());
   cudaMemcpy(input.data(), input_gpu.data(), input.size() * sizeof(float),

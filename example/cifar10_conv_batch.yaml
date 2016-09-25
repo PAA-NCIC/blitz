@@ -28,7 +28,7 @@ fillers:
 
 layers:
 -
-    type: ConvBatch
+    type: Conv
     name: Conv1
     stride: 1
     padding: 0
@@ -43,6 +43,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling1
@@ -50,7 +51,7 @@ layers:
     stride: 2
     op: max
 -
-    type: ConvBatch
+    type: Conv
     name: Conv2
     stride: 1
     padding: 0
@@ -65,6 +66,7 @@ layers:
     activation:
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling2

@@ -163,14 +163,6 @@ int main() {
   std::cout << "pack:" << std::endl;
   report_conv_forward(output);
 
-  // naive
-  output.Fill(0);
-  Backend<CPUTensor, float>::Convolution2DForwardFunc(
-    &input, &weight, stride_height, stride_width, &output);
-
-  std::cout << "naive:" << std::endl;
-  report_conv_forward(output);
-
   // backward input
   CPUTensor<float> backward_input(input_shape);
   backward_input.Fill(0);

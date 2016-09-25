@@ -3,7 +3,6 @@
 #include "backend/backends.h"
 #include "layer/affine.h"
 #include "layer/conv.h"
-#include "layer/conv_batch.h"
 #include "layer/pooling_layer.h"
 #include "layer/dropout_layer.h"
 #include "layer/param_layer.h"
@@ -23,7 +22,7 @@ shared_ptr<Layer<TensorType, DType> >
   string type = node["type"].as<string>();
   string name = node["name"].as<string>();
 
-  if (type == "Affine" || type == "Conv" || type == "ConvBatch") {
+  if (type == "Affine" || type == "Conv") {
     shared_ptr<ParamLayer<TensorType, DType> > param_layer;
 
     if (type == "Affine") {
@@ -47,7 +46,7 @@ shared_ptr<Layer<TensorType, DType> >
         param_layer = static_pointer_cast<ParamLayer<TensorType, DType> >(
         make_shared<Affine<TensorType, DType> >(name, filler_name,
         optimizer_name, activation, nout, kernel));
-    } else if (type == "Conv" || type == "ConvBatch") {
+    } else if (type == "Conv") {
       int stride = 1;
       int padding = 0;
 
@@ -77,19 +76,11 @@ shared_ptr<Layer<TensorType, DType> >
       if (node["activation"])
         activation = SetActivation<TensorType, DType>(node["activation"]);
 
-      if (type == "Conv") {
-        param_layer = shared_ptr<ParamLayer<TensorType, DType> >(
-          static_pointer_cast<ParamLayer<TensorType, DType> >(
-          new Conv<TensorType, DType>(name, filler_name,
-          optimizer_name, activation, shape, stride, stride, padding,
-          padding, kernel)));
-      } else if (type == "ConvBatch") {
-        param_layer = shared_ptr<ParamLayer<TensorType, DType> >(
-          static_pointer_cast<ParamLayer<TensorType, DType> >(
-          new ConvBatch<TensorType, DType>(name, filler_name,
-          optimizer_name, activation, shape, stride, stride, padding,
-          padding, kernel)));
-      }
+      param_layer = shared_ptr<ParamLayer<TensorType, DType> >(
+        static_pointer_cast<ParamLayer<TensorType, DType> >(
+        new Conv<TensorType, DType>(name, filler_name,
+        optimizer_name, activation, shape, stride, stride, padding,
+        padding, kernel)));
     }
 
     if (node["bias"]) {

@@ -38,7 +38,7 @@ fillers:
 
 layers:
 -
-    type: ConvBatch
+    type: Conv
     name: Conv1
     fshape: [64, 3, 11, 11]
     filler: f1
@@ -51,6 +51,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling1
@@ -58,7 +59,7 @@ layers:
     stride: 2
     op: max
 -
-    type: ConvBatch
+    type: Conv
     name: Conv2
     fshape: [192, 64, 5, 5]
     filler: f1
@@ -71,6 +72,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling2
@@ -78,7 +80,7 @@ layers:
     stride: 2
     op: max
 -
-    type: ConvBatch
+    type: Conv
     name: Conv3
     fshape: [384, 192, 3, 3]
     filler: f2
@@ -91,8 +93,9 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
-    type: ConvBatch
+    type: Conv
     name: Conv4
     fshape: [256, 384, 3, 3]
     filler: f2
@@ -105,8 +108,9 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
-    type: ConvBatch
+    type: Conv
     name: Conv5
     fshape: [256, 256, 3, 3]
     filler: f2
@@ -119,6 +123,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling3
