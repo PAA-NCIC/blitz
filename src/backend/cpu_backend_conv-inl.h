@@ -49,6 +49,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       const size_t workspace_unpack_offset = tid *
         input_channel * filter_height * filter_width *
         output_width * output_height;
+      DType* workspace_unpack_slice = workspace->Slice(workspace_unpack_offset);
       #ifdef BLITZ_PERFORMANCE
         #pragma omp for private(start, end)
       #else
@@ -72,7 +73,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
           output_height, output_width,
           padding_height, padding_width,
           stride_height, stride_width,
-          workspace->Slice(workspace_unpack_offset));
+          workspace_unpack_slice);
         #ifdef BLITZ_PERFORMANCE
         end = system_clock::now();
         #pragma omp critical
@@ -84,7 +85,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         BlitzCPUGemm(false, false,
         dim_left, dim_right, dim_common,
         const_cast<CPUTensor<DType>*>(filter)->data(),
-        workspace->Slice(workspace_unpack_offset),
+        workspace_unpack_slice,
         output->Slice(output_batch_offset),
         static_cast<DType>(1), static_cast<DType>(0));
         #ifdef BLITZ_PERFORMANCE
