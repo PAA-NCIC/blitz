@@ -85,4 +85,4 @@ scheduler:
 callbacks:
 -
     type: Progressbar
-    step: 1
+    step: 100

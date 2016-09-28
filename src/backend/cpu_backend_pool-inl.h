@@ -97,6 +97,15 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   size_t output_batch_offset;
   size_t input_channel_offset;
   size_t output_channel_offset;
+  DType (&p_input)[batch_size][channel][input_height * input_width] = 
+    *reinterpret_cast<DType (*) [batch_size][channel]
+    [input_height * input_width]>(input->data());
+  const DType (&p_output)[batch_size][channel][output_height * output_width] =
+    *reinterpret_cast<const DType (*) [batch_size][channel]
+    [output_height * output_width]>(output->data());
+  const size_t (&p_max_index)[batch_size][channel][output_height * output_width] =
+    *reinterpret_cast<const size_t (*) [batch_size][channel]
+    [output_height * output_width]>(max_index->data());
   // set zero
   input->Fill(0);
   // no padding
@@ -125,6 +134,22 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
       }
     }
   }
+  //#pragma omp parallel for
+  //for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
+  //  for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
+  //    for (size_t output_height_index = 0; output_height_index < output_height;
+  //      ++output_height_index) {
+  //      for (size_t output_width_index = 0; output_width_index < output_width;
+  //        ++output_width_index) {
+  //        size_t index = p_max_index[batch_index][channel_index]
+  //          [output_height_index * output_width + output_width_index];
+  //        p_input[batch_index][channel_index][index] =
+  //          p_output[batch_index][channel_index]
+  //          [output_height_index * output_width + output_width_index];
+  //      }
+  //    }
+  //  }
+  //}
 }
 
 #endif  // SRC_BACKEND_CPU_BACKEND_POOL_INL_H_
