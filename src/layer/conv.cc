@@ -45,7 +45,6 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   this->update_ = make_shared<TensorType<DType> >(shape_weight);
 
   // unpack one image in every iteration
-
   Shape workspace_shape(1);
   if (this->kernel_ == "asm" || this->kernel_ == "blas") {
     workspace_shape[0] = input_channel *
@@ -120,7 +119,7 @@ void Conv<TensorType, DType>::ForwardPropImpl(
   Backend<TensorType, DType>::Convolution2DForwardFunc(
     forward_input.get(), (this->weight_).get(),
     padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->workspace_).get(), (this->forward_output_).get());
+    (this->workspace_).get(), (this->forward_output_).get(), this->kernel_);
 #endif
 }
 
@@ -147,7 +146,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
     Backend<TensorType, DType>::Convolution2DBackwardFunc(
     backward_input.get(), (this->weight_).get(),
     padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->workspace_).get(), (this->backward_output_).get());
+    (this->workspace_).get(), (this->backward_output_).get(), this->kernel_);
 #endif
   }
 #ifndef BLITZ_CPU_ONLY
@@ -169,7 +168,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
   Backend<TensorType, DType>::Convolution2DUpdateFunc(
     (this->forward_input_).get(), backward_input.get(),
     padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->workspace_).get(), (this->update_).get());
+    (this->workspace_).get(), (this->update_).get(), this->kernel_);
 #endif
 }
 

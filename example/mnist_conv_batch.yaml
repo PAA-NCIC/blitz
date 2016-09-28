@@ -29,7 +29,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
-    kerenl: blas_batch
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling1
@@ -46,7 +46,7 @@ layers:
     activation:
         type: Rectlin
     optimizer: op1
-    kerenl: blas_batch
+    kernel: blas_batch
 -
     type: Pooling
     name: Pooling1
