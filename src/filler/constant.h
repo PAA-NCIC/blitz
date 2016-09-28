@@ -14,7 +14,7 @@ class Constant : public Filler<TensorType, DType> {
     LayerWeightIterator;
 
  public:
-  explicit Constant(const string& name, const DType val = 0.0f) :
+  explicit Constant(const string& name, const DType val) :
     Filler<TensorType, DType>(name), val_(val) {}
 
   virtual void FillImpl(LayerWeightIterator layer_weight_it);

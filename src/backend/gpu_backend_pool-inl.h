@@ -77,7 +77,7 @@ __global__ void GPUMaxPoolingBackward(const DType* output,
   BLITZ_CUDA_LOOP(i, size) {
     size_t channel_index = (i / (output_width * output_height)) % channel;
     size_t batch_index = i / (output_width * output_height * channel);
-     DType* input_slice = input +
+    DType* input_slice = input +
       (batch_index * channel + channel_index) *
       input_height * input_width;
     input_slice[max_index[i]] = output[i];

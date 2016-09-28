@@ -144,7 +144,7 @@ inline void AtomicAdd();
 
 template <typename DType>
 inline __device__ DType BlitzGPUSafeLog(DType input) {
-  return log(input > exp(-50.0) ? input : exp(-50.0));
+  return log(input > exp(-100.0) ? input : exp(-100.0));
 }
 
 }  // namespace blitz

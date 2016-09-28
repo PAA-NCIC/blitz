@@ -4,6 +4,7 @@
 #include <cuda_runtime_api.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include <cstdlib>
 
 namespace blitz {
 
@@ -17,7 +18,6 @@ inline void GPUTensor<DType>::Fill(DType value) {
   if (value == 0) {
     cudaMemset(this->data_, 0, sizeof(DType) * this->size());
   } else {
-    // TODO(Keren)
     thrust::device_ptr<DType> dptr =
       thrust::device_pointer_cast(this->data_);
     thrust::fill(dptr, dptr + this->size(), value);

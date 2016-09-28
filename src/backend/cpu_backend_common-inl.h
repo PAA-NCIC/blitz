@@ -268,7 +268,6 @@ void Backend<CPUTensor, DType>::BiasBackwardUpdateFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* update) {
   size_t num_sample = input->shape()[0];
   size_t dim = input->size() / num_sample;
-
   #pragma omp parallel for
   for (size_t i = 0; i < dim; ++i) {
     for (size_t j = 0; j < num_sample; ++j) {

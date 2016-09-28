@@ -184,7 +184,7 @@ class ParamLayer : public Layer<TensorType, DType> {
     shape[0] = output_shape.size() / output_shape[0];
 
     if (bias_ != 0) {
-      // make beta tensor
+      // make bias tensor
       (this->bias_)->set_weight(
         make_shared<TensorType<DType> >(shape));
       (this->bias_)->set_update(

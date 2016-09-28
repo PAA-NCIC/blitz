@@ -195,11 +195,12 @@ void Backend<GPUTensor, DType>::CrossEntropyMultiDerivativeFunc(
 
 template<typename DType>
 __global__ void GPUBiasForward(const DType* input,
-  const DType* bias, size_t num_sample, size_t size,
+  const DType* bias, size_t num_sample, size_t dim,
   DType* output) {
-  BLITZ_CUDA_LOOP(i, size) {
-    size_t dim_index = size % num_sample;
-    output[i] = input[i] + bias[dim_index];
+  BLITZ_CUDA_LOOP(i, num_sample) {
+    for (size_t j = 0; j < dim; ++j) {
+      output[i * dim + j] = input[i * dim + j] + bias[j];
+    }
   }
 }
 
@@ -209,9 +210,10 @@ void Backend<GPUTensor, DType>::BiasForwardFunc(
   GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   size_t num_sample = input->shape()[0];
-  GPUBiasForward<DType><<<BlitzGPUGetBlocks(input->size()),
+  size_t dim = input->size() / num_sample;
+  GPUBiasForward<DType><<<BlitzGPUGetBlocks(num_sample),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), bias->data(),
-    num_sample, input->size(), output->data());
+    num_sample, dim, output->data());
 }
 
 template<typename DType>
@@ -228,8 +230,8 @@ template<typename DType>
 void Backend<GPUTensor, DType>::BiasBackwardUpdateFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* update) {
   size_t num_sample = input->shape()[0];
-  size_t dim = input->size() / input->shape()[0];
-  GPUBiasBackwardUpdate<DType><<<BlitzGPUGetBlocks(num_sample),
+  size_t dim = input->size() / num_sample;
+  GPUBiasBackwardUpdate<DType><<<BlitzGPUGetBlocks(dim),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), num_sample, dim,
     update->data());
 }
@@ -259,7 +261,7 @@ __global__ void GPUGradientdescent(
   BLITZ_CUDA_LOOP(i, size) {
     gradient[i] /= batch_size;
     velocity[i] = velocity[i] * momentum_coef - learning_rate *
-      gradient[i] + decay * weight[i];
+      (gradient[i] + decay * weight[i]);
     weight[i] = weight[i] + velocity[i];
   }
 }
