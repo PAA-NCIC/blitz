@@ -13,10 +13,8 @@ void Backend<CPUTensor, DType>::Unpack2DFunc(
   // (input_channel * filter_height * filter_width) *
   // (output_width * output_height)
   size_t unpack_index = 0;
-  size_t channel_offset;
-  size_t input_channel_offset = input_height * input_width;
   for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-    channel_offset = channel_index * input_channel_offset;
+    const size_t channel_offset = channel_index * input_height * input_width;
     const DType* input_slice = input + channel_offset;
     for (size_t filter_height_index = 0; filter_height_index < filter_height;
         ++filter_height_index) {
@@ -61,11 +59,11 @@ void Backend<CPUTensor, DType>::Pack2DFunc(
   size_t padding_height, size_t padding_width,
   size_t stride_height, size_t stride_width,
   DType* input) {
+  // (input_channel * filter_height * filter_width) *
+  // (output_width * output_height)
   size_t pack_index = 0;
-  size_t channel_offset;
-  size_t input_channel_offset = input_height * input_width;
   for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-    channel_offset = channel_index * input_channel_offset;
+    const size_t channel_offset = channel_index * input_height * input_width;
     DType* input_slice = input + channel_offset;
     for (size_t filter_height_index = 0; filter_height_index < filter_height;
         ++filter_height_index) {

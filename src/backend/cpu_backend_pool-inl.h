@@ -19,33 +19,31 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   size_t output_channel = output_shape[1];
   size_t output_height = output_shape[2];
   size_t output_width = output_shape[3];
-
+  // offset
+  size_t input_single_size = input_channel * input_height * input_width;
+  size_t input_channel_size = input_height * input_width;
+  size_t output_single_size = output_channel * output_height * output_width;
+  size_t output_channel_size = output_height * output_width;
+  size_t input_channel_offset;
+  size_t output_channel_offset;
+  size_t input_batch_offset;
+  size_t output_batch_offset;
   CHECK_EQ(input_channel, output_channel);
-
-  size_t input_single_offset = input_channel * input_height * input_width;
-  size_t input_channel_offset = input_height * input_width;
-  size_t output_single_offset = output_channel * output_height * output_width;
-  size_t output_channel_offset = output_height * output_width;
-  size_t channel_input_offset;
-  size_t channel_output_offset;
-  size_t batch_input_offset;
-  size_t batch_output_offset;
-
   // no padding
-  #pragma omp parallel for private(batch_input_offset, batch_output_offset, \
-    channel_input_offset, channel_output_offset)
+  #pragma omp parallel for private(input_batch_offset, output_batch_offset, \
+    input_channel_offset, output_channel_offset)
   for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-    batch_input_offset = batch_index * input_single_offset;
-    batch_output_offset = batch_index * output_single_offset;
+    input_batch_offset = batch_index * input_single_size;
+    output_batch_offset = batch_index * output_single_size;
     for (size_t channel_index = 0; channel_index < input_channel; ++channel_index) {
-      channel_input_offset = channel_index * input_channel_offset;
-      channel_output_offset = channel_index * output_channel_offset;
-      const DType* input_slice = input->Slice(batch_input_offset +
-        channel_input_offset);
-      DType* output_slice = output->Slice(batch_output_offset +
-        channel_output_offset);
-      size_t* max_index_slice = max_index->Slice(batch_output_offset +
-        channel_output_offset);
+      input_channel_offset = channel_index * input_channel_size;
+      output_channel_offset = channel_index * output_channel_size;
+      const DType* input_slice = input->Slice(input_batch_offset +
+        input_channel_offset);
+      DType* output_slice = output->Slice(output_batch_offset +
+        output_channel_offset);
+      size_t* max_index_slice = max_index->Slice(output_batch_offset +
+        output_channel_offset);
       for (size_t output_height_index = 0; output_height_index < output_height;
         ++output_height_index) {
         for (size_t output_width_index = 0; output_width_index < output_width;
@@ -90,32 +88,32 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   const Shape& output_shape = output->shape();
   size_t output_height = output_shape[2];
   size_t output_width = output_shape[3];
-
-  size_t input_single_offset = channel * input_height * input_width;
-  size_t input_channel_offset = input_height * input_width;
-  size_t output_single_offset = channel * output_height * output_width;
-  size_t output_channel_offset = output_height * output_width;
-  size_t batch_input_offset;
-  size_t batch_output_offset;
-  size_t channel_input_offset;
-  size_t channel_output_offset;
+  // offset
+  size_t input_single_size = channel * input_height * input_width;
+  size_t input_channel_size = input_height * input_width;
+  size_t output_single_size = channel * output_height * output_width;
+  size_t output_channel_size = output_height * output_width;
+  size_t input_batch_offset;
+  size_t output_batch_offset;
+  size_t input_channel_offset;
+  size_t output_channel_offset;
   // set zero
   input->Fill(0);
   // no padding
-  #pragma omp parallel for private(batch_input_offset, batch_output_offset, \
-    channel_input_offset, channel_output_offset)
+  #pragma omp parallel for private(input_batch_offset, output_batch_offset, \
+    input_channel_offset, output_channel_offset)
   for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-    batch_input_offset = batch_index * input_single_offset;
-    batch_output_offset = batch_index * output_single_offset;
+    input_batch_offset = batch_index * input_single_size;
+    output_batch_offset = batch_index * output_single_size;
     for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-      channel_input_offset = channel_index * input_channel_offset;
-      channel_output_offset = channel_index * output_channel_offset;
-      DType* input_slice = input->Slice(batch_input_offset +
-        channel_input_offset);
-      const DType* output_slice = output->Slice(batch_output_offset +
-        channel_output_offset);
-      const size_t* max_index_slice = max_index->Slice(batch_output_offset +
-        channel_output_offset);
+      input_channel_offset = channel_index * input_channel_size;
+      output_channel_offset = channel_index * output_channel_size;
+      DType* input_slice = input->Slice(input_batch_offset +
+        input_channel_offset);
+      const DType* output_slice = output->Slice(output_batch_offset +
+        output_channel_offset);
+      const size_t* max_index_slice = max_index->Slice(output_batch_offset +
+        output_channel_offset);
       for (size_t output_height_index = 0; output_height_index < output_height;
         ++output_height_index) {
         for (size_t output_width_index = 0; output_width_index < output_width;
