@@ -14,6 +14,8 @@ class Callback {
   virtual void OnEpochEnd(const int index) = 0;
   virtual void OnBatchBegin(const int index) = 0;
   virtual void OnBatchEnd(const int index, const float loss) = 0;
+
+  DISABLE_COPY_AND_ASSIGN(Callback);
 };
 
 }  // namespace blitz

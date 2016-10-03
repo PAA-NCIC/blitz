@@ -30,6 +30,8 @@ class Gradientdescent : public Optimizer<TensorType, DType> {
  private:
   DType momentum_coef_;
   DType decay_;
+
+  DISABLE_COPY_AND_ASSIGN(Gradientdescent);
 };
 
 }  // namespace blitz

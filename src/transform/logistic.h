@@ -20,6 +20,8 @@ class Logistic : public Activation<TensorType, DType> {
 
  private:
   const bool short_cut_;
+
+  DISABLE_COPY_AND_ASSIGN(Logistic);
 };
 
 }  // namespace blitz

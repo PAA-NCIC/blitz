@@ -86,6 +86,8 @@ class LayerWrapper {
   list<shared_ptr<Layer<TensorType, DType> > > layers_;
   shared_ptr<Cost<TensorType, DType> > cost_;
   shared_ptr<TensorType<DType> > error_;
+
+  DISABLE_COPY_AND_ASSIGN(LayerWrapper);
 };
 
 }  // namespace blitz

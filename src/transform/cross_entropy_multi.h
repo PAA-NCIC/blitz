@@ -21,6 +21,8 @@ class CrossEntropyMulti : public Cost<TensorType, DType> {
 
  private:
   const float scale_;
+
+  DISABLE_COPY_AND_ASSIGN(CrossEntropyMulti);
 };
 
 }  // namespace blitz

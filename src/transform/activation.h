@@ -16,6 +16,8 @@ class Activation {
     shared_ptr<TensorType<DType> > output) = 0;
   virtual void Derivative(const shared_ptr<TensorType<DType> > input,
     shared_ptr<TensorType<DType> > output) = 0;
+
+  DISABLE_COPY_AND_ASSIGN(Activation);
 };
 
 

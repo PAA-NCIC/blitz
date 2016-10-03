@@ -3,8 +3,8 @@
 #include "backend/backends.h"
 #include "layer/affine.h"
 #include "layer/conv.h"
-#include "layer/pooling_layer.h"
-#include "layer/dropout_layer.h"
+#include "layer/pooling.h"
+#include "layer/dropout.h"
 #include "layer/param_layer.h"
 
 namespace blitz {
@@ -154,7 +154,7 @@ shared_ptr<Layer<TensorType, DType> >
     string op = node["op"].as<string>();
 
     layer = static_pointer_cast<Layer<TensorType, DType> >(
-      make_shared<PoolingLayer<TensorType, DType> >(name,
+      make_shared<Pooling<TensorType, DType> >(name,
       shape, stride, op));
   } else if (type == "Dropout") {
     if (!node["keep"])
@@ -162,7 +162,7 @@ shared_ptr<Layer<TensorType, DType> >
 
     DType keep = node["keep"].as<DType>();
     layer = static_pointer_cast<Layer<TensorType, DType> >(
-      make_shared<DropoutLayer<TensorType, DType> >(name,
+      make_shared<Dropout<TensorType, DType> >(name,
       keep));
   } else {
     LOG(FATAL) << "Unkown layer type: " << type;

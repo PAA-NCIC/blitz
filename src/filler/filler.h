@@ -45,6 +45,8 @@ class Filler {
   map<string, shared_ptr<TensorType<DType> > > layer_weights_;
 
   const string name_;
+
+  DISABLE_COPY_AND_ASSIGN(Filler);
 };
 
 }  // namespace blitz

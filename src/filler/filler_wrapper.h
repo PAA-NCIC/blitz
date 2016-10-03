@@ -22,6 +22,8 @@ class FillerWrapper {
 
  private:
   map<string, shared_ptr<Filler<TensorType, DType> > > fillers_;
+
+  DISABLE_COPY_AND_ASSIGN(FillerWrapper);
 };
 
 }  // namespace blitz

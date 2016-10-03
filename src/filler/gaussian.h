@@ -25,6 +25,8 @@ class Gaussian : public Filler<TensorType, DType> {
  private:
   const DType loc_;
   const DType scale_;
+
+  DISABLE_COPY_AND_ASSIGN(Gaussian);
 };
 
 }  // namespace blitz

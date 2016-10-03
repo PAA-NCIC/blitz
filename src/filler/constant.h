@@ -21,6 +21,8 @@ class Constant : public Filler<TensorType, DType> {
 
  private:
   const DType val_;
+ 
+  DISABLE_COPY_AND_ASSIGN(Constant);
 };
 
 }  // namespace blitz

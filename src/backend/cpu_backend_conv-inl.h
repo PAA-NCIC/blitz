@@ -12,28 +12,28 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  size_t batch_size = input_shape[0];
-  size_t input_channel = input_shape[1];
-  size_t input_height = input_shape[2];
-  size_t input_width = input_shape[3];
+  const size_t batch_size = input_shape[0];
+  const size_t input_channel = input_shape[1];
+  const size_t input_height = input_shape[2];
+  const size_t input_width = input_shape[3];
   // filter
   const Shape& filter_shape = filter->shape();
-  size_t filter_height = filter_shape[2];
-  size_t filter_width = filter_shape[3];
+  const size_t filter_height = filter_shape[2];
+  const size_t filter_width = filter_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  size_t output_channel = output_shape[1];
-  size_t output_height = output_shape[2];
-  size_t output_width = output_shape[3];
+  const size_t output_channel = output_shape[1];
+  const size_t output_height = output_shape[2];
+  const size_t output_width = output_shape[3];
   // offset
   size_t input_batch_offset = 0;
   size_t output_batch_offset = 0;
   const size_t input_batch_size = input_channel * input_height * input_width;
   const size_t output_batch_size = output_channel * output_height * output_width;
   // dims
-  size_t dim_left = output_channel;
-  size_t dim_right = output_height * output_width;
-  size_t dim_common = input_channel * filter_height * filter_width;
+  const size_t dim_left = output_channel;
+  const size_t dim_right = output_height * output_width;
+  const size_t dim_common = input_channel * filter_height * filter_width;
   // time counter
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
@@ -161,28 +161,28 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   // shape decode
   // input
   const Shape& input_shape = input->shape();
-  size_t batch_size = input_shape[0];
-  size_t input_channel = input_shape[1];
-  size_t input_height = input_shape[2];
-  size_t input_width = input_shape[3];
+  const size_t batch_size = input_shape[0];
+  const size_t input_channel = input_shape[1];
+  const size_t input_height = input_shape[2];
+  const size_t input_width = input_shape[3];
   // filter
   const Shape& filter_shape = filter->shape();
-  size_t filter_height = filter_shape[2];
-  size_t filter_width = filter_shape[3];
+  const size_t filter_height = filter_shape[2];
+  const size_t filter_width = filter_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  size_t output_channel = output_shape[1];
-  size_t output_height = output_shape[2];
-  size_t output_width = output_shape[3];
+  const size_t output_channel = output_shape[1];
+  const size_t output_height = output_shape[2];
+  const size_t output_width = output_shape[3];
   // offset
   size_t input_batch_offset = 0;
   size_t output_batch_offset = 0;
   const size_t input_batch_size = input_channel * input_height * input_width;
   const size_t output_batch_size = output_channel * output_height * output_width;
   // dims
-  size_t dim_left = input_channel * filter_height * filter_width;
-  size_t dim_right = output_height * output_width;
-  size_t dim_common = output_channel;
+  const size_t dim_left = input_channel * filter_height * filter_width;
+  const size_t dim_right = output_height * output_width;
+  const size_t dim_common = output_channel;
   input->Fill(0);
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
@@ -309,28 +309,28 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   // extract shapes
   // input
   const Shape& input_shape = input->shape();
-  size_t batch_size = input_shape[0];
-  size_t input_channel = input_shape[1];
-  size_t input_height = input_shape[2];
-  size_t input_width = input_shape[3];
+  const size_t batch_size = input_shape[0];
+  const size_t input_channel = input_shape[1];
+  const size_t input_height = input_shape[2];
+  const size_t input_width = input_shape[3];
   // filter
   const Shape& filter_shape = update->shape();
-  size_t filter_height = filter_shape[2];
-  size_t filter_width = filter_shape[3];
+  const size_t filter_height = filter_shape[2];
+  const size_t filter_width = filter_shape[3];
   // output
   const Shape& output_shape = output->shape();
-  size_t output_channel = output_shape[1];
-  size_t output_height = output_shape[2];
-  size_t output_width = output_shape[3];
+  const size_t output_channel = output_shape[1];
+  const size_t output_height = output_shape[2];
+  const size_t output_width = output_shape[3];
   // offset
   size_t input_batch_offset = 0;
   size_t output_batch_offset = 0;
   const size_t input_batch_size = input_channel * input_height * input_width;
   const size_t output_batch_size = output_channel * output_height * output_width;
   // dims
-  size_t dim_left = output_channel;
-  size_t dim_right = input_channel * filter_height * filter_width;
-  size_t dim_common = output_height * output_width;
+  const size_t dim_left = output_channel;
+  const size_t dim_right = input_channel * filter_height * filter_width;
+  const size_t dim_common = output_height * output_width;
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
   duration<double> gemm_time = duration<double>::zero();

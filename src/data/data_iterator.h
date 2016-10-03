@@ -54,6 +54,8 @@ class DataIterator {
   vector<string> files_;
   vector<int> file_row_mapping_;
   vector<shared_ptr<TensorType<DType> > > tensor_pool_;
+
+  DISABLE_COPY_AND_ASSIGN(DataIterator); 
 };
 
 }  // namespace blitz

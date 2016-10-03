@@ -19,6 +19,8 @@ class Cost {
     const shared_ptr<TensorType<DType> > output,
     const shared_ptr<TensorType<DType> > target,
     shared_ptr<TensorType<DType> > result) = 0;
+
+  DISABLE_COPY_AND_ASSIGN(Cost);
 };
 
 }  // namespace blitz

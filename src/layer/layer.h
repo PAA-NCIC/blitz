@@ -117,6 +117,8 @@ class Layer {
   const string name_;
   bool train_;
   bool backward_prop_;
+
+  DISABLE_COPY_AND_ASSIGN(Layer);
 };
 
 }  // namespace blitz

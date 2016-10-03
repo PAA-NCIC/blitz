@@ -11,6 +11,8 @@
 #include <boost/thread/once.hpp>
 #include <boost/noncopyable.hpp>
 
+#include "util/common.h"
+
 #define CUDNN_CHECK(condition) \
   do { \
     cudnnStatus_t status = condition; \
@@ -37,11 +39,11 @@ class CuBlasHandle {
 
  private:
   CuBlasHandle();
-  CuBlasHandle(const CuBlasHandle& cublas_handle);
-  CuBlasHandle& operator=(const CuBlasHandle& rhs);
 
   static boost::scoped_ptr<cublasHandle_t> instance_;
   static boost::once_flag flag_;
+
+  DISABLE_COPY_AND_ASSIGN(CuBlasHandle);
 };
 
 #if __CUDA_ARCH__ >= 200
@@ -138,9 +140,6 @@ inline int BlitzGPUGetBlocks(const int N) {
 inline int BlitzGPUGetBlocks(const int N, const int nthreads) {
   return (N + nthreads - 1) / nthreads;
 }
-
-template<typename DType>
-inline void AtomicAdd();
 
 template <typename DType>
 inline __device__ DType BlitzGPUSafeLog(DType input) {

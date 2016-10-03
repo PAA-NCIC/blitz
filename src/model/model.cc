@@ -73,7 +73,7 @@ void Model<TensorType, DType>::Fit(
     callback_wrapper->OnEpochEnd(i);
 
     layer_wrapper->SetInferenceMode();
-    Evaluation(eval_set, eval_label, layer_wrapper, eval_type);
+    Evaluate(eval_set, eval_label, layer_wrapper, eval_type);
   }
 }
 
@@ -138,7 +138,7 @@ void Model<TensorType, DType>::EpochFit(
 }
 
 template<template <typename> class TensorType, typename DType>
-void Model<TensorType, DType>::Evaluation(
+void Model<TensorType, DType>::Evaluate(
   shared_ptr<DataIterator<TensorType, DType> > eval_set,
   shared_ptr<DataIterator<TensorType, DType> > eval_label,
   shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,

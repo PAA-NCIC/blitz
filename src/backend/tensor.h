@@ -64,8 +64,7 @@ class Tensor {
     this->row_major_ = false;
   }
 
-  // reshape
-  void Reshape(const Shape& shape) {
+  void set_shape(const Shape& shape) {
     this->shape_ = shape;
   }
 
@@ -80,7 +79,10 @@ class Tensor {
   DType* data_;
   Shape shape_;
   bool row_major_;
+
+  DISABLE_COPY_AND_ASSIGN(Tensor);
 };
+
 
 #define INSTANTIATE_TENSOR(tensor) \
     char BlitzInstantiationTensorGuard##tensor; \

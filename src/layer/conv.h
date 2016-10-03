@@ -61,6 +61,8 @@ class Conv : public ParamLayer<TensorType, DType> {
 
   DType *cudnn_alpha_, *cudnn_beta_;
 #endif
+
+  DISABLE_COPY_AND_ASSIGN(Conv);
 };
 
 }  // namespace blitz

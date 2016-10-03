@@ -54,11 +54,11 @@ class Initializer {
 
  private:
   Initializer();
-  Initializer(const Initializer& initializer);
-  Initializer& operator=(const Initializer& rhs);
 
   static scoped_ptr<Factory> instance_;
   static boost::once_flag flag_;
+  
+  DISABLE_COPY_AND_ASSIGN(Initializer);
 };
 
 template<template <typename> class TensorType, typename DType>
@@ -67,6 +67,8 @@ class InitializerRegister {
   InitializerRegister(const string& data_type, const string& backend_type) {
     Initializer::Add<TensorType, DType>(data_type, backend_type);
   }
+
+  DISABLE_COPY_AND_ASSIGN(InitializerRegister);
 };
 
 #ifdef BLITZ_CPU_ONLY

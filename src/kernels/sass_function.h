@@ -14,9 +14,9 @@
 
 namespace blitz {
 
-class CudaLoadModule {
+class CubinLoadModule {
  public:
-  CudaLoadModule() {
+  CubinLoadModule() {
     // init kernels list
     const size_t kernel_size = 6;
     const string kernel_name[kernel_size] = {
@@ -53,7 +53,7 @@ class CudaLoadModule {
     }
   }
 
-  ~CudaLoadModule() {
+  ~CubinLoadModule() {
     typedef vector<CUmodule>::iterator ModuleIterator;
     for (ModuleIterator it = modules_.begin(); it != modules_.end(); ++it) {
       cuModuleUnload(*it);
@@ -71,34 +71,36 @@ class CudaLoadModule {
  private:
   map<string, CUfunction> functions_;
   vector<CUmodule> modules_;
+
+  DISABLE_COPY_AND_ASSIGN(CubinLoadModule);
 };
 
-class CudaModule {
+class CubinModule {
  public:
-  static CudaLoadModule& GetInstance() {
+  static CubinLoadModule& GetInstance() {
     // thread safe
-    boost::call_once(&CudaModule::Create, flag_);
-    return *(CudaModule::instance_);
+    boost::call_once(&CubinModule::Create, flag_);
+    return *(CubinModule::instance_);
   }
 
   static void Create() {
-    CudaModule::instance_.reset(new CudaLoadModule());
+    CubinModule::instance_.reset(new CubinLoadModule());
   }
 
   static CUfunction GetFunction(const string& name) {
-    CudaLoadModule& cuda_load_module = CudaModule::GetInstance();
-    return cuda_load_module.GetFunction(name);
+    CubinLoadModule& cubin_load_module = CubinModule::GetInstance();
+    return cubin_load_module.GetFunction(name);
   }
 
-  virtual ~CudaModule();
+  virtual ~CubinModule();
 
  private:
-  CudaModule();
-  CudaModule(const CudaModule& cuda_module);
-  CudaModule& operator=(const CudaModule& rhs);
+  CubinModule();
 
-  static scoped_ptr<CudaLoadModule> instance_;
+  static scoped_ptr<CubinLoadModule> instance_;
   static boost::once_flag flag_;
+
+  DISABLE_COPY_AND_ASSIGN(CubinModule);
 };
 
 template<typename DType>

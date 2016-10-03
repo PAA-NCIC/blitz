@@ -23,7 +23,6 @@ class Shape {
   size_t size() const {
     if (size_ == 0) {
       size_ = new size_t();
-
       (*size_) = 1;
       for (size_t i = 0; i < dimension_; ++i) {
         if (shape_[i] != 0) {
@@ -31,7 +30,6 @@ class Shape {
         }
       }
     }
-
     return *(size_);
   }
 
@@ -49,12 +47,10 @@ class Shape {
   Shape& operator=(const Shape& other) {  // check for self-assignment
     if(&other == this)
       return *this;  // reuse storage when possible
-
     // copy data fields
     size_ = 0;
     dimension_ = other.dimension_;
     shape_ = other.shape_;
-
     return *this;
   }  // note: copy-and-swap would always cause a reallocation
 

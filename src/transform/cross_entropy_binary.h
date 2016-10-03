@@ -21,6 +21,8 @@ class CrossEntropyBinary : public Cost<TensorType, DType> {
 
  private:
   const DType scale_;
+
+  DISABLE_COPY_AND_ASSIGN(CrossEntropyBinary);
 };
 
 }  // namespace blitz

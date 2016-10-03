@@ -210,6 +210,8 @@ class Backend {
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
     DType* input);
+
+  DISABLE_COPY_AND_ASSIGN(Backend);
 };
 
 }  // namespace blitz

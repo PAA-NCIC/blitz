@@ -37,6 +37,12 @@
 // algorithm
 #include <boost/algorithm/string/trim.hpp>
 
+// disable copy & assign
+#define DISABLE_COPY_AND_ASSIGN(classname) \
+  private:\
+  classname(const classname&);\
+  classname& operator=(const classname&)
+
 // instaniate backends
 #define INSTANTIATE_BACKEND(tensor) \
     char BlitzInstantiationBackendGuard##tensor; \

@@ -20,6 +20,8 @@ class Rectlin : public Activation<TensorType, DType> {
 
  private:
   const float slope_;
+
+  DISABLE_COPY_AND_ASSIGN(Rectlin);
 };
 
 }  // namespace blitz

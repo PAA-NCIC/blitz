@@ -6,8 +6,8 @@
 
 namespace blitz {
 
-scoped_ptr<CudaLoadModule> CudaModule::instance_(0);
-boost::once_flag CudaModule::flag_ = BOOST_ONCE_INIT;
+scoped_ptr<CubinLoadModule> CubinModule::instance_(0);
+boost::once_flag CubinModule::flag_ = BOOST_ONCE_INIT;
 
 template<>
 void BlitzSassGemm(const bool transa, const bool transb,
@@ -16,14 +16,13 @@ void BlitzSassGemm(const bool transa, const bool transb,
   CUfunction function;
   int lda, ldb, ldc = N;
 
-#ifdef BLITZ_PERFORMANCE  // only valid for a single thread
+#ifdef BLITZ_PERFORMANCE
   float elapsed_time = 0.0f;
   CUevent event_start, event_stop;
   cuEventCreate(&event_start, CU_EVENT_BLOCKING_SYNC);
   cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
   cuEventRecord(event_start, NULL);
-#endif
-
+#endif  // BLITZ_PERFORMANCE
   // create kernel
   string kernel;
   if (transa == true && transb == false) {
@@ -55,7 +54,7 @@ void BlitzSassGemm(const bool transa, const bool transb,
   }
 
   // kernel call, asynrhonize
-  function = CudaModule::GetFunction(kernel);
+  function = CubinModule::GetFunction(kernel);
 
 #ifdef BLITZ_PERFORMANCE
   cuEventRecord(event_stop, NULL);
@@ -67,18 +66,17 @@ void BlitzSassGemm(const bool transa, const bool transb,
 
   void* params[] = {&A, &B, &C, &alpha, &beta, &lda, &ldb, &ldc,
     (void*)&M, (void*)&N, (void*)&K};
-
   // TODO(keren): multiple kernels
   int sizeA = 128, sizeB = 128;
   int gridA = M / sizeA + (M % sizeA != 0);
   int gridB = N / sizeB + (N % sizeB != 0);
-
   // TODO(keren): adjust number of threads
   int threads = 256;
 
 #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
   cuEventRecord(event_start, NULL);
 #endif
+  // lanuch kernel
   cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
 #ifdef BLITZ_PERFORMANCE
   cuEventRecord(event_stop, NULL);
@@ -86,7 +84,6 @@ void BlitzSassGemm(const bool transa, const bool transb,
   cuEventElapsedTime(&elapsed_time, event_start, event_stop);
   cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
   LOG(INFO) << "Compute time: " << elapsed_time / 1000.0;
-
   cuEventDestroy(event_start);
   cuEventDestroy(event_stop);
 #endif  // BLITZ_PERFORMANCE

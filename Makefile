@@ -11,8 +11,6 @@ include $(CONFIG_FILE)
 #dirs
 BIN_DIR := bin
 BUILD_DIR := build
-SAMPLES_DIR := sample
-NVCC_SAMPLES_DIR := gpu_sample
 SRC_ROOT := src
 
 #compilers
@@ -90,25 +88,19 @@ ifeq ($(STATIC_LINK), 1)
 endif
 
 #variables
-SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cc" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*sample*")
+SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cc" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
 
 OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cc, %.o, $(SRCS:$(SRC_ROOT)/%=%)))
 OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(SRCS:$(SRC_ROOT)/%=%))))
 
-SAMPLES_SRC := $(shell find $(SRC_ROOT)/$(SAMPLES_DIR) -maxdepth 1 -name "*.cc")
-SAMPLES := $(addprefix $(BIN_DIR)/$(SAMPLES_DIR)/, $(notdir $(SAMPLES_SRC:%.cc=%)))
-
-BINS := $(BIN_DIR)/$(PROJECT) $(SAMPLES)
+BINS := $(BIN_DIR)/$(PROJECT)
 
 AUTODEPS:= $(patsubst %.o, %.d, $(OBJECTS)) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 
 ifeq ($(CPU_ONLY), 0)
-  NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*sample*")
+  NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
   NVCC_OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cu, %.o, $(NVCC_SRCS:$(SRC_ROOT)/%=%)))
   NVCC_OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(NVCC_SRCS:$(SRC_ROOT)/%=%))))
-  NVCC_SAMPLES_SRC := $(shell find $(SRC_ROOT)/$(NVCC_SAMPLES_DIR) -maxdepth 1 -name "*.cc")
-  NVCC_SAMPLES := $(addprefix $(BIN_DIR)/$(NVCC_SAMPLES_DIR)/, $(notdir $(NVCC_SAMPLES_SRC:%.cc=%)))
-  BINS := $(BINS) $(NVCC_SAMPLES)
   AUTODEPS:= $(AUTODEPS) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 endif
 
@@ -118,10 +110,10 @@ all: dirs bins objects
 
 ifeq ($(CPU_ONLY), 1)
   ALL_OBJECTS_DIR := $(OBJECTS_DIR)
-  ALL_BINS_DIR := $(BIN_DIR) $(BIN_DIR)/$(SAMPLES_DIR)
+  ALL_BINS_DIR := $(BIN_DIR)
 else
   ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
-  ALL_BINS_DIR := $(BIN_DIR) $(BIN_DIR)/$(SAMPLES_DIR) $(BIN_DIR)/$(NVCC_SAMPLES_DIR)
+  ALL_BINS_DIR := $(BIN_DIR)
 endif
 
 dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR)

@@ -29,6 +29,8 @@ class Affine : public ParamLayer<TensorType, DType> {
   int nout_;
 
   const string kernel_;
+
+  DISABLE_COPY_AND_ASSIGN(Affine);
 };
 
 }  // namespace blitz

@@ -23,6 +23,7 @@ class Model {
     shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
     const string& eval_type);
 
+  // fit and evaluate
   void Fit(
     shared_ptr<DataIterator<TensorType, DType> > data_set,
     shared_ptr<DataIterator<TensorType, DType> > data_label,
@@ -34,6 +35,7 @@ class Model {
     shared_ptr<Scheduler<TensorType, DType> > scheduler,
     const string& eval_type);
 
+  // fit without evaluate
   void Fit(
     shared_ptr<DataIterator<TensorType, DType> > data_set,
     shared_ptr<DataIterator<TensorType, DType> > data_label,
@@ -41,12 +43,6 @@ class Model {
     shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
     shared_ptr<CallbackWrapper> callback_wrapper,
     shared_ptr<Scheduler<TensorType, DType> > scheduler);
-
-  void Evaluation(
-    shared_ptr<DataIterator<TensorType, DType> > eval_set,
-    shared_ptr<DataIterator<TensorType, DType> > eval_label,
-    shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
-    const string& eval_type);
 
  private:
   void EpochFit(
@@ -57,6 +53,12 @@ class Model {
     shared_ptr<CallbackWrapper> callback_wrapper,
     shared_ptr<Scheduler<TensorType, DType> > scheduler);
 
+  void Evaluate(
+    shared_ptr<DataIterator<TensorType, DType> > eval_set,
+    shared_ptr<DataIterator<TensorType, DType> > eval_label,
+    shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
+    const string& eval_type);
+
   DType ForwardProp(shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
     shared_ptr<TensorType<DType> > input,
     const shared_ptr<TensorType<DType> > target);
@@ -64,6 +66,8 @@ class Model {
     const shared_ptr<TensorType<DType> > target);
 
   const int epoches_;
+
+  DISABLE_COPY_AND_ASSIGN(Model);
 };
 
 }  // namespace blitz

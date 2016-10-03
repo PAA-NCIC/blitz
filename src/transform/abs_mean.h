@@ -18,6 +18,8 @@ class AbsMean : public Cost<TensorType, DType> {
     const shared_ptr<TensorType<DType> > output,
     const shared_ptr<TensorType<DType> > target,
     shared_ptr<TensorType<DType> > result);
+
+  DISABLE_COPY_AND_ASSIGN(AbsMean);
 };
 
 }  // namespace blitz

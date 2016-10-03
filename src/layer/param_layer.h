@@ -385,6 +385,8 @@ class ParamLayer : public Layer<TensorType, DType> {
   shared_ptr<Bias> bias_;
   shared_ptr<BatchNorm> batch_norm_;
   shared_ptr<Activation<TensorType, DType> > activation_;
+
+  DISABLE_COPY_AND_ASSIGN(ParamLayer);
 };
 
 }  // namespace blitz

@@ -26,6 +26,8 @@ class Scheduler {
 
  private:
   map<string, shared_ptr<Optimizer<TensorType, DType> > > optimizers_;
+
+  DISABLE_COPY_AND_ASSIGN(Scheduler);
 };
 
 }  // namespace blitz

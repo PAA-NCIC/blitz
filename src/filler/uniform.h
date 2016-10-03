@@ -25,6 +25,8 @@ class Uniform : public Filler<TensorType, DType> {
  private:
   const float low_;
   const float high_;
+
+  DISABLE_COPY_AND_ASSIGN(Uniform);
 };
 
 }  // namespace blitz

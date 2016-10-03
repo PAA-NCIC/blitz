@@ -102,6 +102,8 @@ class Optimizer {
   const DType learning_rate_;
   const DType change_;
   const int step_;
+
+  DISABLE_COPY_AND_ASSIGN(Optimizer);
 };
 
 }  // namespace blitz

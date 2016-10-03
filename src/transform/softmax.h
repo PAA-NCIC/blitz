@@ -20,6 +20,8 @@ class Softmax : public Activation<TensorType, DType> {
 
  private:
   const bool short_cut_;
+
+  DISABLE_COPY_AND_ASSIGN(Softmax);
 };
 
 }  // namespace blitz

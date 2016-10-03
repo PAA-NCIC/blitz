@@ -386,6 +386,8 @@ class Parser {
 
   mutable shared_ptr<bool> eval_;
   mutable shared_ptr<bool> inference_;
+
+  DISABLE_COPY_AND_ASSIGN(Parser);
 };
 
 
