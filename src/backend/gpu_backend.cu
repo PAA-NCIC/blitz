@@ -14,14 +14,14 @@
 
 #include "util/common.h"
 #include "util/blitz_gpu_function.h"
-#include "kernels/sass_function.h"
+#include "kernel/sass_function.h"
 
 namespace blitz {
 
-#include "backend/gpu_backend_common-inl.h"
-#include "backend/gpu_backend_conv-inl.h"
-#include "backend/gpu_backend_pack-inl.h"
-#include "backend/gpu_backend_pool-inl.h"
+#include "gpu_backend_common-inl.h"
+#include "gpu_backend_conv-inl.h"
+#include "gpu_backend_pack-inl.h"
+#include "gpu_backend_pool-inl.h"
 
 INSTANTIATE_BACKEND(GPUTensor);
 

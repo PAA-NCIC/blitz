@@ -1,4 +1,4 @@
-#include "kernels/sass_function.h"
+#include "kernel/sass_function.h"
 
 #include <cuda.h>
 

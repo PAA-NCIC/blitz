@@ -9,34 +9,11 @@ void Backend<CPUTensor, DType>::RectlinApplyFunc(
   CHECK_EQ(input->size(), output->size());
 
   DType compare_value = static_cast<DType>(0);
-#ifdef BLITZ_AVX
-  size_t avx_width = BLITZ_AVX_WIDTH / sizeof(DType);
-  size_t remain = input->size() % avx_width;
-  BlitzAVXReg<DType> compare_value_reg, input_reg, output_reg,
-    slope_reg, left_reg, right_reg;
-  BlitzAVXBroadcast<DType>(&slope, &slope_reg);
-  BlitzAVXBroadcast<DType>(&compare_value, &compare_value_reg);
-  for (size_t i = 0; i < remain; ++i) {
-    (*output)[i] = std::max((*input)[i], compare_value) +
-      slope * std::min((*input)[i], compare_value);
-  }
-  #pragma omp parallel for private(input_reg, output_reg, left_reg, \
-    right_reg)
-  for (size_t i = remain; i < input->size(); i += avx_width) {
-    BlitzAVXLoad<DType>(input->data() + i, &input_reg);
-    BlitzAVXMax<DType>(&input_reg, &compare_value_reg, &left_reg);
-    BlitzAVXMin<DType>(&input_reg, &compare_value_reg, &right_reg);
-    output_reg.v = left_reg.v + slope_reg.v * right_reg.v;
-    BlitzAVXStore<DType>(output->data() + i, &output_reg);
-  }
-
-#else
   #pragma omp parallel for
   for (size_t i = 0; i < input->size(); ++i) {
     (*output)[i] = std::max((*input)[i], compare_value) +
       slope * std::min((*input)[i], compare_value);
   }
-#endif
 }
 
 template<typename DType>
@@ -363,37 +340,6 @@ void Backend<CPUTensor, DType>::GradientdescentFunc(
   LOG(INFO) << "batch_size: " << batch_size;
 #endif
 
-#ifdef BLITZ_AVX
-  size_t avx_width = BLITZ_AVX_WIDTH / sizeof(DType);
-  size_t remain = velocity->size() % avx_width;
-  const DType batch_size_float = static_cast<DType>(batch_size);
-  BlitzAVXReg<DType> gradient_reg, batch_size_reg, velocity_reg,
-    momentum_coef_reg, learning_rate_reg, decay_reg, weight_reg;
-  BlitzAVXBroadcast<DType>(&batch_size_float, &batch_size_reg);
-  BlitzAVXBroadcast<DType>(&momentum_coef, &momentum_coef_reg);
-  BlitzAVXBroadcast<DType>(&learning_rate, &learning_rate_reg);
-  BlitzAVXBroadcast<DType>(&decay, &decay_reg);
-  for (size_t i = 0; i < remain; ++i) {
-    (*gradient)[i] /= batch_size;
-    (*velocity)[i] = (*velocity)[i] * momentum_coef - learning_rate *
-      ((*gradient)[i] + decay * (*weight)[i]);
-    (*weight)[i] = (*weight)[i] + (*velocity)[i];
-  }
-  #pragma omp parallel for private(gradient_reg, velocity_reg, weight_reg)
-  for (size_t i = remain; i < velocity->size(); i += avx_width) {
-    BlitzAVXLoad<DType>(gradient->data() + i, &gradient_reg);
-    BlitzAVXLoad<DType>(velocity->data() + i, &velocity_reg);
-    BlitzAVXLoad<DType>(weight->data() + i, &weight_reg);
-    gradient_reg.v = gradient_reg.v / batch_size_reg.v;
-    velocity_reg.v = velocity_reg.v * momentum_coef_reg.v -
-      learning_rate_reg.v * (gradient_reg.v + decay_reg.v *
-      weight_reg.v);
-    weight_reg.v = weight_reg.v + velocity_reg.v;
-    BlitzAVXStore<DType>(gradient->data() + i, &gradient_reg);
-    BlitzAVXStore<DType>(velocity->data() + i, &velocity_reg);
-    BlitzAVXStore<DType>(weight->data() + i, &weight_reg);
-  }
-#else
   #pragma omp parallel for
   for (size_t i = 0; i < velocity->size(); ++i) {
     (*gradient)[i] /= batch_size;
@@ -401,7 +347,6 @@ void Backend<CPUTensor, DType>::GradientdescentFunc(
       ((*gradient)[i] + decay * (*weight)[i]);
     (*weight)[i] = (*weight)[i] + (*velocity)[i];
   }
-#endif
 }
 
 template<typename DType>

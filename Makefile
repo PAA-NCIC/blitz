@@ -17,13 +17,13 @@ SRC_ROOT := src
 OPTIMIZE_OPTIONS := -O3 -mavx
 OPENMP_OPTIONS := -fopenmp
 CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
-INC := -Isrc/
+INC := -Iinclude/
 
 ifeq ($(CPU_ONLY), 1)
   CXXFLAGS += -DBLITZ_CPU_ONLY
 else
   NVCC := nvcc
-  NVCC_INC := -Isrc/
+  NVCC_INC := -Iinclude/
   NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
   NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(CC)
 endif
@@ -54,8 +54,11 @@ else ifeq ($(BLITZ_MODE), develop)
   NVCC_XCOMPILE += -DBLITZ_DEVELOP -g
 endif
 
-ifeq ($(BLITZ_AVX), 1)
-  CXXFLAGS += -DBLITZ_AVX
+#avx types
+ifeq ($(BLITZ_AVX), 3)
+  CXXFLAGS += -DBLITZ_AVX_WIDTH=64
+else
+  CXXFLAGS += -DBLITZ_AVX_WIDTH=32
 endif
 
 CXXFLAGS += -DBLITZ_NUM_THREADS=$(BLITZ_NUM_THREADS)

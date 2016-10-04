@@ -33,6 +33,9 @@
 # tags
 *tags
 
+# backup files
+src/backup*
+
 # result
 *.result
 
