@@ -47,6 +47,9 @@ class Conv : public ParamLayer<TensorType, DType> {
 
   const string kernel_;
 
+  double forward_computations_;
+  double backward_computations_;
+  double backward_update_computations_;
 #ifndef BLITZ_CPU_ONLY
   cudnnHandle_t cudnn_handle_;
 

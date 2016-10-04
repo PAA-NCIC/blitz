@@ -46,6 +46,10 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
 
   // unpack one image in every iteration
   Shape workspace_shape(1);
+  this->backward_computations_ = this->backward_update_computations_ =
+    this->forward_computations_ = static_cast<double>(batch_size) *
+    static_cast<double>(output_channel * output_height * output_width) *
+    static_cast<double>(input_channel * filter_height * filter_width * 2);
   if (this->kernel_ == "asm" || this->kernel_ == "blas") {
     workspace_shape[0] = input_channel *
       filter_height * filter_width * output_height * output_width;
@@ -103,12 +107,31 @@ void Conv<TensorType, DType>::ForwardPropImpl(
   if (this->kernel_ == "cudnn") {
     // start cudnn directly from the layer, not throught backend
     // because backend is a general engine
+    #ifdef BLITZ_PERFORMANCE
+    float elapsed_time = 0.0f;
+    CUevent event_start, event_stop;
+    cuEventCreate(&event_start, CU_EVENT_BLOCKING_SYNC);
+    cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
+    cuEventRecord(event_start, NULL);
+    #endif  // BLITZ_PERFORMANCE
     cudnnConvolutionForward(cudnn_handle_,
       reinterpret_cast<void*>(cudnn_alpha_), input_desc_,
       forward_input->data(), filter_desc_, (this->weight_)->data(),
       conv_desc_, forward_algorithm_, NULL, 0,
       reinterpret_cast<void*>(cudnn_beta_),
       output_desc_, (this->forward_output_)->data());
+    #ifdef BLITZ_PERFORMANCE
+    cuEventRecord(event_stop, NULL);
+    cuEventSynchronize(event_stop);
+    cuEventElapsedTime(&elapsed_time, event_start, event_stop);
+    cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
+    LOG(INFO) << "Forward cudnn time: " << elapsed_time / 1000.0;
+    LOG(INFO) << "Forward computations: " << this->forward_computations_;
+    LOG(INFO) << "Forward gflops: " << (this->forward_computations_) /
+      (elapsed_time * 1e6);
+    cuEventDestroy(event_start);
+    cuEventDestroy(event_stop);
+    #endif  // BLITZ_PERFORMANCE
   } else {
     Backend<TensorType, DType>::Convolution2DForwardFunc(
       forward_input.get(), (this->weight_).get(),

@@ -73,20 +73,8 @@ void BlitzSassGemm(const bool transa, const bool transb,
   // TODO(keren): adjust number of threads
   int threads = 256;
 
-#ifdef BLITZ_PERFORMANCE  // only valid for a single thread
-  cuEventRecord(event_start, NULL);
-#endif
   // lanuch kernel
   cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
-#ifdef BLITZ_PERFORMANCE
-  cuEventRecord(event_stop, NULL);
-  cuEventSynchronize(event_stop);
-  cuEventElapsedTime(&elapsed_time, event_start, event_stop);
-  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
-  LOG(INFO) << "Compute time: " << elapsed_time / 1000.0;
-  cuEventDestroy(event_start);
-  cuEventDestroy(event_stop);
-#endif  // BLITZ_PERFORMANCE
 }
 
 template<>

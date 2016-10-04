@@ -306,6 +306,13 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
   LOG(INFO) << "dim common: " << dim_common_left;
   LOG(INFO) << "dim right: " << dim_right;
 #endif
+#ifdef BLITZ_PERFORMANCE
+  float elapsed_time = 0.0f;
+  CUevent event_start, event_stop;
+  cuEventCreate(&event_start, CU_EVENT_BLOCKING_SYNC);
+  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
+  cuEventRecord(event_start, NULL);
+#endif  // BLITZ_PERFORMANCE
   if (kernel == "blas") {
     BlitzGPUGemm(gpu_transa, gpu_transb, dim_left, dim_right, dim_common_left,
       const_cast<GPUTensor<DType>*>(left)->data(),
@@ -317,6 +324,19 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
       const_cast<GPUTensor<DType>*>(right)->data(),
       output->data(), alpha, beta);
   }
+#ifdef BLITZ_PERFORMANCE
+  cuEventRecord(event_stop, NULL);
+  cuEventSynchronize(event_stop);
+  cuEventElapsedTime(&elapsed_time, event_start, event_stop);
+  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
+  double computations = 2 * static_cast<double>(dim_right) *
+    static_cast<double>(dim_left) * static_cast<double>(dim_common_left);
+  LOG(INFO) << "GEMM time: " << elapsed_time / 1000.0;
+  LOG(INFO) << "GEMM computations: " << computations;
+  LOG(INFO) << "GEMM gflops: " << computations / (elapsed_time * 1e6);
+  cuEventDestroy(event_start);
+  cuEventDestroy(event_stop);
+#endif  // BLITZ_PERFORMANCE
 }
 
 template<typename DType>
