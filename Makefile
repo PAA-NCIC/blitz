@@ -36,10 +36,11 @@ POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
 #libraries
 ifeq ($(CPU_ONLY), 1)
-  LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time
+  LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time \
+    -lboost_system
 else
   LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
-    -lboost_chrono -lboost_thread -lboost_date_time
+    -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
 endif
 
 #blitz
