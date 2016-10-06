@@ -14,7 +14,18 @@ BUILD_DIR := build
 SRC_ROOT := src
 
 #compilers
-OPTIMIZE_OPTIONS := -O3 -mavx
+OPTIMIZE_OPTIONS := -O3
+#avx types
+ifeq ($(BLITZ_AVX), 512)
+    OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xMIC-AVX512
+else ifeq ($(BLITZ_AVX), 3)
+  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xCORE-AVX512
+else ifeq ($(BLITZ_AVX), 2)
+  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx2
+else
+  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx
+endif
+
 OPENMP_OPTIONS := -fopenmp
 CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
@@ -53,13 +64,6 @@ else ifeq ($(BLITZ_MODE), performance)
 else ifeq ($(BLITZ_MODE), develop)
   CXXFLAGS += -DBLITZ_DEVELOP -g
   NVCC_XCOMPILE += -DBLITZ_DEVELOP -g
-endif
-
-#avx types
-ifeq ($(BLITZ_AVX), 3)
-  CXXFLAGS += -DBLITZ_AVX_WIDTH=64
-else
-  CXXFLAGS += -DBLITZ_AVX_WIDTH=32
 endif
 
 CXXFLAGS += -DBLITZ_NUM_THREADS=$(BLITZ_NUM_THREADS)
