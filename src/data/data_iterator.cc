@@ -3,8 +3,8 @@
 #include <hdf5.h>
 #include <fstream>
 
-#include "util/blitz_cpu_function.h"
-#include "backend/backends.h"
+#include "backends/backends.h"
+#include "utils/blitz_cpu_function.h"
 
 namespace blitz {
 

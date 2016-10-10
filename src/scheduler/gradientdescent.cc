@@ -1,5 +1,5 @@
 #include "scheduler/gradientdescent.h"
-#include "backend/backends.h"
+#include "backends/backends.h"
 
 namespace blitz {
 

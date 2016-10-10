@@ -4,8 +4,8 @@
 #include <map>
 #include <string>
 
-#include "util/common.h"
-#include "backend/tensor.h"
+#include "backends/tensor.h"
+#include "utils/common.h"
 
 namespace blitz {
 

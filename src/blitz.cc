@@ -5,7 +5,7 @@
 
 #include "initializer/initializer.h"
 #include "initializer/parser.h"
-#include "util/common.h"
+#include "utils/common.h"
 
 void InitThreads() {
 #ifdef BLITZ_NUM_THREADS

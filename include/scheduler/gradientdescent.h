@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "util/common.h"
 #include "scheduler/optimizer.h"
+#include "utils/common.h"
 
 namespace blitz {
 

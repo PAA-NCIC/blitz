@@ -8,9 +8,9 @@
 #include <boost/thread/once.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "util/common.h"
-#include "backend/gpu_tensor.h"
-#include "backend/cpu_tensor.h"
+#include "utils/common.h"
+#include "backends/gpu_tensor.h"
+#include "backends/cpu_tensor.h"
 
 namespace blitz {
 

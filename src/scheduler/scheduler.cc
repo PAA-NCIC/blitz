@@ -1,6 +1,5 @@
 #include "scheduler/scheduler.h"
-
-#include "backend/backends.h"
+#include "backends/backends.h"
 
 namespace blitz {
 

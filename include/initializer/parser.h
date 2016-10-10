@@ -8,18 +8,17 @@
 #include <string>
 #include <vector>
 
-#include "callback/callback.h"
-#include "callback/callback_wrapper.h"
+#include "callbacks/callback.h"
+#include "callbacks/callback_wrapper.h"
 #include "data/data_iterator.h"
-#include "layer/layer_wrapper.h"
+#include "layers/layer_wrapper.h"
 #include "scheduler/scheduler.h"
 #include "scheduler/optimizer.h"
-#include "transform/cost.h"
-#include "transform/activation.h"
-#include "filler/filler.h"
-#include "filler/filler_wrapper.h"
-#include "util/common.h"
-
+#include "transforms/cost.h"
+#include "transforms/activation.h"
+#include "fillers/filler.h"
+#include "fillers/filler_wrapper.h"
+#include "utils/common.h"
 
 namespace blitz {
 
@@ -190,7 +189,6 @@ class Parser {
     }
     return *label_shape_;
   }
-
 
   // composite types
   shared_ptr<CallbackWrapper> callback_wrapper() const {
@@ -390,7 +388,6 @@ class Parser {
   DISABLE_COPY_AND_ASSIGN(Parser);
 };
 
-
 }  //  namespace blitz
 
-#endif  //  INCLUDE_INITIALIZER_PARSER_H_
+#endif  //  INCLUDE_INITIALIZERS_PARSER_H_

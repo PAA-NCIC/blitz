@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "backend/backends.h"
+#include "backends/backends.h"
 
 namespace blitz {
 

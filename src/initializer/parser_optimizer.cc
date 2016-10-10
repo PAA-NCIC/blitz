@@ -1,6 +1,6 @@
 #include "initializer/parser.h"
 
-#include "backend/backends.h"
+#include "backends/backends.h"
 #include "scheduler/gradientdescent.h"
 
 namespace blitz {

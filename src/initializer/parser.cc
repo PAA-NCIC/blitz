@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "callback/progressbar.h"
+#include "callbacks/progressbar.h"
 
 namespace blitz {
 

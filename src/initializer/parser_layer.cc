@@ -1,11 +1,11 @@
 #include "initializer/parser.h"
 
-#include "backend/backends.h"
-#include "layer/affine.h"
-#include "layer/conv.h"
-#include "layer/pooling.h"
-#include "layer/dropout.h"
-#include "layer/param_layer.h"
+#include "backends/backends.h"
+#include "layers/affine.h"
+#include "layers/conv.h"
+#include "layers/pooling.h"
+#include "layers/dropout.h"
+#include "layers/param_layer.h"
 
 namespace blitz {
 

@@ -3,11 +3,11 @@
 
 #include <string>
 
-#include "util/common.h"
-#include "callback/callback_wrapper.h"
+#include "callbacks/callback_wrapper.h"
 #include "data/data_iterator.h"
+#include "layers/layer_wrapper.h"
 #include "scheduler/scheduler.h"
-#include "layer/layer_wrapper.h"
+#include "utils/common.h"
 
 namespace blitz {
 

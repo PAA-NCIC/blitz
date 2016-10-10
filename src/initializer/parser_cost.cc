@@ -1,10 +1,10 @@
 #include "initializer/parser.h"
 
-#include "backend/backends.h"
-#include "transform/cross_entropy_binary.h"
-#include "transform/cross_entropy_multi.h"
-#include "transform/square_mean.h"
-#include "transform/abs_mean.h"
+#include "backends/backends.h"
+#include "transforms/cross_entropy_binary.h"
+#include "transforms/cross_entropy_multi.h"
+#include "transforms/square_mean.h"
+#include "transforms/abs_mean.h"
 
 namespace blitz {
 

@@ -9,7 +9,7 @@ epoches: 10
 # for image is channel, width, height per image
 data_shape: [3, 224, 224]
 label_size: 1000
-batch_size: 256
+batch_size: 128
 pool_size: 60
 
 fillers:

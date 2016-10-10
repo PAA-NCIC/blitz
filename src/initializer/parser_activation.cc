@@ -1,9 +1,9 @@
 #include "initializer/parser.h"
 
-#include "backend/backends.h"
-#include "transform/logistic.h"
-#include "transform/rectlin.h"
-#include "transform/softmax.h"
+#include "backends/backends.h"
+#include "transforms/logistic.h"
+#include "transforms/rectlin.h"
+#include "transforms/softmax.h"
 
 namespace blitz {
 

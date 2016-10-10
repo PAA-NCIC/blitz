@@ -1,9 +1,9 @@
 #include "initializer/parser.h"
 
-#include "backend/backends.h"
-#include "filler/gaussian.h"
-#include "filler/uniform.h"
-#include "filler/constant.h"
+#include "backends/backends.h"
+#include "fillers/gaussian.h"
+#include "fillers/uniform.h"
+#include "fillers/constant.h"
 
 namespace blitz {
 

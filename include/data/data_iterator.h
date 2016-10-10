@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "util/common.h"
-#include "backend/shape.h"
+#include "utils/common.h"
+#include "backends/shape.h"
 
 namespace blitz {
 
@@ -61,5 +61,3 @@ class DataIterator {
 }  // namespace blitz
 
 #endif  // INCLUDE_DATA_DATA_ITERATOR_H_
-
-
