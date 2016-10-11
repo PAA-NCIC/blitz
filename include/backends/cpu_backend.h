@@ -104,6 +104,9 @@ class Backend<CPUTensor, DType> {
     const DType alpha, const DType beta,
     CPUTensor<DType>* output, const string& kernel = "blas");
 
+  static void Transpose2DFunc(
+    const CPUTensor<DType>* input, CPUTensor<DType>* output);
+
   static void MaximumFunc(
     const CPUTensor<DType>* left, const CPUTensor<DType>* right,
     CPUTensor<DType>* output);

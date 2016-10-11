@@ -186,6 +186,31 @@ void BlitzSassConvolution2D(
       &Q, &PQ, &QN, &PQN, &MPQN,
       &magic_Q, &shift_Q,
       &magic_PQ, &shift_PQ};
+    std::cout << "N " << N << std::endl;
+    std::cout << "K " << K << std::endl;
+    std::cout << "D " << D << std::endl;
+    std::cout << "H " << H << std::endl;
+    std::cout << "W " << W << std::endl;
+    std::cout << "WN " << WN << std::endl;
+    std::cout << "HWN " << HWN << std::endl;
+    std::cout << "C " << C << std::endl;
+    std::cout << "KRST " << KRST << std::endl;
+    std::cout << "RST " << RST << std::endl;
+    std::cout << "magic_RS " << magic_RS << "shift_RS " << shift_RS << std::endl;
+    std::cout << "magic_S " << magic_S << "shift_S " << shift_S << std::endl;
+    std::cout << "pad_d " << pad_d << std::endl;
+    std::cout << "pad_w " << pad_w << std::endl;
+    std::cout << "pad_h " << pad_h << std::endl;
+    std::cout << "str_d " << str_d << std::endl;
+    std::cout << "str_w " << str_w << std::endl;
+    std::cout << "str_h " << str_h << std::endl;
+    std::cout << "Q " << Q << std::endl;
+    std::cout << "PQ " << PQ << std::endl;
+    std::cout << "QN " << QN << std::endl;
+    std::cout << "PQN " << PQN << std::endl;
+    std::cout << "MPQN " << MPQN << std::endl;
+    std::cout << "magic_Q " << magic_Q << "shift_Q " << shift_Q << std::endl;
+    std::cout << "magic_PQ " << magic_PQ << "shift_PQ " << shift_PQ << std::endl;
     gridX = MPQ;
     gridY = K / 64 + (K % 64 != 0);
     gridZ = N / 64 + (N % 64 != 0);

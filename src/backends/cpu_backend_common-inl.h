@@ -376,6 +376,21 @@ void Backend<CPUTensor, DType>::MatrixDotFunc(
 }
 
 template<typename DType>
+void Backend<CPUTensor, DType>::Transpose2DFunc(
+  const CPUTensor<DType>* input, CPUTensor<DType>* output) {
+  size_t dim_left = input->shape()[0];
+  size_t dim_right = input->shape()[1];
+  CHECK_EQ(dim_left, output->shape()[1]);
+  CHECK_EQ(dim_right, output->shape()[0]);
+  #pragma omp parallel for collapse(2)
+  for (size_t i = 0; i < dim_left; ++i) {
+    for (size_t j = 0; j < dim_right; ++j) {
+      (*output)[j * dim_left + i] = (*input)[i * dim_right + j];
+    }
+  }
+}
+
+template<typename DType>
 void Backend<CPUTensor, DType>::MaximumFunc(
   const CPUTensor<DType>* left, const CPUTensor<DType>* right,
   CPUTensor<DType>* output) {

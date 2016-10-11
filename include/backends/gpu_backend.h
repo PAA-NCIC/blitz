@@ -102,6 +102,9 @@ class Backend<GPUTensor, DType> {
     const DType alpha, const DType beta,
     GPUTensor<DType>* output, const string& kernel = "blas");
 
+  static void Transpose2DFunc(
+    const GPUTensor<DType>* input, GPUTensor<DType>* output);
+
   static void MaximumFunc(
     const GPUTensor<DType>* left, const GPUTensor<DType>* right,
     GPUTensor<DType>* output);

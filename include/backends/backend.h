@@ -101,6 +101,9 @@ class Backend {
     const DType alpha, const DType beta,
     TensorType<DType>* output, const string& kernel = "blas");
 
+  static void Transpose2DFunc(
+    const TensorType<DType>* input, TensorType<DType>* output);
+
   static void MaximumFunc(
     const TensorType<DType>* left, const TensorType<DType>* right,
     TensorType<DType>* output);

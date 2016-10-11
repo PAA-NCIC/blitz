@@ -45,8 +45,16 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
 #endif  // BLITZ_PERFORMANCE
 
   if (kernel == "asm_implicit") {
-    // transpose Weight
     // transpose Input
+    BlitzGPUTrans(batch_size,
+      input_channel * input_height * input_width,
+      const_cast<DType*>(input->data()), 
+      unpack->data()); 
+    // transpose Weight
+    BlitzGPUTrans(output_channel,
+      input_channel * filter_height * filter_width,
+      const_cast<DType*>(filter->data()), 
+      unpack->Slice(input->size() + output->size())); 
     // implicit GEMM
     BlitzSassConvolution2D(
       "forward",
@@ -58,11 +66,14 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       output_height, output_width,
       stride_height, stride_width,
       padding_height, padding_width,
-      const_cast<DType*>(input->data()),
-      output->data(),
-      const_cast<DType*>(filter->data()));
-    // transpose Weight
+      unpack->data(),
+      unpack->Slice(input->size()),
+      unpack->Slice(input->size() + output->size()));
     // transpose Output
+    BlitzGPUTrans(output_channel * output_height * output_width,
+      batch_size,
+      const_cast<DType*>(unpack->Slice(input->size())), 
+      output->data()); 
   } else {
     for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
 #ifdef BLITZ_PERFORMANCE

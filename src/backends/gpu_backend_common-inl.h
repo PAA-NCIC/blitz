@@ -342,6 +342,18 @@ void Backend<GPUTensor, DType>::MatrixDotFunc(
 }
 
 template<typename DType>
+void Backend<GPUTensor, DType>::Transpose2DFunc(
+  const GPUTensor<DType>* input, GPUTensor<DType>* output) {
+  size_t dim_left = input->shape()[0];
+  size_t dim_right = input->shape()[1];
+  CHECK_EQ(dim_left, output->shape()[1]);
+  CHECK_EQ(dim_right, output->shape()[0]);
+  BlitzGPUTrans(dim_left, dim_right,
+    const_cast<DType*>(input->data()),
+    output->data()); 
+}
+
+template<typename DType>
 void Backend<GPUTensor, DType>::MaximumFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {}
