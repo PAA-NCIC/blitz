@@ -1,6 +1,6 @@
 #project
 PROJECT := blitz
-BINS := convolution_implicit_asm
+BINS := convolution
 NVCC := nvcc
 CC := g++
 

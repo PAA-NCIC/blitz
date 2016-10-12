@@ -94,7 +94,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   LOG(INFO) << "input shape: " << input_channel << " * " << input_height <<
     " * " << input_width;
   LOG(INFO) << "weight shape: " << output_channel << " * " << input_channel <<
-    " * " << input_height << " * " << input_width;
+    " * " << filter_height << " * " << filter_width;
   LOG(INFO) << "output shape: " << output_channel << " * " << output_height <<
     " * " << output_width;
 }

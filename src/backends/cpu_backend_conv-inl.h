@@ -143,7 +143,10 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       total_gemm_time = gemm_time.count();
       #endif
     }
+  } else {
+    LOG(FATAL) << "Unknown kernel type: " << kernel;
   }
+
   #ifdef BLITZ_PERFORMANCE
   LOG(INFO) << "Forward convolution gemm: " << total_gemm_time;
   LOG(INFO) << "Forward convolution unpack: " << total_unpack_time;

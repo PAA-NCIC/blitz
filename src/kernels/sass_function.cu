@@ -186,31 +186,33 @@ void BlitzSassConvolution2D(
       &Q, &PQ, &QN, &PQN, &MPQN,
       &magic_Q, &shift_Q,
       &magic_PQ, &shift_PQ};
-    std::cout << "N " << N << std::endl;
-    std::cout << "K " << K << std::endl;
-    std::cout << "D " << D << std::endl;
-    std::cout << "H " << H << std::endl;
-    std::cout << "W " << W << std::endl;
-    std::cout << "WN " << WN << std::endl;
-    std::cout << "HWN " << HWN << std::endl;
-    std::cout << "C " << C << std::endl;
-    std::cout << "KRST " << KRST << std::endl;
-    std::cout << "RST " << RST << std::endl;
-    std::cout << "magic_RS " << magic_RS << "shift_RS " << shift_RS << std::endl;
-    std::cout << "magic_S " << magic_S << "shift_S " << shift_S << std::endl;
-    std::cout << "pad_d " << pad_d << std::endl;
-    std::cout << "pad_w " << pad_w << std::endl;
-    std::cout << "pad_h " << pad_h << std::endl;
-    std::cout << "str_d " << str_d << std::endl;
-    std::cout << "str_w " << str_w << std::endl;
-    std::cout << "str_h " << str_h << std::endl;
-    std::cout << "Q " << Q << std::endl;
-    std::cout << "PQ " << PQ << std::endl;
-    std::cout << "QN " << QN << std::endl;
-    std::cout << "PQN " << PQN << std::endl;
-    std::cout << "MPQN " << MPQN << std::endl;
-    std::cout << "magic_Q " << magic_Q << "shift_Q " << shift_Q << std::endl;
-    std::cout << "magic_PQ " << magic_PQ << "shift_PQ " << shift_PQ << std::endl;
+    #ifdef BLITZ_DEVELOP
+    LOG(INFO) << "N: " << N;
+    LOG(INFO) << "K: " << K;
+    LOG(INFO) << "D: " << D;
+    LOG(INFO) << "H: " << H;
+    LOG(INFO) << "W: " << W;
+    LOG(INFO) << "WN: " << WN;
+    LOG(INFO) << "HWN: " << HWN;
+    LOG(INFO) << "C: " << C;
+    LOG(INFO) << "KRST: " << KRST;
+    LOG(INFO) << "RST: " << RST;
+    LOG(INFO) << "magic_RS: " << magic_RS << ", shift_RS: " << shift_RS;
+    LOG(INFO) << "magic_S: " << magic_S << ", shift_S: " << shift_S;
+    LOG(INFO) << "pad_d: " << pad_d;
+    LOG(INFO) << "pad_w: " << pad_w;
+    LOG(INFO) << "pad_h: " << pad_h;
+    LOG(INFO) << "str_d: " << str_d;
+    LOG(INFO) << "str_w: " << str_w;
+    LOG(INFO) << "str_h: " << str_h;
+    LOG(INFO) << "Q: " << Q;
+    LOG(INFO) << "PQ: " << PQ;
+    LOG(INFO) << "QN: " << QN;
+    LOG(INFO) << "PQN: " << PQN;
+    LOG(INFO) << "MPQN: " << MPQN;
+    LOG(INFO) << "magic_Q: " << magic_Q << ", shift_Q: " << shift_Q;
+    LOG(INFO) << "magic_PQ: " << magic_PQ << ", shift_PQ: " << shift_PQ;
+    #endif  // BLITZ_DEVELOP
     gridX = MPQ;
     gridY = K / 64 + (K % 64 != 0);
     gridZ = N / 64 + (N % 64 != 0);
@@ -239,16 +241,46 @@ void BlitzSassConvolution2D(
         &magic_str_w, &shift_str_w,
         &magic_str_h, &shift_str_h,
         &magic_str_d, &shift_str_d};
+      #ifdef BLITZ_DEVELOP
+      LOG(INFO) << "N: " << N;
+      LOG(INFO) << "C: " << C;
+      LOG(INFO) << "M: " << M;
+      LOG(INFO) << "P: " << P;
+      LOG(INFO) << "Q: " << Q;
+      LOG(INFO) << "QN: " << QN;
+      LOG(INFO) << "PQN: " << PQN;
+      LOG(INFO) << "MPQN: " << MPQN;
+      LOG(INFO) << "K: " << K;
+      LOG(INFO) << "CRST: " << CRST;
+      LOG(INFO) << "RST: " << RST;
+      LOG(INFO) << "RS: " << RS;
+      LOG(INFO) << "magic_RS: " << magic_RS << ", shift_RS: " << shift_RS;
+      LOG(INFO) << "S: " << S;
+      LOG(INFO) << "magic_S: " << magic_S << ", shift_S: " << shift_S;
+      LOG(INFO) << "pad_d: " << pad_d;
+      LOG(INFO) << "pad_w: " << pad_w;
+      LOG(INFO) << "pad_h: " << pad_h;
+      LOG(INFO) << "str_d: " << str_d;
+      LOG(INFO) << "str_w: " << str_w;
+      LOG(INFO) << "str_h: " << str_h;
+      LOG(INFO) << "W: " << W;
+      LOG(INFO) << "HW: " << HW;
+      LOG(INFO) << "WN: " << WN;
+      LOG(INFO) << "HWN: " << HWN;
+      LOG(INFO) << "DHWN: " << DHWN;
+      LOG(INFO) << "magic_W: " << magic_W << ", shift_W: " << shift_W;
+      LOG(INFO) << "magic_HW " << magic_HW << ", shift_HW: " << shift_HW;
+      #endif  // BLITZ_DEVELOP
       gridX = DHW;
       gridY = C / 64 + (C % 64 != 0);
       gridZ = N / 64 + (N % 64 != 0);
       kernel_name = "sconv_bprop_C64_N64";
       function = CubinModule::GetFunction(kernel_name);
-      result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        64, 1, 1, 0, 0, args, NULL);
-      if (result != CUDA_SUCCESS) {
-        LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
-      }
+      //result = cuLaunchKernel(function, gridX, gridY, gridZ,
+      //  64, 1, 1, 0, 0, args, NULL);
+      //if (result != CUDA_SUCCESS) {
+      //  LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+      //}
     } else {  // C1
       void *args[41] = {
         &test_param, &I, &O, &F, &alpha,
@@ -315,6 +347,86 @@ void BlitzSassConvolution2D(
   double* O,
   double* F) {
   LOG(FATAL) << "sass kernel dost not support double precision";
+}
+
+// shuffle
+// K * C * T * R * S
+// to
+// K * T * R * S * C
+template<typename DType>
+__global__ void GPUFilterShuffle(
+  const DType* input, DType* output,
+  unsigned int TRSC, unsigned int TRS,
+  unsigned int RSC, unsigned int SC,
+  unsigned int C, unsigned int K,
+  unsigned int RS, unsigned int magic_RS, unsigned int shift_RS,
+  unsigned int S, unsigned int magic_S, unsigned int shift_S) {
+  // C * K
+  __shared__ DType tile[32][33];
+  size_t tx  = threadIdx.x;
+  size_t ty  = threadIdx.y;
+  size_t bk  = blockIdx.x;
+  size_t bc  = blockIdx.y;
+  size_t trs = blockIdx.z;
+  // t = trs % rs
+  // r = rs % s
+  // s = rs - r * s
+  size_t t = magic_RS * trs;
+  size_t rs = trs - t * RS;
+  size_t r = magic_S * rs;
+  size_t s = rs - r * S;
+  t >>= shift_RS;
+  r >>= shift_S;
+  size_t k = bk * 32 + tx;
+  size_t c = bc * 32 + ty;
+  for (size_t i = 0; i < 32; i += 8) {
+    size_t ci = c + i;
+    if (ci < C && k < K)
+      tile[ty + i][tx] = input[k * TRSC + ci * TRS + t * RS + r * S + s];
+  }
+  __syncthreads();
+  k = bk * 32 + ty;
+  c = bc * 32 + tx;
+  for (size_t i = 0; i < 32; i += 8) {
+    size_t ki = k + i;
+    if (ki < K && c < C)
+      output[ki * TRSC + t * RSC + r * SC + s * C + c] = tile[tx][ty + i];
+  }
+}
+
+template<>
+void BlitzFilter2DShuffle(
+  int K, int C,
+  int R, int S,
+  const float* input,
+  float* output) {
+  unsigned int T = 1;
+  unsigned int TRSC, RSC, SC;
+  unsigned int RST, RS;
+  unsigned int magic_RS, shift_RS;
+  unsigned int magic_S, shift_S;
+  // output
+  SC = S * C;
+  RSC = R * SC;
+  TRSC = T * RSC;
+  // filter
+  RS = R * S; 
+  RST = T * RS;
+  blitz_magic32(RST + 32, RS, magic_RS, shift_RS);
+  blitz_magic32(RS + 32, S, magic_S, shift_S);
+  const size_t gridX = K / 32 + (K % 32 != 0);
+  const size_t gridY = C / 32 + (C % 32 != 0);
+  dim3 grid_dim(gridX, gridY, RST);
+  dim3 block_dim(32, 8, 1);
+  GPUFilterShuffle<<<grid_dim, block_dim>>>(input, output, TRSC, RST, RSC, SC, C, K, RS, magic_RS, shift_RS, S, magic_S, shift_S);
+}
+
+template<>
+void BlitzFilter2DShuffle(
+  int K, int C,
+  int R, int S,
+  const double* input,
+  double* output) {
 }
 
 }  // namespace blitz

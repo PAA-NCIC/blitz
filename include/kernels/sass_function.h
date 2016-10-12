@@ -132,6 +132,13 @@ void BlitzSassConvolution2D(
   DType* output,
   DType* filter);
 
+template<typename DType>
+void BlitzFilter2DShuffle(
+  int K, int C,
+  int R, int S,
+  const DType* input,
+  DType* output);
+
 }  // namespace blitz
 
 #endif  // INCLUDE_KERNELS_SASS_FUNCTION_H_
