@@ -372,11 +372,11 @@ __global__ void GPUFilterShuffle(
   // r = rs % s
   // s = rs - r * s
   size_t t = magic_RS * trs;
+  t >>= shift_RS;
   size_t rs = trs - t * RS;
   size_t r = magic_S * rs;
-  size_t s = rs - r * S;
-  t >>= shift_RS;
   r >>= shift_S;
+  size_t s = rs - r * S;
   size_t k = bk * 32 + tx;
   size_t c = bc * 32 + ty;
   for (size_t i = 0; i < 32; i += 8) {
@@ -418,7 +418,12 @@ void BlitzFilter2DShuffle(
   const size_t gridY = C / 32 + (C % 32 != 0);
   dim3 grid_dim(gridX, gridY, RST);
   dim3 block_dim(32, 8, 1);
-  GPUFilterShuffle<<<grid_dim, block_dim>>>(input, output, TRSC, RST, RSC, SC, C, K, RS, magic_RS, shift_RS, S, magic_S, shift_S);
+  GPUFilterShuffle<<<grid_dim, block_dim>>>(
+    input, output,
+    TRSC, RST, RSC, SC,
+    C, K,
+    RS, magic_RS, shift_RS,
+    S, magic_S, shift_S);
 }
 
 template<>

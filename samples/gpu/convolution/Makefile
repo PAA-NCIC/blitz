@@ -1,8 +1,13 @@
+#variables
+.PHONY: clean bins
+
 #project
 PROJECT := blitz
-BINS := convolution
+BINS := convolution shuffle
 NVCC := nvcc
 CC := g++
+
+bins: $(BINS)
 
 #dirs
 DIR := ../../..
