@@ -2,6 +2,7 @@
 
 #include <cuda.h>
 
+#include <cstdio>
 #include <string>
 
 #include "utils/blitz_math_function.h"
@@ -149,6 +150,9 @@ void BlitzSassConvolution2D(
   PQN = P * QN;
   MPQ = PQ;
   MPQN = PQN;
+  // special bprop
+  CRST32 = 32 * CRST;
+  MPQN32 = 32 * MPQN;
   // magic numbers
   blitz_magic32(DHW, HW, magic_HW, shift_HW);
   blitz_magic32(HW, W, magic_W, shift_W);
@@ -276,11 +280,11 @@ void BlitzSassConvolution2D(
       gridZ = N / 64 + (N % 64 != 0);
       kernel_name = "sconv_bprop_C64_N64";
       function = CubinModule::GetFunction(kernel_name);
-      //result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      //  64, 1, 1, 0, 0, args, NULL);
-      //if (result != CUDA_SUCCESS) {
-      //  LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
-      //}
+      result = cuLaunchKernel(function, gridX, gridY, gridZ,
+        64, 1, 1, 0, 0, args, NULL);
+      if (result != CUDA_SUCCESS) {
+        LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+      }
     } else {  // C1
       void *args[41] = {
         &test_param, &I, &O, &F, &alpha,
@@ -294,8 +298,7 @@ void BlitzSassConvolution2D(
         &Q, &PQ, &QN, &PQN, &MPQN,
         &magic_Q, &shift_Q,
         &magic_PQ, &shift_PQ,
-        &CRST32,
-        &MPQN32};
+        &CRST32, &MPQN32};
       gridX = MPQ;
       gridY = CRST / 32 + (CRST % 32 != 0);
       gridZ = N / 64 + (N % 64 != 0);
@@ -432,6 +435,7 @@ void BlitzFilter2DShuffle(
   int R, int S,
   const double* input,
   double* output) {
+  LOG(FATAL) << "sass kernel dost not support double precision";
 }
 
 }  // namespace blitz

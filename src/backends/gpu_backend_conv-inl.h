@@ -182,34 +182,41 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
       const_cast<DType*>(output->data()), 
       workspace->Slice(input->size())); 
     if (input_channel % 64 != 0) {
+      // implicit GEMM
+      BlitzSassConvolution2D(
+        "backward",
+        batch_size,
+        input_channel,
+        input_height, input_width,
+        filter_height, filter_width,
+        output_channel,
+        output_height, output_width,
+        stride_height, stride_width,
+        padding_height, padding_width,
+        workspace->data(),
+        const_cast<DType*>(workspace->Slice(input->size())),
+        const_cast<DType*>(filter->data()));
+    } else {
       // transpose filter
       BlitzGPUTrans(output_channel,
         input_channel * filter_height * filter_width,
         const_cast<DType*>(filter->data()), 
         workspace->Slice(input->size() + output->size())); 
-    } else {
-      // shuffle filter
-      BlitzFilter2DShuffle(
-        output_channel,
+      // implicit GEMM
+      BlitzSassConvolution2D(
+        "backward",
+        batch_size,
         input_channel,
+        input_height, input_width,
         filter_height, filter_width,
-        filter->data(),
-        workspace->Slice(input->size() + output->size()));
+        output_channel,
+        output_height, output_width,
+        stride_height, stride_width,
+        padding_height, padding_width,
+        workspace->data(),
+        const_cast<DType*>(workspace->Slice(input->size())),
+        const_cast<DType*>(workspace->Slice(input->size() + output->size())));
     }
-    // implicit GEMM
-    BlitzSassConvolution2D(
-      "backward",
-      batch_size,
-      input_channel,
-      input_height, input_width,
-      filter_height, filter_width,
-      output_channel,
-      output_height, output_width,
-      stride_height, stride_width,
-      padding_height, padding_width,
-      workspace->data(),
-      const_cast<DType*>(workspace->Slice(input->size())),
-      const_cast<DType*>(workspace->Slice(input->size() + output->size())));
     // transpose input
     BlitzGPUTrans(input_channel * input_height * input_width,
       batch_size,

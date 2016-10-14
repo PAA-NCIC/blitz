@@ -34,7 +34,6 @@ void cpu_shuffle(size_t K, size_t C, size_t R, size_t S,
   const size_t SC = S * C;
   const size_t RS = R * S;
   const size_t RSC = R * SC;
-  #pragma omp parallel for
   for (size_t i = 0; i < K; ++i) {
     for (size_t j = 0; j < R; ++j) {
       for (size_t k = 0; k < S; ++k) {
@@ -81,7 +80,7 @@ void shuffle(size_t K, size_t C, size_t R, size_t S) {
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_shuffle_gpu.data(),
     filter_shuffle_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
-  compare_cpu_gpu(filter_cpu.size(), filter_cpu.data(), filter_copy.data());
+  compare_cpu_gpu(filter_shuffle_cpu.size(), filter_shuffle_cpu.data(), filter_copy.data());
 }
 
 int main(int argc, char** argv) {

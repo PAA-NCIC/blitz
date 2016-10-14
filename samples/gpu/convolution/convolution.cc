@@ -39,10 +39,14 @@ void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q) {
   output_shape[3] = Q;
 }
 
-void compare_cpu_gpu(size_t size, float* output_cpu, float* output_gpu) {
+void compare_cpu_gpu(
+  size_t size,
+  float* output_cpu,
+  float* output_gpu,
+  float precision = 1e-2) {
   for (size_t i = 0; i < size; ++i) {
-    if (output_cpu[i] > output_gpu[i] + 1e-2 ||
-      output_cpu[i] < output_gpu[i] - 1e-2) {
+    if (output_cpu[i] > output_gpu[i] + precision ||
+      output_cpu[i] < output_gpu[i] - precision) {
       std::cout << "Index: " << i << ", CPU: " << output_cpu[i] <<
         ", GPU: " << output_gpu[i] << std::endl;
     }
@@ -142,6 +146,44 @@ void convolution_update(
   const string& kernel,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
+  // set up cpu
+  CPUTensor<float> input_cpu(input_shape);
+  CPUTensor<float> filter_cpu(filter_shape);
+  CPUTensor<float> output_cpu(output_shape);
+  CPUTensor<float> workspace_cpu(workspace_shape_cpu);
+  // set up gpu
+  GPUTensor<float> input_gpu(input_shape);
+  GPUTensor<float> filter_gpu(filter_shape);
+  GPUTensor<float> output_gpu(output_shape);
+  GPUTensor<float> workspace_gpu(workspace_shape_gpu);
+  //// set up copy
+  CPUTensor<float> filter_copy(filter_shape);
+  //// init values
+  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &output_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &input_cpu);
+  cudaMemcpy(output_gpu.data(), output_cpu.data(),
+    output_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(input_gpu.data(), input_cpu.data(),
+    input_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
+  // cpu convolution 
+  Backend<CPUTensor, float>::Convolution2DUpdateFunc(
+    &input_cpu, &output_cpu,
+    pad_h, pad_w, 
+    str_h, str_w,
+    &workspace_cpu,
+    &filter_cpu);
+  // gpu convolution
+  Backend<GPUTensor, float>::Convolution2DUpdateFunc(
+    &input_gpu, &output_gpu,
+    pad_h, pad_w, 
+    str_h, str_w,
+    &workspace_gpu,
+    &filter_gpu,
+    kernel);
+  // copy from gpu to cpu
+  cudaMemcpy(filter_copy.data(), filter_gpu.data(),
+    filter_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
+  compare_cpu_gpu(filter_cpu.size(), filter_cpu.data(), filter_copy.data(), 1e-0);
 }
 
 int main(int argc, char** argv) {
