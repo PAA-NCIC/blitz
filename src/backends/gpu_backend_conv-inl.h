@@ -41,7 +41,7 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   double total_gemm_time = 0;
   double total_unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
-  if (kernel == "asm_implicit") {
+  if (kernel == "asm_direct") {
     // transpose Input
     BlitzGPUTrans(batch_size,
       input_channel * input_height * input_width,
@@ -52,7 +52,7 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       input_channel * filter_height * filter_width,
       const_cast<DType*>(filter->data()), 
       workspace->Slice(input->size() + output->size())); 
-    // implicit GEMM
+    // direct GEMM
     BlitzSassConvolution2D(
       "forward",
       batch_size,
@@ -175,14 +175,14 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   double elapsed_time = 0;
   double pack_time = 0;
   #endif  // BLITZ_PERFORMANCE
-  if (kernel == "asm_implicit") {
+  if (kernel == "asm_direct") {
     // transpose output
     BlitzGPUTrans(batch_size,
       output_channel * output_height * output_width,
       const_cast<DType*>(output->data()), 
       workspace->Slice(input->size())); 
     if (input_channel % 64 != 0) {
-      // implicit GEMM
+      // direct GEMM
       BlitzSassConvolution2D(
         "backward",
         batch_size,
@@ -202,7 +202,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
         input_channel * filter_height * filter_width,
         const_cast<DType*>(filter->data()), 
         workspace->Slice(input->size() + output->size())); 
-      // implicit GEMM
+      // direct GEMM
       BlitzSassConvolution2D(
         "backward",
         batch_size,
@@ -325,7 +325,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   double elapsed_time = 0;
   double unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
-  if (kernel == "asm_implicit") {
+  if (kernel == "asm_direct") {
     // transpose input
     BlitzGPUTrans(batch_size,
       input_channel * input_height * input_width,

@@ -35,14 +35,14 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   this->backward_output_ = make_shared<TensorType<DType> >(input_shape);
 
   // weight
-  Shape shape_weight(4);
-  shape_weight[0] = output_channel;
-  shape_weight[1] = input_channel;
-  shape_weight[2] = filter_height;
-  shape_weight[3] = filter_width;
+  Shape weight_shape(4);
+  weight_shape[0] = output_channel;
+  weight_shape[1] = input_channel;
+  weight_shape[2] = filter_height;
+  weight_shape[3] = filter_width;
 
-  this->weight_ = make_shared<TensorType<DType> >(shape_weight);
-  this->update_ = make_shared<TensorType<DType> >(shape_weight);
+  this->weight_ = make_shared<TensorType<DType> >(weight_shape);
+  this->update_ = make_shared<TensorType<DType> >(weight_shape);
 
   // unpack one image in every iteration
   Shape workspace_shape(1);
@@ -53,14 +53,16 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   if (this->kernel_ == "asm" || this->kernel_ == "blas") {
     workspace_shape[0] = input_channel *
       filter_height * filter_width * output_height * output_width;
-    this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
   } else if (this->kernel_ == "asm_batch" || this->kernel_ == "blas_batch") {
     size_t workspace_unpack_size = BLITZ_NUM_THREADS * input_channel *
       filter_height * filter_width * output_height * output_width;
     size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *
       input_channel * filter_height * filter_width;
     workspace_shape[0] = workspace_unpack_size + workspace_update_size;
-    this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
+  } else if (this->kernel == "asm_direct" || this->kernel_ == "blas_direct") {
+    size_t workspace_size = input_shape.size() +
+      output_shape.size() + weight_shape.size();
+    workspace_shape[0] = workspace_size;
   }
 #ifndef BLITZ_CPU_ONLY
   else if (this->kernel_ == "cudnn") {
@@ -90,6 +92,8 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     backward_data_algorithm_ = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
   }
 #endif
+  this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
+
   LOG(INFO) << "Conv Layer: " << this->name_;
   LOG(INFO) << "input shape: " << input_channel << " * " << input_height <<
     " * " << input_width;
