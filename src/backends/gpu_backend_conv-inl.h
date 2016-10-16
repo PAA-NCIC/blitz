@@ -42,6 +42,7 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   double total_unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
   if (kernel == "asm_direct") {
+    workspace->Fill(0);
     // transpose Input
     BlitzGPUTrans(batch_size,
       input_channel * input_height * input_width,
@@ -176,6 +177,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   double pack_time = 0;
   #endif  // BLITZ_PERFORMANCE
   if (kernel == "asm_direct") {
+    workspace->Fill(0);
     // transpose output
     BlitzGPUTrans(batch_size,
       output_channel * output_height * output_width,
@@ -326,6 +328,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   double unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
   if (kernel == "asm_direct") {
+    workspace->Fill(0);
     // transpose input
     BlitzGPUTrans(batch_size,
       input_channel * input_height * input_width,

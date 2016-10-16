@@ -59,7 +59,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *
       input_channel * filter_height * filter_width;
     workspace_shape[0] = workspace_unpack_size + workspace_update_size;
-  } else if (this->kernel == "asm_direct" || this->kernel_ == "blas_direct") {
+  } else if (this->kernel_ == "asm_direct" || this->kernel_ == "blas_direct") {
     size_t workspace_size = input_shape.size() +
       output_shape.size() + weight_shape.size();
     workspace_shape[0] = workspace_size;

@@ -71,8 +71,8 @@ void convolution_forward(
   // set up copy
   CPUTensor<float> output_copy(output_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &input_cpu);
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &filter_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &input_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &filter_cpu);
   cudaMemcpy(input_gpu.data(), input_cpu.data(),
     input_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(filter_gpu.data(), filter_cpu.data(),
@@ -115,8 +115,8 @@ void convolution_backward(
   // set up copy
   CPUTensor<float> input_copy(input_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &output_cpu);
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &filter_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &output_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &filter_cpu);
   cudaMemcpy(output_gpu.data(), output_cpu.data(),
     output_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(filter_gpu.data(), filter_cpu.data(),
@@ -159,8 +159,8 @@ void convolution_update(
   //// set up copy
   CPUTensor<float> filter_copy(filter_shape);
   //// init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &output_cpu);
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &input_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &output_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &input_cpu);
   cudaMemcpy(output_gpu.data(), output_cpu.data(),
     output_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(input_gpu.data(), input_cpu.data(),
@@ -183,7 +183,7 @@ void convolution_update(
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_gpu.data(),
     filter_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
-  compare_cpu_gpu(filter_cpu.size(), filter_cpu.data(), filter_copy.data(), 1e-0);
+  compare_cpu_gpu(filter_cpu.size(), filter_cpu.data(), filter_copy.data(), 1e-2);
 }
 
 int main(int argc, char** argv) {
