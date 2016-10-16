@@ -12,6 +12,10 @@ include $(CONFIG_FILE)
 BIN_DIR := bin
 BUILD_DIR := build
 SRC_ROOT := src
+LIB_DIR := lib
+
+#libs
+LIBS := $(LIB_DIR)/libblitz.a
 
 #compilers
 OPTIMIZE_OPTIONS := -O3
@@ -114,7 +118,7 @@ endif
 
 #rules
 #mkdir first
-all: dirs bins objects 
+all: dirs bins objects libs
 
 ifeq ($(CPU_ONLY), 1)
   ALL_OBJECTS_DIR := $(OBJECTS_DIR)
@@ -124,7 +128,7 @@ else
   ALL_BINS_DIR := $(BIN_DIR)
 endif
 
-dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR)
+dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR) $(LIB_DIR)
 
 $(ALL_BINS_DIR):
 	mkdir -p $@
@@ -132,11 +136,19 @@ $(ALL_BINS_DIR):
 $(ALL_OBJECTS_DIR):
 	mkdir -p $@
 
+$(LIB_DIR):
+	mkdir -p $@
+
 bins: $(BINS)
 
+libs: $(LIBS)
+
 ifeq ($(CPU_ONLY), 1)
-  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(OBJECTS)
+  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIBS)
 	  $(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
+
+  $(LIBS): $(OBJECTS)
+	ar rcs $@ $^
 
   objects: $(OBJECTS)
 
@@ -144,8 +156,11 @@ ifeq ($(CPU_ONLY), 1)
 	  $(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
 	  $(POSTCOMPILE)
 else
-  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(OBJECTS) $(NVCC_OBJECTS)
+  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIBS)
 	  $(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
+
+  $(LIBS): $(OBJECTS) $(NVCC_OBJECTS)
+	ar rcs $@ $^
 
   objects: $(OBJECTS) $(NVCC_OBJECTS)
 
@@ -159,7 +174,7 @@ else
 endif
 
 clean:
-	-rm -rf $(BUILD_DIR) $(BIN_DIR)
+	-rm -rf $(BUILD_DIR) $(BIN_DIR) $(LIB_DIR)
 
 #include dependency
 $(AUTODEPS): ;

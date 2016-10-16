@@ -7,10 +7,9 @@ CC := g++
 #dirs
 DIR := ../../..
 INC := -I$(DIR)/include
-BUILD_DIR := $(DIR)/build
-SRC_ROOT := $(DIR)/src
-SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cc" ! -name $(PROJECT).cc)
-NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc)
+
+#libs
+LIBS := $(DIR)/lib/libblitz.a
 
 #flags
 LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
@@ -25,10 +24,7 @@ LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
 CXXFLAGS += -DUSE_MKL
 INC += -I/opt/intel/mkl/include
 
-OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cc, %.o, $(SRCS:$(SRC_ROOT)/%=%)))
-NVCC_OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cu, %.o, $(NVCC_SRCS:$(SRC_ROOT)/%=%)))
-
-$(BINS): % : %.cc $(OBJECTS) $(NVCC_OBJECTS)
+$(BINS): % : %.cc $(LIBS)
 	$(CC) $(CXXFLAGS) $(INC) $(LDFLAGS) -o $@ $^
 
 clean:
