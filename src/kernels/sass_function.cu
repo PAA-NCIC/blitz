@@ -190,33 +190,6 @@ void BlitzSassConvolution2D(
       &Q, &PQ, &QN, &PQN, &MPQN,
       &magic_Q, &shift_Q,
       &magic_PQ, &shift_PQ};
-    #ifdef BLITZ_DEVELOP
-    LOG(INFO) << "N: " << N;
-    LOG(INFO) << "K: " << K;
-    LOG(INFO) << "D: " << D;
-    LOG(INFO) << "H: " << H;
-    LOG(INFO) << "W: " << W;
-    LOG(INFO) << "WN: " << WN;
-    LOG(INFO) << "HWN: " << HWN;
-    LOG(INFO) << "C: " << C;
-    LOG(INFO) << "KRST: " << KRST;
-    LOG(INFO) << "RST: " << RST;
-    LOG(INFO) << "magic_RS: " << magic_RS << ", shift_RS: " << shift_RS;
-    LOG(INFO) << "magic_S: " << magic_S << ", shift_S: " << shift_S;
-    LOG(INFO) << "pad_d: " << pad_d;
-    LOG(INFO) << "pad_w: " << pad_w;
-    LOG(INFO) << "pad_h: " << pad_h;
-    LOG(INFO) << "str_d: " << str_d;
-    LOG(INFO) << "str_w: " << str_w;
-    LOG(INFO) << "str_h: " << str_h;
-    LOG(INFO) << "Q: " << Q;
-    LOG(INFO) << "PQ: " << PQ;
-    LOG(INFO) << "QN: " << QN;
-    LOG(INFO) << "PQN: " << PQN;
-    LOG(INFO) << "MPQN: " << MPQN;
-    LOG(INFO) << "magic_Q: " << magic_Q << ", shift_Q: " << shift_Q;
-    LOG(INFO) << "magic_PQ: " << magic_PQ << ", shift_PQ: " << shift_PQ;
-    #endif  // BLITZ_DEVELOP
     gridX = MPQ;
     gridY = K / 64 + (K % 64 != 0);
     gridZ = N / 64 + (N % 64 != 0);
@@ -245,36 +218,6 @@ void BlitzSassConvolution2D(
         &magic_str_w, &shift_str_w,
         &magic_str_h, &shift_str_h,
         &magic_str_d, &shift_str_d};
-      #ifdef BLITZ_DEVELOP
-      LOG(INFO) << "N: " << N;
-      LOG(INFO) << "C: " << C;
-      LOG(INFO) << "M: " << M;
-      LOG(INFO) << "P: " << P;
-      LOG(INFO) << "Q: " << Q;
-      LOG(INFO) << "QN: " << QN;
-      LOG(INFO) << "PQN: " << PQN;
-      LOG(INFO) << "MPQN: " << MPQN;
-      LOG(INFO) << "K: " << K;
-      LOG(INFO) << "CRST: " << CRST;
-      LOG(INFO) << "RST: " << RST;
-      LOG(INFO) << "RS: " << RS;
-      LOG(INFO) << "magic_RS: " << magic_RS << ", shift_RS: " << shift_RS;
-      LOG(INFO) << "S: " << S;
-      LOG(INFO) << "magic_S: " << magic_S << ", shift_S: " << shift_S;
-      LOG(INFO) << "pad_d: " << pad_d;
-      LOG(INFO) << "pad_w: " << pad_w;
-      LOG(INFO) << "pad_h: " << pad_h;
-      LOG(INFO) << "str_d: " << str_d;
-      LOG(INFO) << "str_w: " << str_w;
-      LOG(INFO) << "str_h: " << str_h;
-      LOG(INFO) << "W: " << W;
-      LOG(INFO) << "HW: " << HW;
-      LOG(INFO) << "WN: " << WN;
-      LOG(INFO) << "HWN: " << HWN;
-      LOG(INFO) << "DHWN: " << DHWN;
-      LOG(INFO) << "magic_W: " << magic_W << ", shift_W: " << shift_W;
-      LOG(INFO) << "magic_HW " << magic_HW << ", shift_HW: " << shift_HW;
-      #endif  // BLITZ_DEVELOP
       gridX = DHW;
       gridY = C / 64 + (C % 64 != 0);
       gridZ = N / 64 + (N % 64 != 0);
@@ -325,12 +268,21 @@ void BlitzSassConvolution2D(
       &magic_PQu, &shift_PQu,
       &grid_P, &grid_Q, &grid_PQ};
     gridX = grid_PQM;
-    gridY = CRST / 128 + (CRST % 128 != 0);
-    gridZ = K / 128 + (K % 128 != 0);
-    kernel_name = "sconv_update_C128_K128";
-    function = CubinModule::GetFunction(kernel_name);
-    result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      256, 1, 1, 0, 0, args, NULL);
+    if ((K <= 64 && K % 128 != 0) || Q > 56) {
+      gridY = CRST / 128 + (CRST % 128 != 0);
+      gridZ = K / 64 + (K % 64 != 0);
+      kernel_name = "sconv_update_C128_K64";
+      function = CubinModule::GetFunction(kernel_name);
+      result = cuLaunchKernel(function, gridX, gridY, gridZ,
+        128, 1, 1, 0, 0, args, NULL);
+    } else {
+      gridY = CRST / 128 + (CRST % 128 != 0);
+      gridZ = K / 128 + (K % 128 != 0);
+      kernel_name = "sconv_update_C128_K128";
+      function = CubinModule::GetFunction(kernel_name);
+      result = cuLaunchKernel(function, gridX, gridY, gridZ,
+        256, 1, 1, 0, 0, args, NULL);
+    }
     if (result != CUDA_SUCCESS) {
       LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
     }
