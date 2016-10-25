@@ -16,15 +16,15 @@ void Model<TensorType, DType>::Inference(
   inference_label->Init();
   layer_wrapper->SetInferenceMode();
 
-  int niteration = inference_set->total() / inference_set->batch_size();
-  float accuracy = 0.0f;
+  size_t niteration = inference_set->total() / inference_set->batch_size();
+  DType accuracy = 0.0;
 
   ptime todayUtc(day_clock::universal_day(),
     second_clock::universal_time().time_of_day());
   string output_file = "./result/" + to_simple_string(todayUtc) + ".csv";
   ofstream os(output_file.c_str(), ofstream::out);
 
-  for (int i = 0; i < niteration; ++i) {
+  for (size_t i = 0; i < niteration; ++i) {
     shared_ptr<TensorType<DType> > input = inference_set->GenerateTensor(i);
     shared_ptr<TensorType<DType> > target = inference_label->GenerateTensor(i);
 
@@ -62,7 +62,7 @@ void Model<TensorType, DType>::Fit(
 
   filler_wrapper->Fill();
 
-  for (int i = 0; i < epoches_; ++i) {
+  for (size_t i = 0; i < epoches_; ++i) {
     layer_wrapper->SetTrainMode();
 
     callback_wrapper->OnEpochBegin(i);
@@ -94,7 +94,7 @@ void Model<TensorType, DType>::Fit(
 
   filler_wrapper->Fill();
 
-  for (int i = 0; i < epoches_; ++i) {
+  for (size_t i = 0; i < epoches_; ++i) {
     callback_wrapper->OnEpochBegin(i);
 
     EpochFit(i, data_set, data_label, layer_wrapper,
@@ -107,17 +107,17 @@ void Model<TensorType, DType>::Fit(
 
 template<template <typename> class TensorType, typename DType>
 void Model<TensorType, DType>::EpochFit(
-  int epoch,
+  size_t epoch,
   shared_ptr<DataIterator<TensorType, DType> > data_set,
   shared_ptr<DataIterator<TensorType, DType> > data_label,
   shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
   shared_ptr<CallbackWrapper> callback_wrapper,
   shared_ptr<Scheduler<TensorType, DType> > scheduler) {
-  int niteration = data_set->total() / data_set->batch_size();
+  size_t niteration = data_set->total() / data_set->batch_size();
   time_point<system_clock> start, end;
   start = system_clock::now();
 
-  for (int i = 0; i < niteration; ++i) {
+  for (size_t i = 0; i < niteration; ++i) {
     callback_wrapper->OnBatchBegin(i);
 
     shared_ptr<TensorType<DType> > input = data_set->GenerateTensor(i);
@@ -143,10 +143,10 @@ void Model<TensorType, DType>::Evaluate(
   shared_ptr<DataIterator<TensorType, DType> > eval_label,
   shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
   const string& eval_type) {
-  int niteration = eval_set->total() / eval_set->batch_size();
-  float accuracy = 0.0f;
+  size_t niteration = eval_set->total() / eval_set->batch_size();
+  DType accuracy = 0.0;
 
-  for (int i = 0; i < niteration; ++i) {
+  for (size_t i = 0; i < niteration; ++i) {
     shared_ptr<TensorType<DType> > input = eval_set->GenerateTensor(i);
     shared_ptr<TensorType<DType> > target = eval_label->GenerateTensor(i);
 

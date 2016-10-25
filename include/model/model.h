@@ -14,7 +14,7 @@ namespace blitz {
 template<template <typename> class TensorType, typename DType>
 class Model {
  public:
-  explicit Model(const int epoches) :
+  explicit Model(const size_t epoches) :
     epoches_(epoches) {}
 
   void Inference(
@@ -46,7 +46,7 @@ class Model {
 
  private:
   void EpochFit(
-    int epoch,
+    size_t epoch,
     shared_ptr<DataIterator<TensorType, DType> > data_set,
     shared_ptr<DataIterator<TensorType, DType> > data_label,
     shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
@@ -65,7 +65,7 @@ class Model {
   void BackwardProp(shared_ptr<LayerWrapper<TensorType, DType> > layer_wrapper,
     const shared_ptr<TensorType<DType> > target);
 
-  const int epoches_;
+  const size_t epoches_;
 
   DISABLE_COPY_AND_ASSIGN(Model);
 };

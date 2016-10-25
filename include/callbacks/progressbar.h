@@ -8,16 +8,16 @@ namespace blitz {
 
 class Progressbar : public Callback {
  public:
-  explicit Progressbar(const int step) : step_(step) {}
+  explicit Progressbar(const size_t step) : step_(step) {}
   ~Progressbar() {}
 
-  virtual void OnEpochBegin(const int index);
-  virtual void OnEpochEnd(const int index);
-  virtual void OnBatchBegin(const int index);
-  virtual void OnBatchEnd(const int index, const float loss);
+  virtual void OnEpochBegin(const size_t index);
+  virtual void OnEpochEnd(const size_t index);
+  virtual void OnBatchBegin(const size_t index);
+  virtual void OnBatchEnd(const size_t index, const float loss);
 
  private:
-  const int step_;
+  const size_t step_;
 
   DISABLE_COPY_AND_ASSIGN(Progressbar);
 };

@@ -13,10 +13,10 @@ class CallbackWrapper {
   explicit CallbackWrapper(const list<shared_ptr<Callback> >& callbacks) :
     callbacks_(callbacks) {}
 
-  void OnEpochBegin(const int index);
-  void OnEpochEnd(const int index);
-  void OnBatchBegin(const int index);
-  void OnBatchEnd(const int index, const float loss);
+  void OnEpochBegin(const size_t index);
+  void OnEpochEnd(const size_t index);
+  void OnBatchBegin(const size_t index);
+  void OnBatchEnd(const size_t index, const float loss);
 
   // STL like function
   void push_back(shared_ptr<Callback> callback) {
