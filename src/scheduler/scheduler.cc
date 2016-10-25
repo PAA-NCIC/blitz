@@ -4,7 +4,7 @@
 namespace blitz {
 
 template<template <typename> class TensorType, typename DType>
-void Scheduler<TensorType, DType>::Run(const int epoch, const int batch_size) {
+void Scheduler<TensorType, DType>::Run(const size_t epoch, const size_t batch_size) {
   typename map<string, shared_ptr<Optimizer<TensorType, DType> > >::iterator
     optimizer_it = optimizers_.begin();
 

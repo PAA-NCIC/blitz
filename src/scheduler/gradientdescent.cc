@@ -5,7 +5,7 @@ namespace blitz {
 
 template<template <typename> class TensorType, typename DType>
 void Gradientdescent<TensorType, DType>::OptimizeImpl(
-  const int epoch, const int batch_size,
+  const size_t epoch, const size_t batch_size,
   const DType learning_rate, LayerParamIterator layer_param_it) {
 #ifdef BLITZ_DEVELOP
     LOG(INFO) << "Optimize: " << layer_param_it->first;

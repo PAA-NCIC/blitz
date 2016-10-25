@@ -20,8 +20,8 @@ class Conv : public ParamLayer<TensorType, DType> {
     const string& optimizer_name,
     shared_ptr<Activation<TensorType, DType> > activation,
     const Shape& filter_shape,
-    const int stride_height = 1, const int stride_width = 1,
-    const int padding_height = 0, const int padding_width = 0,
+    const size_t stride_height = 1, const size_t stride_width = 1,
+    const size_t padding_height = 0, const size_t padding_width = 0,
     const string& kernel = "blas") :
     ParamLayer<TensorType, DType>(name, filler_name,
     optimizer_name, activation), filter_shape_(filter_shape),
@@ -40,10 +40,10 @@ class Conv : public ParamLayer<TensorType, DType> {
 
   shared_ptr<TensorType<DType> > workspace_;
 
-  const int stride_height_;
-  const int stride_width_;
-  const int padding_height_;
-  const int padding_width_;
+  const size_t stride_height_;
+  const size_t stride_width_;
+  const size_t padding_height_;
+  const size_t padding_width_;
 
   const string kernel_;
 

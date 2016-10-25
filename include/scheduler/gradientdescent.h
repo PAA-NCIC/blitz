@@ -18,13 +18,13 @@ class Gradientdescent : public Optimizer<TensorType, DType> {
 
  public:
   explicit Gradientdescent(const string& name, const DType learning_rate,
-    const DType change, const int step,
+    const DType change, const size_t step,
     DType momentum_coef = 1.0, DType decay = 1.0) :
     Optimizer<TensorType, DType>(name, learning_rate, change, step),
     momentum_coef_(momentum_coef), decay_(decay) {}
   virtual ~Gradientdescent() {}
 
-  virtual void OptimizeImpl(const int epoch, const int batch_size,
+  virtual void OptimizeImpl(const size_t epoch, const size_t batch_size,
     const DType learning_rate, LayerParamIterator layer_param_it);
 
  private:

@@ -16,7 +16,7 @@ class Affine : public ParamLayer<TensorType, DType> {
     const string& name, const string& filler_name,
     const string& optimizer_name,
     shared_ptr<Activation<TensorType, DType> > activation,
-    int nout, const string& kernel = "blas") :
+    size_t nout, const string& kernel = "blas") :
     ParamLayer<TensorType, DType>(name, filler_name,
     optimizer_name, activation), nout_(nout), kernel_(kernel) {}
   ~Affine() {}
@@ -26,7 +26,7 @@ class Affine : public ParamLayer<TensorType, DType> {
   virtual void BackwardPropImpl(shared_ptr<TensorType<DType> > backward_input);
 
  private:
-  int nout_;
+  size_t nout_;
 
   const string kernel_;
 

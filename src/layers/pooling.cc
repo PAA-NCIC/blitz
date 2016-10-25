@@ -7,14 +7,14 @@ namespace blitz {
 template<template <typename> class TensorType, typename DType>
 void Pooling<TensorType, DType>::InitImpl(const Shape& input_shape) {
   // input shape decode
-  int batch_size = input_shape[0];
-  int input_channel = input_shape[1];
-  int input_height = input_shape[2];
-  int input_width = input_shape[3];
+  size_t batch_size = input_shape[0];
+  size_t input_channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // output shape encode
-  int output_channel = input_channel;
-  int output_height = (input_height - filter_) / stride_ + 1;
-  int output_width = (input_width - filter_) / stride_ + 1;
+  size_t output_channel = input_channel;
+  size_t output_height = (input_height - filter_) / stride_ + 1;
+  size_t output_width = (input_width - filter_) / stride_ + 1;
 
   Shape output_shape(4);
   output_shape[0] = batch_size;

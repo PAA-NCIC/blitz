@@ -17,7 +17,7 @@ class Scheduler {
     map<string, shared_ptr<Optimizer<TensorType, DType> > > optimizers) :
     optimizers_(optimizers) {}
 
-  void Run(const int epoch, const int batch_size);
+  void Run(const size_t epoch, const size_t batch_size);
 
   void AddLayer(const string& optimizer_name,
     const string& layer_name,

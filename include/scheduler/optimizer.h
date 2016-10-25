@@ -43,12 +43,12 @@ class Optimizer {
 
  public:
   Optimizer(const string& name, const DType learning_rate,
-    const DType change, const int step) :
+    const DType change, const size_t step) :
     name_(name), learning_rate_(learning_rate),
     change_(change), step_(step) {}
   virtual ~Optimizer() {}
 
-  void Optimize(const int epoch, const int batch_size) {
+  void Optimize(const size_t epoch, const size_t batch_size) {
     const DType learning_rate = this->ChangeLearningRate(epoch);
 
     LayerParamIterator layer_param_it =
@@ -73,7 +73,7 @@ class Optimizer {
     }
   }
 
-  virtual void OptimizeImpl(const int epoch, const int batch_size,
+  virtual void OptimizeImpl(const size_t epoch, const size_t batch_size,
     const DType learning_rate, LayerParamIterator layer_param_it) = 0;
 
   void AddLayer(const string& name,
@@ -88,7 +88,7 @@ class Optimizer {
   }
 
  protected:
-  DType ChangeLearningRate(const int epoch) {
+  DType ChangeLearningRate(const size_t epoch) {
     if (step_ != 0 && change_ != DType(0)) {
       return learning_rate_ * pow(change_, (epoch / step_));
     }
@@ -100,7 +100,7 @@ class Optimizer {
   const string name_;
   const DType learning_rate_;
   const DType change_;
-  const int step_;
+  const size_t step_;
 
   DISABLE_COPY_AND_ASSIGN(Optimizer);
 };

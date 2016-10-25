@@ -10,18 +10,18 @@ namespace blitz {
 template<template <typename> class TensorType, typename DType>
 void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   // input shape decode
-  int batch_size = input_shape[0];
-  int input_channel = input_shape[1];
-  int input_height = input_shape[2];
-  int input_width = input_shape[3];
+  size_t batch_size = input_shape[0];
+  size_t input_channel = input_shape[1];
+  size_t input_height = input_shape[2];
+  size_t input_width = input_shape[3];
   // filter shape decode
-  int filter_height = filter_shape_[2];
-  int filter_width = filter_shape_[3];
+  size_t filter_height = filter_shape_[2];
+  size_t filter_width = filter_shape_[3];
   // output shape encode
-  int output_channel = filter_shape_[0];
-  int output_height = (input_height + 2 * padding_height_ - filter_height) /
+  size_t output_channel = filter_shape_[0];
+  size_t output_height = (input_height + 2 * padding_height_ - filter_height) /
     stride_height_ + 1;
-  int output_width = (input_width + 2 * padding_width_ - filter_width) /
+  size_t output_width = (input_width + 2 * padding_width_ - filter_width) /
     stride_width_ + 1;
 
   Shape output_shape(4);

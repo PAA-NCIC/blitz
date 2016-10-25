@@ -7,8 +7,8 @@ namespace blitz {
 template<template <typename> class TensorType, typename DType>
 void Affine<TensorType, DType>::InitImpl(const Shape& input_shape) {
   // input and output
-  int batch_size = input_shape[0];
-  int nin = input_shape.size() / batch_size;
+  size_t batch_size = input_shape[0];
+  size_t nin = input_shape.size() / batch_size;
 
   Shape output_shape(2);
   output_shape[0] = batch_size;

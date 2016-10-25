@@ -13,7 +13,7 @@ template<template <typename> class TensorType, typename DType>
 class Pooling : public Layer<TensorType, DType> {
  public:
   explicit Pooling(
-    const string& name, const int filter, const int stride,
+    const string& name, const size_t filter, const size_t stride,
     const string& op = "max") :
     Layer<TensorType, DType>(name), filter_(filter),
     stride_(stride), op_(op) {}
@@ -24,8 +24,8 @@ class Pooling : public Layer<TensorType, DType> {
   virtual void BackwardPropImpl(shared_ptr<TensorType<DType> > backward_input);
 
  private:
-  const int filter_;
-  const int stride_;
+  const size_t filter_;
+  const size_t stride_;
 
   const string op_;
 
