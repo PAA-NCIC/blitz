@@ -5,8 +5,8 @@
 
 namespace blitz {
 
-unsigned int blitz_len_d2b(unsigned int n) {
-  unsigned int i, j = 0;
+size_t blitz_len_d2b(size_t n) {
+  size_t i, j = 0;
   i = n;
   while (i) {
     i /= 2;
@@ -15,15 +15,15 @@ unsigned int blitz_len_d2b(unsigned int n) {
   return j;
 }
 
-void blitz_magic32(unsigned int nmax, unsigned int d, unsigned int& m, unsigned int& p) {
-  unsigned int nc = ((nmax + 1) / d) * d - 1;
-  unsigned int nbits = blitz_len_d2b(nmax);
-  unsigned int len_bits = 2 * nbits + 1;
+void blitz_magic32(size_t nmax, size_t d, size_t&  m, size_t& p) {
+  size_t nc = ((nmax + 1) / d) * d - 1;
+  size_t nbits = blitz_len_d2b(nmax);
+  size_t len_bits = 2 * nbits + 1;
   for(p = 0; p < len_bits; ++p) {   
     if(pow(2, p) > nc * (d - 1 -
-      static_cast<unsigned int>((pow(2, p) - 1)) % d)) {
+      static_cast<size_t>((pow(2, p) - 1)) % d)) {
       m = (pow(2, p) + d - 1 -
-      static_cast<unsigned int>((pow(2, p) - 1)) % d) / d;
+      static_cast<size_t>((pow(2, p) - 1)) % d) / d;
       return;
     }   
   }   

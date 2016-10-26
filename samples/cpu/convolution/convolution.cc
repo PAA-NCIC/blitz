@@ -79,11 +79,12 @@ void convolution_backward(
     output_cpu.data());
   // cpu convolution 
   Backend<CPUTensor, float>::Convolution2DBackwardFunc(
-    &output_cpu, &filter_cpu,
+    &output_cpu,
+    &filter_cpu,
+    &input_cpu,
+    &workspace_cpu,
     pad_h, pad_w, 
     str_h, str_w,
-    &workspace_cpu,
-    &input_cpu,
     kernel);
   output_convolution_transform(
     input_shape[0],

@@ -51,26 +51,26 @@ inline void BlitzAVXStore<double>(const double* addr,
 }
 
 template<>
-inline void BlitzAVXMax<float>(BlitzAVXReg<float>* left,
-  BlitzAVXReg<float>* right, BlitzAVXReg<float>* output) {
+inline void BlitzAVXMax<float>(const BlitzAVXReg<float>* left,
+  const BlitzAVXReg<float>* right, BlitzAVXReg<float>* output) {
   output->v = _mm256_max_ps(left->v, right->v);
 }
 
 template<>
-inline void BlitzAVXMax<double>(BlitzAVXReg<double>* left,
-  BlitzAVXReg<double>* right, BlitzAVXReg<double>* output) {
+inline void BlitzAVXMax<double>(const BlitzAVXReg<double>* left,
+  const BlitzAVXReg<double>* right, BlitzAVXReg<double>* output) {
   output->v = _mm256_max_pd(left->v, right->v);
 }
 
 template<>
-inline void BlitzAVXMin<float>(BlitzAVXReg<float>* left,
-  BlitzAVXReg<float>* right, BlitzAVXReg<float>* output) {
+inline void BlitzAVXMin<float>(const BlitzAVXReg<float>* left,
+  const BlitzAVXReg<float>* right, BlitzAVXReg<float>* output) {
   output->v = _mm256_min_ps(left->v, right->v);
 }
 
 template<>
-inline void BlitzAVXMin<double>(BlitzAVXReg<double>* left,
-  BlitzAVXReg<double>* right, BlitzAVXReg<double>* output) {
+inline void BlitzAVXMin<double>(const BlitzAVXReg<double>* left,
+  const BlitzAVXReg<double>* right, BlitzAVXReg<double>* output) {
   output->v = _mm256_min_pd(left->v, right->v);
 }
 

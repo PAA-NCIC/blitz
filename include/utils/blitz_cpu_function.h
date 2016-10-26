@@ -19,12 +19,13 @@
 namespace blitz {
 
 template<typename DType>
-void BlitzCPUGemm(const bool transa, const bool transb,
-  const int M, const int N, const int K,
-  DType* A, DType* B, DType* C, DType alpha, DType beta);
+void BlitzCPUGemm(DType* A, DType* B, DType* C,
+  bool transa, bool transb,
+  DType alpha, DType beta,
+  size_t M, size_t N, size_t K);
 
 template<typename DType>
-void BlitzCPUCopy(const DType* X, const int N, DType* Y);
+void BlitzCPUCopy(const DType* X, DType* Y, size_t N);
 
 template <typename DType>
 inline DType BlitzCPUSafeLog(DType input) {

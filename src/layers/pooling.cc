@@ -44,8 +44,11 @@ void Pooling<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
   if (op_ == "max") {
     Backend<TensorType, DType>::MaxPooling2DForwardFunc(
-      forward_input.get(), filter_, filter_, stride_, stride_,
-      max_index_.get(), (this->forward_output_).get());
+      forward_input.get(),
+      (this->forward_output_).get(),
+      max_index_.get(),
+      filter_, filter_,
+      stride_, stride_);
   } else {
     LOG(ERROR) << "Pooling type: " << op_ << " not exist";
   }
@@ -57,9 +60,11 @@ void Pooling<TensorType, DType>::BackwardPropImpl(
   if (this->backward_prop_) {
     if (op_ == "max") {
       Backend<TensorType, DType>::MaxPooling2DBackwardFunc(
-        backward_input.get(), max_index_.get(),
-        filter_, filter_, stride_, stride_,
-        (this->backward_output_).get());
+        backward_input.get(),
+        (this->backward_output_).get(),
+        max_index_.get(),
+        filter_, filter_,
+        stride_, stride_);
     } else {
       LOG(ERROR) << "Pooling type: " << op_ << " not exist";
     }

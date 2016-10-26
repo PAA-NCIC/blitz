@@ -3,10 +3,14 @@
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
-  const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  GPUTensor<DType>* workspace, GPUTensor<DType>* output,
+  const GPUTensor<DType>* input,
+  const GPUTensor<DType>* filter,
+  GPUTensor<DType>* output,
+  GPUTensor<DType>* workspace, 
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width,
   const string& kernel) {
   // shape decode
   // input
@@ -44,18 +48,20 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   if (kernel == "asm_direct") {
     workspace->Fill(0);
     // transpose Input
-    BlitzGPUTrans(batch_size,
-      input_channel * input_height * input_width,
-      const_cast<DType*>(input->data()), 
-      workspace->data()); 
+    BlitzGPUTrans(const_cast<DType*>(input->data()), 
+      workspace->data(),
+      batch_size,
+      input_channel * input_height * input_width);
     // transpose Weight
-    BlitzGPUTrans(output_channel,
-      input_channel * filter_height * filter_width,
-      const_cast<DType*>(filter->data()), 
-      workspace->Slice(input->size() + output->size())); 
+    BlitzGPUTrans(const_cast<DType*>(filter->data()), 
+      workspace->Slice(input->size() + output->size()),
+      output_channel,
+      input_channel * filter_height * filter_width);
     // direct GEMM
     BlitzSassConvolution2D(
-      "forward",
+      workspace->data(),
+      workspace->Slice(input->size()),
+      workspace->Slice(input->size() + output->size()),
       batch_size,
       input_channel,
       input_height, input_width,
@@ -64,14 +70,12 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       output_height, output_width,
       stride_height, stride_width,
       padding_height, padding_width,
-      workspace->data(),
-      workspace->Slice(input->size()),
-      workspace->Slice(input->size() + output->size()));
+      "forward");
     // transpose Output
-    BlitzGPUTrans(output_channel * output_height * output_width,
-      batch_size,
-      const_cast<DType*>(workspace->Slice(input->size())), 
-      output->data()); 
+    BlitzGPUTrans(const_cast<DType*>(workspace->Slice(input->size())), 
+      output->data(),
+      output_channel * output_height * output_width,
+      batch_size);
   } else if (kernel == "blas" || kernel == "asm") {
     for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
       input_batch_offset = batch_index * input_batch_size;
@@ -86,12 +90,12 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       // (output_width * output_height)
       // (input_channel * filter_height * filter_width)
       Unpack2DFunc(input->Slice(input_batch_offset),
+        workspace->data(),
         input_channel, input_height, input_width,
         filter_height, filter_width,
         output_height, output_width,
         padding_height, padding_width,
-        stride_height, stride_width,
-        workspace->data());
+        stride_height, stride_width);
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(stop);
       cudaEventSynchronize(stop);
@@ -102,19 +106,19 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       // gemm generate
       // (output_channel) * (output_height * output_width)
       if (kernel == "blas") {
-        BlitzGPUGemm(false, true,
-          dim_left, dim_right, dim_common,
-          const_cast<GPUTensor<DType>*>(filter)->data(),
+        BlitzGPUGemm(const_cast<GPUTensor<DType>*>(filter)->data(),
           workspace->data(),
           output->Slice(output_batch_offset),
-          static_cast<DType>(1), static_cast<DType>(0));
+          false, true,
+          static_cast<DType>(1), static_cast<DType>(0),
+          dim_left, dim_right, dim_common);
       } else if (kernel == "asm") {
-        BlitzSassGemm(false, true,
-          dim_left, dim_right, dim_common,
-          const_cast<GPUTensor<DType>*>(filter)->data(),
+        BlitzSassGemm(const_cast<GPUTensor<DType>*>(filter)->data(),
           workspace->data(),
           output->Slice(output_batch_offset),
-          static_cast<DType>(1), static_cast<DType>(0));
+          false, true,
+          static_cast<DType>(1), static_cast<DType>(0),
+          dim_left, dim_right, dim_common);
       }
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(stop);
@@ -136,10 +140,14 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
-  const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  GPUTensor<DType>* workspace, GPUTensor<DType>* input,
+  const GPUTensor<DType>* output,
+  const GPUTensor<DType>* filter,
+  GPUTensor<DType>* input,
+  GPUTensor<DType>* workspace,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width,
   const string& kernel) {
   // shape decode
   // input
@@ -179,14 +187,16 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   if (kernel == "asm_direct") {
     workspace->Fill(0);
     // transpose output
-    BlitzGPUTrans(batch_size,
-      output_channel * output_height * output_width,
-      const_cast<DType*>(output->data()), 
-      workspace->Slice(input->size())); 
+    BlitzGPUTrans(const_cast<DType*>(output->data()), 
+      workspace->Slice(input->size()),
+      batch_size,
+      output_channel * output_height * output_width);
     if (input_channel % 64 != 0) {
       // direct GEMM
       BlitzSassConvolution2D(
-        "backward",
+        workspace->data(),
+        const_cast<DType*>(workspace->Slice(input->size())),
+        const_cast<DType*>(filter->data()),
         batch_size,
         input_channel,
         input_height, input_width,
@@ -195,18 +205,18 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
         output_height, output_width,
         stride_height, stride_width,
         padding_height, padding_width,
-        workspace->data(),
-        const_cast<DType*>(workspace->Slice(input->size())),
-        const_cast<DType*>(filter->data()));
+        "backward");
     } else {
       // transpose filter
-      BlitzGPUTrans(output_channel,
-        input_channel * filter_height * filter_width,
-        const_cast<DType*>(filter->data()), 
-        workspace->Slice(input->size() + output->size())); 
+      BlitzGPUTrans(const_cast<DType*>(filter->data()), 
+        workspace->Slice(input->size() + output->size()),
+        output_channel,
+        input_channel * filter_height * filter_width);
       // direct GEMM
       BlitzSassConvolution2D(
-        "backward",
+        workspace->data(),
+        const_cast<DType*>(workspace->Slice(input->size())),
+        const_cast<DType*>(workspace->Slice(input->size() + output->size())),
         batch_size,
         input_channel,
         input_height, input_width,
@@ -215,15 +225,13 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
         output_height, output_width,
         stride_height, stride_width,
         padding_height, padding_width,
-        workspace->data(),
-        const_cast<DType*>(workspace->Slice(input->size())),
-        const_cast<DType*>(workspace->Slice(input->size() + output->size())));
+        "backward");
     }
     // transpose input
-    BlitzGPUTrans(input_channel * input_height * input_width,
-      batch_size,
-      const_cast<DType*>(workspace->data()), 
-      input->data()); 
+    BlitzGPUTrans(const_cast<DType*>(workspace->data()), 
+      input->data(), 
+      input_channel * input_height * input_width,
+      batch_size);
   } else if (kernel == "blas" || kernel == "asm") {
     for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
       input_batch_offset = batch_index * input_batch_size;
@@ -235,19 +243,19 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
       // (output_width * output_height) *
       // (input_channel * filter_height * filter_width)
       if (kernel == "blas") {
-        BlitzGPUGemm(true, false,
-        dim_left, dim_right, dim_common,
-        const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
-        const_cast<GPUTensor<DType>*>(filter)->data(),
-        workspace->data(),
-        static_cast<DType>(1), static_cast<DType>(0));
+        BlitzGPUGemm(const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
+          const_cast<GPUTensor<DType>*>(filter)->data(),
+          workspace->data(),
+          true, false,
+          static_cast<DType>(1), static_cast<DType>(0),
+          dim_left, dim_right, dim_common);
       } else if (kernel == "asm") {
-        BlitzSassGemm(true, false,
-        dim_left, dim_right, dim_common,
-        const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
-        const_cast<GPUTensor<DType>*>(filter)->data(),
-        workspace->data(),
-        static_cast<DType>(1), static_cast<DType>(0));
+        BlitzSassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
+          const_cast<GPUTensor<DType>*>(filter)->data(),
+          workspace->data(),
+          true, false,
+          static_cast<DType>(1), static_cast<DType>(0),
+          dim_left, dim_right, dim_common);
       }
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(stop);
@@ -263,12 +271,12 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
       // (input_channel) *
       // (input_height * input_width)
       Pack2DFunc(workspace->data(),
+        input->Slice(input_batch_offset),
         input_channel, input_height, input_width,
         filter_height, filter_width,
         output_height, output_width,
         padding_height, padding_width,
-        stride_height, stride_width,
-        input->Slice(input_batch_offset));
+        stride_height, stride_width);
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(stop);
       cudaEventSynchronize(stop);
@@ -289,10 +297,14 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
-  const GPUTensor<DType>* input, const GPUTensor<DType>* output,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  GPUTensor<DType>* workspace, GPUTensor<DType>* update,
+  const GPUTensor<DType>* input,
+  const GPUTensor<DType>* output,
+  GPUTensor<DType>* update,
+  GPUTensor<DType>* workspace, 
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width,
   const string& kernel) {
   // shape decode
   // input
@@ -330,17 +342,19 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   if (kernel == "asm_direct") {
     workspace->Fill(0);
     // transpose input
-    BlitzGPUTrans(batch_size,
-      input_channel * input_height * input_width,
-      const_cast<DType*>(input->data()), 
-      workspace->data()); 
+    BlitzGPUTrans(const_cast<DType*>(input->data()), 
+      workspace->data(), 
+      batch_size,
+      input_channel * input_height * input_width);
     // transpose output
-    BlitzGPUTrans(batch_size,
-      output_channel * output_height * output_width,
-      const_cast<DType*>(output->data()), 
-      workspace->Slice(input->size())); 
+    BlitzGPUTrans(const_cast<DType*>(output->data()), 
+      workspace->Slice(input->size()), 
+      batch_size,
+      output_channel * output_height * output_width);
     BlitzSassConvolution2D(
-      "update",
+      const_cast<DType*>(workspace->data()),
+      const_cast<DType*>(workspace->Slice(input->size())),
+      workspace->Slice(input->size() + output->size()),
       batch_size,
       input_channel,
       input_height, input_width,
@@ -349,14 +363,13 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       output_height, output_width,
       stride_height, stride_width,
       padding_height, padding_width,
-      const_cast<DType*>(workspace->data()),
-      const_cast<DType*>(workspace->Slice(input->size())),
-      workspace->Slice(input->size() + output->size()));
+      "update");
     // transpose update
-    BlitzGPUTrans(input_channel * filter_height * filter_width,
-      output_channel,
+    BlitzGPUTrans(
       const_cast<DType*>(workspace->Slice(input->size() + output->size())),
-      update->data()); 
+      update->data(),
+      input_channel * filter_height * filter_width,
+      output_channel);
   } else if (kernel == "blas" || kernel == "asm") {
     for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
       input_batch_offset = batch_index * input_batch_size;
@@ -371,12 +384,12 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       // (output_width * output_height)
       // (input_channel * filter_height * filter_width)
       Unpack2DFunc(input->Slice(input_batch_offset),
+        workspace->data(),
         input_channel, input_height, input_width,
         filter_height, filter_width,
         output_height, output_width,
         padding_height, padding_width,
-        stride_height, stride_width,
-        workspace->data());
+        stride_height, stride_width);
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(stop);
       cudaEventSynchronize(stop);
@@ -388,19 +401,19 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       // (output_channel) *
       // (input_channel * filter_height * filter_width)
       if (kernel == "blas") {
-        BlitzGPUGemm(false, false,
-          dim_left, dim_right, dim_common,
-          const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
+        BlitzGPUGemm(const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
           workspace->data(),
           update->data(),
-          static_cast<DType>(1), static_cast<DType>(1));
+          false, false,
+          static_cast<DType>(1), static_cast<DType>(1),
+          dim_left, dim_right, dim_common);
       } else if (kernel == "asm") {
-        BlitzSassGemm(false, false,
-          dim_left, dim_right, dim_common,
-          const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
+        BlitzSassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(output_batch_offset),
           workspace->data(),
           update->data(),
-          static_cast<DType>(1), static_cast<DType>(1));
+          false, false,
+          static_cast<DType>(1), static_cast<DType>(1),
+          dim_left, dim_right, dim_common);
       }
       #ifdef BLITZ_PERFORMANCE
       cudaEventRecord(stop);

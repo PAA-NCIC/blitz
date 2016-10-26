@@ -13,57 +13,69 @@ boost::once_flag CuBlasHandle::flag_ = BOOST_ONCE_INIT;
 
 template<>
 void BlitzGPUGemm(
-  bool transa, bool transb,
-  int M, int N, int K,
   float* A, float* B, float* C,
-  float alpha, float beta) {
+  bool transa, bool transb,
+  float alpha, float beta,
+  size_t M, size_t N, size_t K) {
   cublasOperation_t TransA = transa ? CUBLAS_OP_T : CUBLAS_OP_N;
-  int lda = transa ? M : K;
+  size_t lda = transa ? M : K;
   cublasOperation_t TransB = transb ? CUBLAS_OP_T : CUBLAS_OP_N;
-  int ldb = transb ? K : N;
-  cublasSgemm_v2(CuBlasHandle::GetInstance(), TransB, TransA, N, M, K,
-    &alpha, B, ldb, A, lda, &beta, C, N);
+  size_t ldb = transb ? K : N;
+  cublasSgemm_v2(CuBlasHandle::GetInstance(),
+    TransB, TransA,
+    N, M, K,
+    &alpha,
+    B, ldb,
+    A, lda,
+    &beta,
+    C, N);
 }
 
 template<>
 void BlitzGPUGemm(
-  bool transa, bool transb,
-  int M, int N, int K,
   double* A, double* B, double* C,
-  double alpha, double beta) {
+  bool transa, bool transb,
+  double alpha, double beta,
+  size_t M, size_t N, size_t K) {
   cublasOperation_t TransA = transa ? CUBLAS_OP_T : CUBLAS_OP_N;
-  int lda = transa ? M : K;
+  size_t lda = transa ? M : K;
   cublasOperation_t TransB = transb ? CUBLAS_OP_T : CUBLAS_OP_N;
-  int ldb = transb ? K : N;
-  cublasDgemm_v2(CuBlasHandle::GetInstance(), TransB, TransA, N, M, K,
-    &alpha, B, ldb, A, lda, &beta, C, N);
+  size_t ldb = transb ? K : N;
+  cublasDgemm_v2(CuBlasHandle::GetInstance(),
+    TransB, TransA,
+    N, M, K,
+    &alpha,
+    B, ldb,
+    A, lda,
+    &beta,
+    C, N);
 }
 
 template<>
-void BlitzGPUTrans(int M, int N, float* input, float* output) {
-  const float alpha = 1.0;
-  const float beta = 0.0;
+void BlitzGPUTrans(float* input, float* output, size_t M, size_t N) {
+  float alpha = 1.0;
+  float beta = 0.0;
   cublasSgeam(CuBlasHandle::GetInstance(), CUBLAS_OP_T, CUBLAS_OP_N,
     M, N, &alpha, input, N, &beta, input, M, output, M);
 }
 
 template<>
-void BlitzGPUTrans(int M, int N, double* input, double* output) {
-  const double alpha = 1.0;
-  const double beta = 0.0;
+void BlitzGPUTrans(double* input, double* output, size_t M, size_t N) {
+  double alpha = 1.0;
+  double beta = 0.0;
   cublasDgeam(CuBlasHandle::GetInstance(), CUBLAS_OP_T, CUBLAS_OP_N,
     M, N, &alpha, input, N, &beta, input, M, output, M);
 }
 
 template<>
-float BlitzGPUASum(int N, const float* data) {
+float BlitzGPUASum(const float* data, size_t N) {
   float sum = 0.0;
   cublasSasum_v2(CuBlasHandle::GetInstance(), N, data, 1, &sum);
   return sum;
 }
 
 template<>
-double BlitzGPUASum(int N, const double* data) {
+double BlitzGPUASum(const double* data, size_t N) {
   double sum = 0.0;
   cublasDasum_v2(CuBlasHandle::GetInstance(), N, data, 1, &sum);
   return sum;
@@ -71,25 +83,23 @@ double BlitzGPUASum(int N, const double* data) {
 
 template<>
 void BlitzGenerateNormal(curandGenerator_t* gen, float* data,
-  int size, float loc, float scale) {
+  float loc, float scale, size_t size) {
   curandGenerateNormal(*gen, data, size, loc, scale);
 }
 
 template<>
 void BlitzGenerateNormal(curandGenerator_t* gen, double* data,
-  int size, double loc, double scale) {
+  double loc, double scale, size_t size) {
   curandGenerateNormalDouble(*gen, data, size, loc, scale);
 }
 
 template<>
-void BlitzGenerateUniform(curandGenerator_t* gen,
-  float* data, int size) {
+void BlitzGenerateUniform(curandGenerator_t* gen, float* data, size_t size) {
   curandGenerateUniform(*gen, data, size);
 }
 
 template<>
-void BlitzGenerateUniform(curandGenerator_t* gen,
-  double* data, int size) {
+void BlitzGenerateUniform(curandGenerator_t* gen, double* data, size_t size) {
   curandGenerateUniformDouble(*gen, data, size);
 }
 

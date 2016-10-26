@@ -65,7 +65,7 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
   // TODO(keren): binary search optimization
   for (size_t i = 0; i < file_row_mapping_.size() - 1; ++i) {
     if (begin_offset >= file_row_mapping_[i] &&
-        begin_offset < file_row_mapping_[i + 1] && !find_begin) {
+      begin_offset < file_row_mapping_[i + 1] && !find_begin) {
       find_begin = true;
       begin_file_offset = begin_offset - file_row_mapping_[i];
       cur_file_offset = begin_file_offset;
@@ -75,7 +75,7 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
 
     if (find_begin) {
       current_files_row_mapping.push_back(file_row_mapping_[i + 1] -
-          file_row_mapping_[i]);
+        file_row_mapping_[i]);
       accumulate += *(current_files_row_mapping.rbegin()) -
         cur_file_offset;
       current_files.push_back(files_[i]);
@@ -136,8 +136,8 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
       copy_size = end_file_offset * input_size;
     }
 
-    BlitzCPUCopy(current_files_data + current_files_data_offset, copy_size,
-      file_data + file_data_offset_size);
+    BlitzCPUCopy(current_files_data + current_files_data_offset,
+      file_data + file_data_offset_size, copy_size);
     file_data_offset_size += copy_size;
 
     delete [] current_files_data;
@@ -150,7 +150,7 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
     shared_ptr<TensorType<DType> > tensor =
       make_shared<TensorType<DType> >(input_shape_);
     Backend<TensorType, DType>::HostCopyToFunc(file_data + tensor_offset_size,
-      input_shape_.size(), tensor->data());
+      tensor->data(), input_shape_.size());
     tensor_pool_[j] = tensor;
     tensor_offset_size += input_shape_.size();
   }

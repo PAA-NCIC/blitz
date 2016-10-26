@@ -110,35 +110,34 @@ class CubinModule {
 
 template<typename DType>
 void BlitzSassGemm(
-  bool transa, bool transb,
-  int M, int N, int K,
   const DType* A,
   const DType* B,
   DType* C,
+  bool transa, bool transb,
   DType alpha,
-  DType beta);
+  DType beta,
+  size_t M, size_t N, size_t K);
 
 template<typename DType>
 void BlitzSassConvolution2D(
-  const string& phase,
-  int batch_size,
-  int input_channel,
-  int input_height, int input_width,
-  int filter_height, int filter_width,
-  int output_channel,
-  int output_height, int output_width,
-  int stride_height, int stride_width,
-  int padding_height, int padding_width,
   DType* input,
   DType* output,
-  DType* filter);
+  DType* filter,
+  size_t batch_size,
+  size_t input_channel,
+  size_t input_height, size_t input_width,
+  size_t filter_height, size_t filter_width,
+  size_t output_channel,
+  size_t output_height, size_t output_width,
+  size_t stride_height, size_t stride_width,
+  size_t padding_height, size_t padding_width,
+  const string& phase);
 
 template<typename DType>
 void BlitzFilter2DShuffle(
-  int K, int C,
-  int R, int S,
   const DType* input,
-  DType* output);
+  DType* output,
+  size_t K, size_t C, size_t R, size_t S);
 
 }  // namespace blitz
 

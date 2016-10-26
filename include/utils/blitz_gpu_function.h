@@ -55,7 +55,7 @@ class CuBlasHandle {
 // grid stride looping
 // https://devblogs.nvidia.com/parallelforall/cuda-pro-tip-write-flexible-kernels-grid-stride-loops/
 #define BLITZ_CUDA_LOOP(i, n) \
-  for (int i = blockIdx.x * blockDim.x + threadIdx.x; \
+  for (size_t i = blockIdx.x * blockDim.x + threadIdx.x; \
       i < (n); \
       i += blockDim.x * gridDim.x)
 
@@ -82,7 +82,7 @@ inline void createTensor4dDesc(cudnnTensorDescriptor_t* desc) {
 
 template <typename DType>
 inline void setTensor4dDesc(cudnnTensorDescriptor_t* desc,
-    int n, int c, int h, int w) {
+  size_t n, size_t c, size_t h, size_t w) {
   CUDNN_CHECK(cudnnSetTensor4dDescriptor(*desc,
     CUDNN_TENSOR_NCHW, DataType<DType>::type,
     n, c, h, w));
@@ -95,7 +95,7 @@ inline void createFilterDesc(cudnnFilterDescriptor_t* desc) {
 
 template <typename DType>
 inline void setFilterDesc(cudnnFilterDescriptor_t* desc,
-    int n, int c, int h, int w) {
+  size_t n, size_t c, size_t h, size_t w) {
   CUDNN_CHECK(cudnnSetFilter4dDescriptor(*desc, DataType<DType>::type,
     CUDNN_TENSOR_NCHW, n, c, h, w));
 }
@@ -107,7 +107,7 @@ inline void createConvolution2DDesc(cudnnConvolutionDescriptor_t* conv) {
 
 template <typename DType>
 inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
-  int pad_h, int pad_w, int stride_h, int stride_w) {
+  size_t pad_h, size_t pad_w, size_t stride_h, size_t stride_w) {
   CUDNN_CHECK(cudnnSetConvolution2dDescriptor(*conv,
     pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CROSS_CORRELATION));
 }
@@ -115,28 +115,29 @@ inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
 }  // namespace cudnn
 
 template<typename DType>
-void BlitzGPUGemm(const bool transa, const bool transb,
-  const int M, const int N, const int K,
-  DType* A, DType* B, DType* C, DType alpha, DType beta);
+void BlitzGPUGemm(DType* A, DType* B, DType* C,
+  bool transa, bool transb,
+  DType alpha, DType beta,
+  size_t M, size_t N, size_t K);
 
 template<typename DType>
-void BlitzGPUTrans(const int M, const int N, DType* input, DType* output);
+void BlitzGPUTrans(DType* input, DType* output, size_t M, size_t N);
 
 template<typename DType>
-DType BlitzGPUASum(const int N, const DType* data);
+DType BlitzGPUASum(const DType* data, size_t N);
 
 template<typename DType>
-void BlitzGenerateNormal(curandGenerator_t* gen, DType* data, const int size,
-  const DType loc, const DType scale);
+void BlitzGenerateNormal(curandGenerator_t* gen, DType* data,
+  DType loc, DType scale, size_t size);
 
 template<typename DType>
-void BlitzGenerateUniform(curandGenerator_t* gen, DType* data, const int size);
+void BlitzGenerateUniform(curandGenerator_t* gen, DType* data, size_t size);
 
-inline int BlitzGPUGetBlocks(const int N) {
+inline size_t BlitzGPUGetBlocks(size_t N) {
   return (N + BLITZ_NUM_GPU_THREADS - 1) / BLITZ_NUM_GPU_THREADS;
 }
 
-inline int BlitzGPUGetBlocks(const int N, const int nthreads) {
+inline size_t BlitzGPUGetBlocks(size_t N, size_t nthreads) {
   return (N + nthreads - 1) / nthreads;
 }
 

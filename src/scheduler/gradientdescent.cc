@@ -19,8 +19,8 @@ void Gradientdescent<TensorType, DType>::OptimizeImpl(
   shared_ptr<TensorType<DType> > velocity = layer_param->state();
 
   Backend<TensorType, DType>::GradientdescentFunc(
-    momentum_coef_, learning_rate, decay_, batch_size,
-    weight.get(), gradient.get(), velocity.get());
+    weight.get(), gradient.get(), velocity.get(),
+    momentum_coef_, learning_rate, decay_, batch_size);
 }
 
 INSTANTIATE_CLASS(Gradientdescent);

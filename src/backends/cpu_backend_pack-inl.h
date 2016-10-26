@@ -3,13 +3,19 @@
 
 template<typename DType>
 void Backend<CPUTensor, DType>::Unpack2DFunc(
-  const DType* input, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* unpack) {
+  const DType* input,
+  DType* unpack,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   // (input_channel * filter_height * filter_width) *
   // (output_width * output_height)
   size_t unpack_index = 0;
@@ -52,13 +58,19 @@ void Backend<CPUTensor, DType>::Unpack2DFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::Pack2DFunc(
-  const DType* pack, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* input) {
+  const DType* pack,
+  DType* input,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   // (input_channel * filter_height * filter_width) *
   // (output_width * output_height)
   size_t pack_index = 0;

@@ -9,7 +9,7 @@ void Rectlin<TensorType, DType>::Apply(
   const shared_ptr<TensorType<DType> > input,
   shared_ptr<TensorType<DType> > output) {
   Backend<TensorType, DType>::RectlinApplyFunc(
-    input.get(), slope_, output.get());
+    input.get(), output.get(), slope_);
 }
 
 template<template <typename> class TensorType, typename DType>
@@ -17,7 +17,7 @@ void Rectlin<TensorType, DType>::Derivative(
   const shared_ptr<TensorType<DType> > input,
   shared_ptr<TensorType<DType> > output) {
   Backend<TensorType, DType>::RectlinDerivativeFunc(
-    input.get(), slope_, output.get());
+    input.get(), output.get(), slope_);
 }
 
 INSTANTIATE_CLASS(Rectlin);

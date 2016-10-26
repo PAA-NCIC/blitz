@@ -138,15 +138,24 @@ void Conv<TensorType, DType>::ForwardPropImpl(
     #endif  // BLITZ_PERFORMANCE
   } else {
     Backend<TensorType, DType>::Convolution2DForwardFunc(
-      forward_input.get(), (this->weight_).get(),
-      padding_height_, padding_width_, stride_height_, stride_width_,
-      (this->workspace_).get(), (this->forward_output_).get(), this->kernel_);
+      forward_input.get(),
+      (this->weight_).get(),
+      (this->forward_output_).get(),
+      (this->workspace_).get(),
+      padding_height_, padding_width_,
+      stride_height_, stride_width_,
+      this->kernel_);
+
   }
 #else
   Backend<TensorType, DType>::Convolution2DForwardFunc(
-    forward_input.get(), (this->weight_).get(),
-    padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->workspace_).get(), (this->forward_output_).get(), this->kernel_);
+    forward_input.get(),
+    (this->weight_).get(),
+    (this->forward_output_).get(), 
+    (this->workspace_).get(),
+    padding_height_, padding_width_,
+    stride_height_, stride_width_,
+    this->kernel_);
 #endif
 }
 
@@ -165,15 +174,23 @@ void Conv<TensorType, DType>::BackwardPropImpl(
         (this->backward_output_)->data());
     } else {
       Backend<TensorType, DType>::Convolution2DBackwardFunc(
-      backward_input.get(), (this->weight_).get(),
-      padding_height_, padding_width_, stride_height_, stride_width_,
-      (this->workspace_).get(), (this->backward_output_).get(), this->kernel_);
+      backward_input.get(),
+      (this->weight_).get(),
+      (this->backward_output_).get(), 
+      (this->workspace_).get(),
+      padding_height_, padding_width_,
+      stride_height_, stride_width_,
+      this->kernel_);
     }
 #else
     Backend<TensorType, DType>::Convolution2DBackwardFunc(
-    backward_input.get(), (this->weight_).get(),
-    padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->workspace_).get(), (this->backward_output_).get(), this->kernel_);
+      backward_input.get(),
+      (this->weight_).get(),
+      (this->backward_output_).get(),
+      (this->workspace_).get(),
+      padding_height_, padding_width_,
+      stride_height_, stride_width_,
+      this->kernel_);
 #endif
   }
 #ifndef BLITZ_CPU_ONLY
@@ -187,15 +204,23 @@ void Conv<TensorType, DType>::BackwardPropImpl(
       filter_desc_, (this->update_)->data());
   } else {
     Backend<TensorType, DType>::Convolution2DUpdateFunc(
-      (this->forward_input_).get(), backward_input.get(),
-      padding_height_, padding_width_, stride_height_, stride_width_,
-      (this->workspace_).get(), (this->update_).get(), this->kernel_);
+      (this->forward_input_).get(),
+      backward_input.get(),
+      (this->update_).get(),
+      (this->workspace_).get(),
+      padding_height_, padding_width_,
+      stride_height_, stride_width_,
+      this->kernel_);
   }
 #else
   Backend<TensorType, DType>::Convolution2DUpdateFunc(
-    (this->forward_input_).get(), backward_input.get(),
-    padding_height_, padding_width_, stride_height_, stride_width_,
-    (this->workspace_).get(), (this->update_).get(), this->kernel_);
+    (this->forward_input_).get(),
+    backward_input.get(),
+    (this->update_).get(),
+    (this->workspace_).get(),
+    padding_height_, padding_width_,
+    stride_height_, stride_width_,
+    this->kernel_);
 #endif
 }
 

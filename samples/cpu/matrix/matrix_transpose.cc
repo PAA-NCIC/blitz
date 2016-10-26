@@ -21,7 +21,7 @@ void transpose(size_t m, size_t n) {
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> output_cpu(output_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &input_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
   output_matrix(m, n, input_cpu.data());
   // transpose
   Backend<CPUTensor, float>::Transpose2DFunc(&input_cpu, &output_cpu);

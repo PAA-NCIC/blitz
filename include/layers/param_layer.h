@@ -271,10 +271,10 @@ class ParamLayer : public Layer<TensorType, DType> {
         this->forward_output_.get(),
         (this->batch_norm_)->gamma_weight().get(),
         (this->batch_norm_)->beta_weight().get(),
-        (this->batch_norm_)->epsilon(),
         (this->batch_norm_)->input_var().get(),
         (this->batch_norm_)->input_hat().get(),
-        this->forward_output_.get());
+        this->forward_output_.get(),
+        (this->batch_norm_)->epsilon());
     }
     #ifdef BLITZ_PERFORMANCE
     end = system_clock::now();
@@ -349,9 +349,10 @@ class ParamLayer : public Layer<TensorType, DType> {
         (this->batch_norm_)->input_hat().get(),
         (this->batch_norm_)->input_var().get(),
         (this->batch_norm_)->gamma_weight().get(),
-        (this->batch_norm_)->epsilon(),
         (this->batch_norm_)->gamma_update().get(),
-        (this->batch_norm_)->beta_update().get(), backward_input.get());
+        (this->batch_norm_)->beta_update().get(),
+        backward_input.get(),
+        (this->batch_norm_)->epsilon());
     }
     #ifdef BLITZ_PERFORMANCE
     end = system_clock::now();

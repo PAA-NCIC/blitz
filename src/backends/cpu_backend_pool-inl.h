@@ -4,9 +4,12 @@
 template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   const CPUTensor<DType>* input,
-  size_t filter_height, size_t filter_width,
-  size_t stride_width, size_t stride_height,
-  CPUTensor<size_t>* max_index, CPUTensor<DType>* output) {
+  CPUTensor<DType>* output,
+  CPUTensor<size_t>* max_index, 
+  size_t filter_height,
+  size_t filter_width,
+  size_t stride_width,
+  size_t stride_height) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
@@ -73,10 +76,13 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
-  const CPUTensor<DType>* output, const CPUTensor<size_t>* max_index,
-  size_t filter_height, size_t filter_width,
-  size_t stride_height, size_t stride_width,
-  CPUTensor<DType>* input) {
+  const CPUTensor<DType>* output,
+  CPUTensor<DType>* input,
+  const CPUTensor<size_t>* max_index,
+  size_t filter_height,
+  size_t filter_width,
+  size_t stride_height,
+  size_t stride_width) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();

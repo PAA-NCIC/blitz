@@ -35,9 +35,12 @@ void Affine<TensorType, DType>::InitImpl(const Shape& input_shape) {
 template<template <typename> class TensorType, typename DType>
 void Affine<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
-  Backend<TensorType, DType>::MatrixDotFunc(forward_input.get(),
-    (this->weight_).get(), false, false, 1, 0,
-    (this->forward_output_).get(), kernel_);
+  Backend<TensorType, DType>::MatrixMultiplyFunc(
+    forward_input.get(),
+    (this->weight_).get(),
+    (this->forward_output_).get(),
+    false, false, 1, 0,
+    kernel_);
 }
 
 template<template <typename> class TensorType, typename DType>
@@ -51,9 +54,12 @@ void Affine<TensorType, DType>::BackwardPropImpl(
   start = system_clock::now();
   #endif  // BLITZ_PERFORMANCE
   if (this->backward_prop_) {
-    Backend<TensorType, DType>::MatrixDotFunc(backward_input.get(),
-      (this->weight_).get(), false, true, 1, 0,
-      (this->backward_output_).get(), kernel_);
+    Backend<TensorType, DType>::MatrixMultiplyFunc(
+      backward_input.get(),
+      (this->weight_).get(),
+      (this->backward_output_).get(), 
+      false, true, 1, 0,
+      kernel_);
   }
   #ifdef BLITZ_PERFORMANCE
   end = system_clock::now();
@@ -64,9 +70,12 @@ void Affine<TensorType, DType>::BackwardPropImpl(
   #ifdef BLITZ_PERFORMANCE
   start = system_clock::now();
   #endif  // BLITZ_PERFORMANCE
-  Backend<TensorType, DType>::MatrixDotFunc((this->forward_input_).get(),
-    backward_input.get(), true, false, 1, 0,
-    (this->update_).get(), kernel_);
+  Backend<TensorType, DType>::MatrixMultiplyFunc(
+    (this->forward_input_).get(),
+    backward_input.get(),
+    (this->update_).get(),
+    true, false, 1, 0,
+    kernel_);
   #ifdef BLITZ_PERFORMANCE
   end = system_clock::now();
   time = end - start;

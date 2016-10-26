@@ -21,13 +21,13 @@ template<template <typename> class TensorType, typename DType>
 void Dropout<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
   if (this->train_) {
-    Backend<TensorType, DType>::MakeBinaryMaskFunc(0.0, 1.0,
-      keep_, mask_.get());
+    Backend<TensorType, DType>::MakeBinaryMaskFunc(mask_.get(),
+      0.0, 1.0, keep_);
     Backend<TensorType, DType>::MultiplyFunc(forward_input.get(),
       mask_.get(), (this->forward_output_).get());
   } else {
     Backend<TensorType, DType>::MultiplyFunc(forward_input.get(),
-      keep_, (this->forward_output_).get());
+      (this->forward_output_).get(), keep_);
   }
 }
 

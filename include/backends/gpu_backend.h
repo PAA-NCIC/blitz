@@ -13,45 +13,37 @@ template<typename DType>
 class Backend<GPUTensor, DType> {
  public:
   static void RectlinApplyFunc(
-    const GPUTensor<DType>* input,
-    const DType slope,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* input, GPUTensor<DType>* output,
+    DType slope);
 
   static void RectlinDerivativeFunc(
-    const GPUTensor<DType>* input,
-    const DType slope,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* input, GPUTensor<DType>* output,
+    DType slope);
+
+  static void LogisticApplyFunc(
+    const GPUTensor<DType>* input, GPUTensor<DType>* output);
+
+  static void LogisticDerivativeFunc(
+    const GPUTensor<DType>* input, GPUTensor<DType>* output);
 
   static void SoftmaxApplyFunc(
-    const GPUTensor<DType>* input,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* input, GPUTensor<DType>* output);
 
   static void SoftmaxDerivativeFunc(
-    const GPUTensor<DType>* input,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* input, GPUTensor<DType>* output);
 
   static DType SquareMeanApplyFunc(
-    const GPUTensor<DType>* input,
-    const GPUTensor<DType>* target);
+    const GPUTensor<DType>* input, const GPUTensor<DType>* target);
 
   static void SquareMeanDerivativeFunc(
     const GPUTensor<DType>* input, const GPUTensor<DType>* target,
     GPUTensor<DType>* output);
 
   static DType AbsMeanApplyFunc(
-    const GPUTensor<DType>* input,
-    const GPUTensor<DType>* target);
+    const GPUTensor<DType>* input, const GPUTensor<DType>* target);
 
   static void AbsMeanDerivativeFunc(
     const GPUTensor<DType>* input, const GPUTensor<DType>* target,
-    GPUTensor<DType>* output);
-
-  static void LogisticApplyFunc(
-    const GPUTensor<DType>* input,
-    GPUTensor<DType>* output);
-
-  static void LogisticDerivativeFunc(
-    const GPUTensor<DType>* input,
     GPUTensor<DType>* output);
 
   static DType CrossEntropyBinaryApplyFunc(
@@ -72,35 +64,46 @@ class Backend<GPUTensor, DType> {
     const GPUTensor<DType>* input, const GPUTensor<DType>* bias,
     GPUTensor<DType>* output);
 
-  static void BiasBackwardUpdateFunc(const GPUTensor<DType>* input,
-    GPUTensor<DType>* update);
+  static void BiasBackwardUpdateFunc(
+    const GPUTensor<DType>* input, GPUTensor<DType>* update);
 
   static void BatchNormForwardFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* gamma,
-    const GPUTensor<DType>* beta, const DType epsilon,
-    GPUTensor<DType>* input_var, GPUTensor<DType>* input_hat,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* input,
+    const GPUTensor<DType>* gamma,
+    const GPUTensor<DType>* beta,
+    GPUTensor<DType>* input_var,
+    GPUTensor<DType>* input_hat,
+    GPUTensor<DType>* output,
+    DType epsilon);
 
   static void BatchNormBackwardFunc(
     const GPUTensor<DType>* backward_input,
     const GPUTensor<DType>* forward_input_hat,
     const GPUTensor<DType>* forward_input_var,
-    const GPUTensor<DType>* gamma, const DType epsilon,
-    GPUTensor<DType>* gamma_update, GPUTensor<DType>* beta_update,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* gamma,
+    GPUTensor<DType>* gamma_update,
+    GPUTensor<DType>* beta_update,
+    GPUTensor<DType>* output,
+    DType epsilon);
 
   static void GradientdescentFunc(
-    const DType momentum_coef, const DType learning_rate,
-    const DType decay, size_t batch_size,
     GPUTensor<DType>* filter,
     GPUTensor<DType>* gradient,
-    GPUTensor<DType>* velocity);
+    GPUTensor<DType>* velocity,
+    DType momentum_coef,
+    DType learning_rate,
+    DType decay,
+    size_t batch_size);
 
-  static void MatrixDotFunc(
-    const GPUTensor<DType>* left, const GPUTensor<DType>* right,
-    const bool transa, const bool transb,
-    const DType alpha, const DType beta,
-    GPUTensor<DType>* output, const string& kernel = "blas");
+  static void MatrixMultiplyFunc(
+    const GPUTensor<DType>* left,
+    const GPUTensor<DType>* right,
+    GPUTensor<DType>* output, 
+    bool transa,
+    bool transb,
+    DType alpha,
+    DType beta,
+    const string& kernel = "blas");
 
   static void Transpose2DFunc(
     const GPUTensor<DType>* input, GPUTensor<DType>* output);
@@ -109,22 +112,11 @@ class Backend<GPUTensor, DType> {
     const GPUTensor<DType>* left, const GPUTensor<DType>* right,
     GPUTensor<DType>* output);
 
-  static void MaximumFunc(
-    const GPUTensor<DType>* left,
-    const DType right,
-    GPUTensor<DType>* output);
-
   static void MinusFunc(
     const GPUTensor<DType>* left, const GPUTensor<DType>* right,
     GPUTensor<DType>* output);
 
-  static void MinusFunc(
-    const GPUTensor<DType>* left,
-    const DType right,
-    GPUTensor<DType>* output);
-
-  static DType SumFunc(
-    const GPUTensor<DType>* input);
+  static DType SumFunc(const GPUTensor<DType>* input);
 
   static void AddFunc(
     const GPUTensor<DType>* left, const GPUTensor<DType>* right,
@@ -135,58 +127,63 @@ class Backend<GPUTensor, DType> {
     GPUTensor<DType>* output);
 
   static void MultiplyFunc(
-    const GPUTensor<DType>* left, const DType right,
-    GPUTensor<DType>* output);
+    const GPUTensor<DType>* left, GPUTensor<DType>* output,
+    DType right);
 
   static void Convolution2DForwardFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* filter,
+    const GPUTensor<DType>* input,
+    const GPUTensor<DType>* filter,
+    GPUTensor<DType>* output,
+    GPUTensor<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* unpack, GPUTensor<DType>* output,
     const string& kernel = "blas");
 
   static void Convolution2DBackwardFunc(
-    const GPUTensor<DType>* output, const GPUTensor<DType>* filter,
+    const GPUTensor<DType>* output,
+    const GPUTensor<DType>* filter,
+    GPUTensor<DType>* input,
+    GPUTensor<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* pack, GPUTensor<DType>* input,
     const string& kernel = "blas");
 
   static void Convolution2DUpdateFunc(
-    const GPUTensor<DType>* input, const GPUTensor<DType>* output,
+    const GPUTensor<DType>* input,
+    const GPUTensor<DType>* output,
+    GPUTensor<DType>* update,
+    GPUTensor<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* unpack, GPUTensor<DType>* update,
     const string& kernel = "blas");
 
   static void MaxPooling2DForwardFunc(
     const GPUTensor<DType>* input,
+    GPUTensor<DType>* output,
+    GPUTensor<size_t>* max_index,
     size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width,
-    GPUTensor<size_t>* max_index, GPUTensor<DType>* output);
+    size_t stride_height, size_t stride_width);
 
   static void MaxPooling2DBackwardFunc(
-    const GPUTensor<DType>* output, const GPUTensor<size_t>* max_index,
+    const GPUTensor<DType>* output, 
+    GPUTensor<DType>* input,
+    const GPUTensor<size_t>* max_index,
     size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width,
-    GPUTensor<DType>* input);
+    size_t stride_height, size_t stride_width);
 
-  static void MakeBinaryMaskFunc(const DType low, const DType high,
-    const DType keep, GPUTensor<DType>* output);
+  static void MakeBinaryMaskFunc(
+    GPUTensor<DType>* output,
+    DType low,
+    DType high,
+    DType keep);
 
-  static void ConstantDistributionFunc(
-    const DType val, GPUTensor<DType>* output);
+  static void ConstantDistributionFunc(GPUTensor<DType>* output, DType val);
 
-  static void NormalDistributionFunc(
-    const DType loc, const DType scale,
-    GPUTensor<DType>* output);
+  static void NormalDistributionFunc(GPUTensor<DType>* output, DType loc, DType scale);
 
-  static void UniformDistributionFunc(
-    const DType low, const DType high,
-    GPUTensor<DType>* output);
+  static void UniformDistributionFunc(GPUTensor<DType>* output, DType low, DType high);
 
-  static void HostCopyToFunc(const DType* source, const size_t size,
-    DType* target);
+  static void HostCopyToFunc(const DType* source, DType* target, size_t size);
 
   static float EvaluateClassifyFunc(
     const GPUTensor<DType>* output, const GPUTensor<DType>* target);
@@ -195,22 +192,34 @@ class Backend<GPUTensor, DType> {
     const GPUTensor<DType>* output, const GPUTensor<DType>* target);
 
   static void Unpack2DFunc(
-    const DType* input, size_t channel,
-    size_t input_height, size_t input_width,
-    size_t filter_height, size_t filter_width,
-    size_t output_height, size_t output_width,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    DType* unpack);
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
 
   static void Pack2DFunc(
-    const DType* pack, size_t channel,
-    size_t input_height, size_t input_width,
-    size_t filter_height, size_t filter_width,
-    size_t output_height, size_t output_width,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    DType* input);
+    const DType* pack,
+    DType* input,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
 };
 
 }  // namespace blitz

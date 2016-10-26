@@ -14,15 +14,14 @@ boost::once_flag CubinModule::flag_ = BOOST_ONCE_INIT;
 
 template<>
 void BlitzSassGemm(
-  bool transa, bool transb,
-  int M, int N, int K,
   const float* A,
   const float* B,
   float* C,
-  float alpha,
-  float beta) {
+  bool transa, bool transb,
+  float alpha, float beta,
+  size_t M, size_t N, size_t K) {
   CUfunction function;
-  int lda, ldb, ldc = N;
+  size_t lda, ldb, ldc = N;
 
 #ifdef BLITZ_PERFORMANCE
   float elapsed_time = 0.0f;
@@ -75,11 +74,11 @@ void BlitzSassGemm(
   void* params[] = {&A, &B, &C, &alpha, &beta, &lda, &ldb, &ldc,
     (void*)&M, (void*)&N, (void*)&K};
   // TODO(keren): multiple kernels
-  int sizeA = 128, sizeB = 128;
-  int gridA = M / sizeA + (M % sizeA != 0);
-  int gridB = N / sizeB + (N % sizeB != 0);
+  size_t sizeA = 128, sizeB = 128;
+  size_t gridA = M / sizeA + (M % sizeA != 0);
+  size_t gridB = N / sizeB + (N % sizeB != 0);
   // TODO(keren): adjust number of threads
-  int threads = 256;
+  size_t threads = 256;
 
   // lanuch kernel
   cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
@@ -87,52 +86,51 @@ void BlitzSassGemm(
 
 template<>
 void BlitzSassGemm(
-  bool transa, bool transb,
-  int M, int N, int K,
   const double* A,
   const double* B,
   double* C,
-  double alpha,
-  double beta) {
+  bool transa, bool transb,
+  double alpha, double beta,
+  size_t M, size_t N, size_t K) {
   LOG(FATAL) << "sass kernel dost not support double precision";
 }
 
 template<>
 void BlitzSassConvolution2D(
-  const string& phase, 
-  int N,
-  int C, int H, int W,
-  int R, int S,
-  int K, int P, int Q,
-  int str_h, int str_w,
-  int pad_h, int pad_w,
   float* I,
   float* O,
-  float* F) {
+  float* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t str_h, size_t str_w,
+  size_t pad_h, size_t pad_w,
+  const string& phase) {
   float alpha = 1.0f;
-  unsigned int D = 1, M = 1, T = 1;
-  unsigned int str_d = 1;
-  unsigned int pad_d = 0;
-  unsigned int WN, HW, DHW, HWN, DHWN;
-  unsigned int RS, RST, KRST, CRST;
-  unsigned int PQ, QN, MPQ, PQN, MPQN;
-  unsigned int magic_HW, shift_HW;
-  unsigned int magic_W, shift_W;
-  unsigned int magic_RST, shift_RST;
-  unsigned int magic_RS, shift_RS;
-  unsigned int magic_S, shift_S;
-  unsigned int magic_PQ, shift_PQ;
-  unsigned int magic_Q, shift_Q;
-  unsigned int magic_PQu, shift_PQu;
-  unsigned int magic_Qu, shift_Qu;
-  unsigned int magic_str_w, shift_str_w;
-  unsigned int magic_str_h, shift_str_h;
-  unsigned int magic_str_d, shift_str_d;
-  unsigned int grid_P = 1;
-  unsigned int grid_Q = 1;
-  unsigned int grid_PQ = grid_P * grid_Q;
-  unsigned int grid_PQM = grid_PQ * M;
-  unsigned int CRST32, MPQN32;
+  size_t D = 1, M = 1, T = 1;
+  size_t str_d = 1;
+  size_t pad_d = 0;
+  size_t WN, HW, DHW, HWN, DHWN;
+  size_t RS, RST, KRST, CRST;
+  size_t PQ, QN, MPQ, PQN, MPQN;
+  size_t magic_HW, shift_HW;
+  size_t magic_W, shift_W;
+  size_t magic_RST, shift_RST;
+  size_t magic_RS, shift_RS;
+  size_t magic_S, shift_S;
+  size_t magic_PQ, shift_PQ;
+  size_t magic_Q, shift_Q;
+  size_t magic_PQu, shift_PQu;
+  size_t magic_Qu, shift_Qu;
+  size_t magic_str_w, shift_str_w;
+  size_t magic_str_h, shift_str_h;
+  size_t magic_str_d, shift_str_d;
+  size_t grid_P = 1;
+  size_t grid_Q = 1;
+  size_t grid_PQ = grid_P * grid_Q;
+  size_t grid_PQM = grid_PQ * M;
+  size_t CRST32, MPQN32;
   // input
   WN = W * N;
   HW = H * W;
@@ -174,7 +172,7 @@ void BlitzSassConvolution2D(
   cudaMemset(test_param, 0, sizeof(float) * 1024);
 #endif
   // arguments
-  unsigned int gridX, gridY, gridZ;
+  size_t gridX, gridY, gridZ;
   CUresult result;
   CUfunction function;
   string kernel_name;
@@ -291,16 +289,16 @@ void BlitzSassConvolution2D(
 
 template<>
 void BlitzSassConvolution2D(
-  const string& phase, 
-  int N,
-  int C, int H, int W,
-  int R, int S,
-  int K, int P, int Q,
-  int str_h, int str_w,
-  int pad_h, int pad_w,
   double* I,
   double* O,
-  double* F) {
+  double* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t str_h, size_t str_w,
+  size_t pad_h, size_t pad_w,
+  const string& phase) { 
   LOG(FATAL) << "sass kernel dost not support double precision";
 }
 
@@ -311,11 +309,11 @@ void BlitzSassConvolution2D(
 template<typename DType>
 __global__ void GPUFilterShuffle(
   const DType* input, DType* output,
-  unsigned int TRSC, unsigned int TRS,
-  unsigned int RSC, unsigned int SC,
-  unsigned int C, unsigned int K,
-  unsigned int RS, unsigned int magic_RS, unsigned int shift_RS,
-  unsigned int S, unsigned int magic_S, unsigned int shift_S) {
+  size_t TRSC, size_t TRS,
+  size_t RSC, size_t SC,
+  size_t C, size_t K,
+  size_t RS, size_t magic_RS, size_t shift_RS,
+  size_t S, size_t magic_S, size_t shift_S) {
   // C * K
   __shared__ DType tile[32][33];
   size_t tx  = threadIdx.x;
@@ -351,15 +349,15 @@ __global__ void GPUFilterShuffle(
 
 template<>
 void BlitzFilter2DShuffle(
-  int K, int C,
-  int R, int S,
   const float* input,
-  float* output) {
-  unsigned int T = 1;
-  unsigned int TRSC, RSC, SC;
-  unsigned int RST, RS;
-  unsigned int magic_RS, shift_RS;
-  unsigned int magic_S, shift_S;
+  float* output,
+  size_t K, size_t C,
+  size_t R, size_t S) {
+  size_t T = 1;
+  size_t TRSC, RSC, SC;
+  size_t RST, RS;
+  size_t magic_RS, shift_RS;
+  size_t magic_S, shift_S;
   // output
   SC = S * C;
   RSC = R * SC;
@@ -383,10 +381,10 @@ void BlitzFilter2DShuffle(
 
 template<>
 void BlitzFilter2DShuffle(
-  int K, int C,
-  int R, int S,
   const double* input,
-  double* output) {
+  double* output,
+  size_t K, size_t C,
+  size_t R, size_t S) {
   LOG(FATAL) << "sass kernel dost not support double precision";
 }
 

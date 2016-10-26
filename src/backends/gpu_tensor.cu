@@ -4,7 +4,6 @@
 #include <cuda_runtime_api.h>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-#include <cstdlib>
 
 namespace blitz {
 
@@ -26,13 +25,11 @@ inline void GPUTensor<DType>::Fill(DType value) {
 
 template<typename DType>
 inline DType* GPUTensor<DType>::Slice(size_t index) {
-  // TODO(keren) error
   return this->data_ + index;
 }
 
 template<typename DType>
 inline const DType* GPUTensor<DType>::Slice(size_t index) const {
-  // TODO(keren) error
   return this->data_ + index;
 }
 

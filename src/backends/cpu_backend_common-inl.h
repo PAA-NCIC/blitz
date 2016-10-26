@@ -3,9 +3,8 @@
 
 template<typename DType>
 void Backend<CPUTensor, DType>::RectlinApplyFunc(
-  const CPUTensor<DType>* input,
-  const DType slope,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input, CPUTensor<DType>* output,
+  DType slope) {
   CHECK_EQ(input->size(), output->size());
 
   DType compare_value = static_cast<DType>(0);
@@ -18,9 +17,8 @@ void Backend<CPUTensor, DType>::RectlinApplyFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::RectlinDerivativeFunc(
-  const CPUTensor<DType>* input,
-  const DType slope,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input, CPUTensor<DType>* output,
+  DType slope) {
   CHECK_EQ(input->size(), output->size());
 
   DType compare_value = static_cast<DType>(0);
@@ -34,8 +32,7 @@ void Backend<CPUTensor, DType>::RectlinDerivativeFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::LogisticApplyFunc(
-  const CPUTensor<DType>* input,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
 
   #pragma omp parallel for
@@ -46,16 +43,14 @@ void Backend<CPUTensor, DType>::LogisticApplyFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::LogisticDerivativeFunc(
-  const CPUTensor<DType>* input,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   // TODO(keren) not short cut version
 }
 
 template<typename DType>
 void Backend<CPUTensor, DType>::SoftmaxApplyFunc(
-  const CPUTensor<DType>* input,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   size_t num_sample = input->shape()[0];
   size_t dim = input->size() / num_sample;
@@ -77,16 +72,14 @@ void Backend<CPUTensor, DType>::SoftmaxApplyFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::SoftmaxDerivativeFunc(
-  const CPUTensor<DType>* input,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   // TODO(keren) not short cut version
 }
 
 template<typename DType>
 DType Backend<CPUTensor, DType>::CrossEntropyBinaryApplyFunc(
-  const CPUTensor<DType>* input,
-  const CPUTensor<DType>* target) {
+  const CPUTensor<DType>* input, const CPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   DType private_output = 0;
   DType output = 0;
@@ -142,8 +135,7 @@ void Backend<CPUTensor, DType>::SquareMeanDerivativeFunc(
 
 template<typename DType>
 DType Backend<CPUTensor, DType>::AbsMeanApplyFunc(
-  const CPUTensor<DType>* input,
-  const CPUTensor<DType>* target) {
+  const CPUTensor<DType>* input, const CPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   DType sum_abs = 0;
   DType sum = 0;
@@ -255,10 +247,13 @@ void Backend<CPUTensor, DType>::BiasBackwardUpdateFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::BatchNormForwardFunc(
-  const CPUTensor<DType>* input, const CPUTensor<DType>* gamma,
-  const CPUTensor<DType>* beta, const DType epsilon,
-  CPUTensor<DType>* input_var, CPUTensor<DType>* input_hat,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* input,
+  const CPUTensor<DType>* gamma,
+  const CPUTensor<DType>* beta,
+  CPUTensor<DType>* input_var,
+  CPUTensor<DType>* input_hat,
+  CPUTensor<DType>* output,
+  DType epsilon) {
   size_t num_sample = input->shape()[0];
   size_t dim = input->size() / num_sample;
   input_var->Fill(0);
@@ -297,9 +292,11 @@ void Backend<CPUTensor, DType>::BatchNormBackwardFunc(
   const CPUTensor<DType>* backward_input,
   const CPUTensor<DType>* forward_input_hat,
   const CPUTensor<DType>* forward_input_var,
-  const CPUTensor<DType>* gamma, const DType epsilon,
-  CPUTensor<DType>* gamma_update, CPUTensor<DType>* beta_update,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* gamma,
+  CPUTensor<DType>* gamma_update,
+  CPUTensor<DType>* beta_update,
+  CPUTensor<DType>* output,
+  DType epsilon) {
   size_t num_sample = backward_input->shape()[0];
   size_t dim = backward_input->size() / num_sample;
 
@@ -325,11 +322,13 @@ void Backend<CPUTensor, DType>::BatchNormBackwardFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::GradientdescentFunc(
-  const DType momentum_coef, const DType learning_rate,
-  const DType decay, size_t batch_size,
   CPUTensor<DType>* weight,
   CPUTensor<DType>* gradient,
-  CPUTensor<DType>* velocity) {
+  CPUTensor<DType>* velocity,
+  DType momentum_coef,
+  DType learning_rate,
+  DType decay,
+  size_t batch_size) {
   CHECK_EQ(weight->size(), gradient->size());
   CHECK_EQ(gradient->size(), velocity->size());
 #ifdef BLITZ_DEVELOP
@@ -350,11 +349,15 @@ void Backend<CPUTensor, DType>::GradientdescentFunc(
 }
 
 template<typename DType>
-void Backend<CPUTensor, DType>::MatrixDotFunc(
-  const CPUTensor<DType>* left, const CPUTensor<DType>* right,
-  const bool transa, const bool transb,
-  const DType alpha, const DType beta,
-  CPUTensor<DType>* output, const string& kernel) {
+void Backend<CPUTensor, DType>::MatrixMultiplyFunc(
+  const CPUTensor<DType>* left,
+  const CPUTensor<DType>* right,
+  CPUTensor<DType>* output, 
+  bool transa,
+  bool transb,
+  DType alpha,
+  DType beta,
+  const string& kernel) {
   size_t dim_left = transa ? left->size() / (left->shape())[0] :
     (left->shape())[0];
   size_t dim_right = transb ? (right->shape())[0] :
@@ -364,15 +367,13 @@ void Backend<CPUTensor, DType>::MatrixDotFunc(
   size_t dim_common_right = transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
-#ifdef BLITZ_DEVELOP
-  LOG(INFO) << "dim left: " << dim_left;
-  LOG(INFO) << "dim common: " << dim_common_left;
-  LOG(INFO) << "dim right: " << dim_right;
-#endif
-  BlitzCPUGemm(transa, transb, dim_left, dim_right, dim_common_left,
+  BlitzCPUGemm(
     const_cast<CPUTensor<DType>*>(left)->data(),
     const_cast<CPUTensor<DType>*>(right)->data(),
-    output->data(), alpha, beta);
+    output->data(), 
+    transa, transb, 
+    alpha, beta,
+    dim_left, dim_right, dim_common_left);
 }
 
 template<typename DType>
@@ -403,18 +404,6 @@ void Backend<CPUTensor, DType>::MaximumFunc(
 }
 
 template<typename DType>
-void Backend<CPUTensor, DType>::MaximumFunc(
-  const CPUTensor<DType>* left,
-  const DType right,
-  CPUTensor<DType>* output) {
-  CHECK_EQ(left->size(), output->size());
-  #pragma omp parallel for
-  for (size_t i = 0; i < left->size(); ++i) {
-    (*output)[i] = std::max((*left)[i], right);
-  }
-}
-
-template<typename DType>
 void Backend<CPUTensor, DType>::MinusFunc(
   const CPUTensor<DType>* left, const CPUTensor<DType>* right,
   CPUTensor<DType>* output) {
@@ -424,18 +413,6 @@ void Backend<CPUTensor, DType>::MinusFunc(
   #pragma omp parallel for
   for (size_t i = 0; i < left->size(); ++i) {
     (*output)[i] = (*left)[i] - (*right)[i];
-  }
-}
-
-template<typename DType>
-void Backend<CPUTensor, DType>::MinusFunc(
-  const CPUTensor<DType>* left,
-  const DType right,
-  CPUTensor<DType>* output) {
-  CHECK_EQ(left->size(), output->size());
-  #pragma omp parallel for
-  for (size_t i = 0; i < left->size(); ++i) {
-    (*output)[i] = (*left)[i] - right;
   }
 }
 
@@ -473,10 +450,11 @@ void Backend<CPUTensor, DType>::MultiplyFunc(
   }
 }
 
+
 template<typename DType>
 void Backend<CPUTensor, DType>::MultiplyFunc(
-  const CPUTensor<DType>* left, const DType right,
-  CPUTensor<DType>* output) {
+  const CPUTensor<DType>* left, CPUTensor<DType>* output,
+  DType right) {
   CHECK_EQ(left->size(), output->size());
   #pragma omp parallel for
   for (size_t i = 0; i < left->size(); ++i) {
@@ -486,9 +464,11 @@ void Backend<CPUTensor, DType>::MultiplyFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::MakeBinaryMaskFunc(
-  const DType low, const DType high,
-  const DType keep, CPUTensor<DType>* output) {
-  Backend<CPUTensor, DType>::UniformDistributionFunc(low, high, output);
+  CPUTensor<DType>* output,
+  DType low,
+  DType high,
+  DType keep) { 
+  UniformDistributionFunc(output, low, high);
 
   #pragma omp parallel for
   for (size_t i = 0; i < output->size(); ++i) {
@@ -502,14 +482,13 @@ void Backend<CPUTensor, DType>::MakeBinaryMaskFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::ConstantDistributionFunc(
-  const DType val, CPUTensor<DType>* output) {
+  CPUTensor<DType>* output, DType val) {
   output->Fill(val);
 }
 
 template<typename DType>
 void Backend<CPUTensor, DType>::NormalDistributionFunc(
-  const DType loc, const DType scale,
-  CPUTensor<DType>* output) {
+  CPUTensor<DType>* output, DType loc, DType scale) {
   // TODO(keren) synchronized seed
   static unsigned int seed = 0;
   boost::mt19937 rng((++seed) + time(NULL));
@@ -526,8 +505,7 @@ void Backend<CPUTensor, DType>::NormalDistributionFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::UniformDistributionFunc(
-  const DType low, const DType high,
-  CPUTensor<DType>* output) {
+  CPUTensor<DType>* output, DType low, DType high) {
   // TODO(keren) synchronized seed
   static unsigned int seed = 0;
   boost::mt19937 rng((++seed) + time(NULL));
@@ -544,8 +522,8 @@ void Backend<CPUTensor, DType>::UniformDistributionFunc(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::HostCopyToFunc(
-  const DType* source, const size_t size, DType* target) {
-  BlitzCPUCopy(source, size, target);
+  const DType* source, DType* target, size_t size) {
+  BlitzCPUCopy(source, target, size);
 }
 
 template<typename DType>

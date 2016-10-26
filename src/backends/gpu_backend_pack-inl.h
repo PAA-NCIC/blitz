@@ -3,12 +3,17 @@
 
 // small kernel
 template<typename DType>
-__global__ void GPUUnpack1024Kernel(const DType* input,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* unpack) {
+__global__ void GPUUnpack1024Kernel(
+  const DType* input,
+  DType* unpack,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   size_t output_height_index = threadIdx.x;
   size_t output_width_index = threadIdx.y;
   size_t input_channel_index = blockIdx.x;
@@ -50,14 +55,21 @@ __global__ void GPUUnpack1024Kernel(const DType* input,
 
 // general kernel
 template<typename DType>
-__global__ void GPUUnpackKernel(const DType* input,
-  size_t size, size_t input_channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* unpack) {
+__global__ void GPUUnpackKernel(
+  const DType* input,
+  DType* unpack,
+  size_t size,
+  size_t input_channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   BLITZ_CUDA_LOOP(index, size) {
     size_t channel_output_offset = index / output_width;
     size_t output_height_index = channel_output_offset % output_height;
@@ -98,38 +110,53 @@ __global__ void GPUUnpackKernel(const DType* input,
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Unpack2DFunc(
-  const DType* input, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* unpack) {
+  const DType* input,
+  DType* unpack,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   if (channel <= 64 && output_height * output_width <= 256) {
     dim3 thread_per_block(output_height, output_width);
     GPUUnpack1024Kernel<DType><<<channel, thread_per_block>>>(
-      input, input_height, input_width,
+      input, unpack,
+      input_height, input_width,
       filter_height, filter_width,
       padding_height, padding_width,
-      stride_height, stride_width, unpack);
+      stride_height, stride_width);
   } else {
     size_t size = channel * output_height * output_width;
     GPUUnpackKernel<DType><<<BlitzGPUGetBlocks(size),
-      BLITZ_NUM_GPU_THREADS>>>(input, size, channel,
-      input_height, input_width, filter_height, filter_width,
-      output_height, output_width, padding_height, padding_width,
-      stride_height, stride_width, unpack);
+      BLITZ_NUM_GPU_THREADS>>>(input, unpack,
+      size, channel,
+      input_height, input_width,
+      filter_height, filter_width,
+      output_height, output_width,
+      padding_height, padding_width,
+      stride_height, stride_width);
   }
 }
 
 // small kernel
 template<typename DType>
-__global__ void GPUPack1024Kernel(const DType* pack,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* input) {
+__global__ void GPUPack1024Kernel(
+  const DType* pack,
+  DType* input,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   size_t input_height_index = threadIdx.x;
   size_t input_width_index = threadIdx.y;
   size_t input_channel_index = blockIdx.x;
@@ -168,14 +195,21 @@ __global__ void GPUPack1024Kernel(const DType* pack,
 
 // general kernel
 template<typename DType>
-__global__ void GPUPackKernel(const DType* pack,
-  size_t size, size_t input_channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* input) {
+__global__ void GPUPackKernel(
+  const DType* pack,
+  DType* input,
+  size_t size,
+  size_t input_channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   BLITZ_CUDA_LOOP(index, size) {
     size_t channel_height_offset = index / input_width;
     size_t input_height_index = channel_height_offset % input_height;
@@ -214,24 +248,36 @@ __global__ void GPUPackKernel(const DType* pack,
 
 template<typename DType>
 void Backend<GPUTensor, DType>::Pack2DFunc(
-  const DType* pack, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_height, size_t output_width,
-  size_t padding_height, size_t padding_width,
-  size_t stride_height, size_t stride_width,
-  DType* input) {
+  const DType* pack,
+  DType* input,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
   if (channel <= 64 && input_height * input_width <= 256) {
     dim3 thread_per_block(input_height, input_width);
     GPUPack1024Kernel<DType><<<channel, thread_per_block>>>(
-      pack, filter_height, filter_width, output_height, output_width,
-      padding_height, padding_width, stride_height, stride_width, input);
+      pack, input,
+      filter_height, filter_width,
+      output_height, output_width,
+      padding_height, padding_width,
+      stride_height, stride_width);
   } else {
     size_t size = channel * input_height * input_width;
     GPUPackKernel<DType><<<BlitzGPUGetBlocks(size), BLITZ_NUM_GPU_THREADS>>>(
-      pack, size, channel, input_height, input_width,
-      filter_height, filter_width, output_height, output_width,
-      padding_height, padding_width, stride_height, stride_width, input);
+      pack, input,
+      size, channel, input_height, input_width,
+      filter_height, filter_width,
+      output_height, output_width,
+      padding_height, padding_width,
+      stride_height, stride_width);
   }
 }
 

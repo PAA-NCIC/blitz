@@ -71,26 +71,28 @@ void convolution_forward(
   // set up copy
   CPUTensor<float> output_copy(output_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &input_cpu);
-  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &filter_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, -0.1, 0.1);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&filter_cpu, -0.1, 0.1);
   cudaMemcpy(input_gpu.data(), input_cpu.data(),
     input_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(filter_gpu.data(), filter_cpu.data(),
     filter_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   // cpu convolution 
   Backend<CPUTensor, float>::Convolution2DForwardFunc(
-    &input_cpu, &filter_cpu,
-    pad_h, pad_w, 
-    str_h, str_w,
+    &input_cpu,
+    &filter_cpu,
+    &output_cpu,
     &workspace_cpu,
-    &output_cpu);
+    pad_h, pad_w, 
+    str_h, str_w);
   // gpu convolution
   Backend<GPUTensor, float>::Convolution2DForwardFunc(
-    &input_gpu, &filter_gpu,
+    &input_gpu,
+    &filter_gpu,
+    &output_gpu,
+    &workspace_gpu,
     pad_h, pad_w, 
     str_h, str_w,
-    &workspace_gpu,
-    &output_gpu,
     kernel);
   // copy from gpu to cpu
   cudaMemcpy(output_copy.data(), output_gpu.data(),
@@ -115,26 +117,28 @@ void convolution_backward(
   // set up copy
   CPUTensor<float> input_copy(input_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &output_cpu);
-  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &filter_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&output_cpu, -0.1, 0.1);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&filter_cpu, -0.1, 0.1);
   cudaMemcpy(output_gpu.data(), output_cpu.data(),
     output_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(filter_gpu.data(), filter_cpu.data(),
     filter_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   // cpu convolution 
   Backend<CPUTensor, float>::Convolution2DBackwardFunc(
-    &output_cpu, &filter_cpu,
-    pad_h, pad_w, 
-    str_h, str_w,
+    &output_cpu,
+    &filter_cpu,
+    &input_cpu,
     &workspace_cpu,
-    &input_cpu);
+    pad_h, pad_w, 
+    str_h, str_w);
   // gpu convolution
   Backend<GPUTensor, float>::Convolution2DBackwardFunc(
-    &output_gpu, &filter_gpu,
+    &output_gpu,
+    &filter_gpu,
+    &input_gpu,
+    &workspace_gpu,
     pad_h, pad_w, 
     str_h, str_w,
-    &workspace_gpu,
-    &input_gpu,
     kernel);
   // copy from gpu to cpu
   cudaMemcpy(input_copy.data(), input_gpu.data(),
@@ -159,26 +163,28 @@ void convolution_update(
   //// set up copy
   CPUTensor<float> filter_copy(filter_shape);
   //// init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &output_cpu);
-  Backend<CPUTensor, float>::UniformDistributionFunc(-0.1, 0.1, &input_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&output_cpu, -0.1, 0.1);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, -0.1, 0.1);
   cudaMemcpy(output_gpu.data(), output_cpu.data(),
     output_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   cudaMemcpy(input_gpu.data(), input_cpu.data(),
     input_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   // cpu convolution 
   Backend<CPUTensor, float>::Convolution2DUpdateFunc(
-    &input_cpu, &output_cpu,
-    pad_h, pad_w, 
-    str_h, str_w,
+    &input_cpu,
+    &output_cpu,
+    &filter_cpu,
     &workspace_cpu,
-    &filter_cpu);
+    pad_h, pad_w, 
+    str_h, str_w);
   // gpu convolution
   Backend<GPUTensor, float>::Convolution2DUpdateFunc(
-    &input_gpu, &output_gpu,
+    &input_gpu,
+    &output_gpu,
+    &filter_gpu,
+    &workspace_gpu,
     pad_h, pad_w, 
     str_h, str_w,
-    &workspace_gpu,
-    &filter_gpu,
     kernel);
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_gpu.data(),

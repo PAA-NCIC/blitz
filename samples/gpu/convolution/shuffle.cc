@@ -66,7 +66,7 @@ void shuffle(size_t K, size_t C, size_t R, size_t S) {
   // set up copy
   CPUTensor<float> filter_copy(filter_shuffle_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &filter_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&filter_cpu, 0.0, 1.0);
   cudaMemcpy(filter_gpu.data(), filter_cpu.data(),
     filter_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   // cpu shuffle 
@@ -74,9 +74,8 @@ void shuffle(size_t K, size_t C, size_t R, size_t S) {
     filter_cpu.data(),
     filter_shuffle_cpu.data());
   // gpu shuffle
-  BlitzFilter2DShuffle<float>(K, C, R, S,
-    filter_gpu.data(),
-    filter_shuffle_gpu.data());
+  BlitzFilter2DShuffle<float>(filter_gpu.data(), filter_shuffle_gpu.data(),
+    K, C, R, S);
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_shuffle_gpu.data(),
     filter_shuffle_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);

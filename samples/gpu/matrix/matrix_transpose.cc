@@ -30,7 +30,7 @@ void transpose(size_t m, size_t n) {
   GPUTensor<float> output_gpu(output_shape);
   CPUTensor<float> output_copy(output_shape);
   // init values
-  Backend<CPUTensor, float>::UniformDistributionFunc(0.0, 1.0, &input_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
   cudaMemcpy(input_gpu.data(), input_cpu.data(),
     input_cpu.size() * sizeof(float), cudaMemcpyHostToDevice);
   // transpose

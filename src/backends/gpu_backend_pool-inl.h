@@ -2,13 +2,20 @@
 #define SRC_BACKEND_GPU_BACKEND_POOL_INL_H_
 
 template<typename DType>
-__global__ void GPUMaxPoolingForward(const DType* input,
-  size_t size, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t output_height, size_t output_width,
-  size_t filter_height, size_t filter_width,
-  size_t stride_height, size_t stride_width,
-  size_t* max_index, DType* output) {
+__global__ void GPUMaxPoolingForward(
+  const DType* input,
+  DType* output,
+  size_t* max_index, 
+  size_t size,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t output_height,
+  size_t output_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t stride_height,
+  size_t stride_width) {
   BLITZ_CUDA_LOOP(index, size) {
     size_t output_width_index = index % output_width;
     size_t output_height_index = (index / output_width) % output_height;
@@ -38,9 +45,12 @@ __global__ void GPUMaxPoolingForward(const DType* input,
 template<typename DType>
 void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
   const GPUTensor<DType>* input,
-  size_t filter_height, size_t filter_width,
-  size_t stride_height, size_t stride_width,
-  GPUTensor<size_t>* max_index, GPUTensor<DType>* output) {
+  GPUTensor<DType>* output,
+  GPUTensor<size_t>* max_index, 
+  size_t filter_height,
+  size_t filter_width,
+  size_t stride_height,
+  size_t stride_width) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
@@ -52,28 +62,33 @@ void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
   size_t output_channel = output_shape[1];
   size_t output_height = output_shape[2];
   size_t output_width = output_shape[3];
-
   CHECK_EQ(channel, output_channel);
-
+  // set min
   output->Fill(std::numeric_limits<DType>::min());
-
-  GPUMaxPoolingForward<DType><<<BlitzGPUGetBlocks(output->size()),
-    BLITZ_NUM_GPU_THREADS>>>(input->data(), output->size(),
-    channel, input_height, input_width,
+  GPUMaxPoolingForward<DType>
+    <<<BlitzGPUGetBlocks(output->size()), BLITZ_NUM_GPU_THREADS>>>(
+    input->data(), output->data(), max_index->data(),
+    output->size(), channel, input_height, input_width,
     output_height, output_width,
     filter_height, filter_width,
-    stride_height, stride_width,
-    max_index->data(), output->data());
+    stride_height, stride_width);
 }
 
 template<typename DType>
-__global__ void GPUMaxPoolingBackward(const DType* output,
-  size_t size, size_t channel,
-  size_t input_height, size_t input_width,
-  size_t output_height, size_t output_width,
-  size_t filter_height, size_t filter_width,
-  size_t stride_height, size_t stride_width,
-  const size_t* max_index, DType* input) {
+__global__ void GPUMaxPoolingBackward(
+  const DType* output,
+  DType* input,
+  const size_t* max_index,
+  size_t size,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t output_height,
+  size_t output_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t stride_height,
+  size_t stride_width) {
   BLITZ_CUDA_LOOP(i, size) {
     size_t channel_index = (i / (output_width * output_height)) % channel;
     size_t batch_index = i / (output_width * output_height * channel);
@@ -86,10 +101,13 @@ __global__ void GPUMaxPoolingBackward(const DType* output,
 
 template<typename DType>
 void Backend<GPUTensor, DType>::MaxPooling2DBackwardFunc(
-  const GPUTensor<DType>* output, const GPUTensor<size_t>* max_index,
-  size_t filter_height, size_t filter_width,
-  size_t stride_height, size_t stride_width,
-  GPUTensor<DType>* input) {
+  const GPUTensor<DType>* output,
+  GPUTensor<DType>* input,
+  const GPUTensor<size_t>* max_index,
+  size_t filter_height,
+  size_t filter_width,
+  size_t stride_height,
+  size_t stride_width) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
@@ -100,17 +118,15 @@ void Backend<GPUTensor, DType>::MaxPooling2DBackwardFunc(
   const Shape& output_shape = output->shape();
   size_t output_height = output_shape[2];
   size_t output_width = output_shape[3];
-
   // set zero
   input->Fill(0);
-
-  GPUMaxPoolingBackward<DType><<<BlitzGPUGetBlocks(output->size()),
-    BLITZ_NUM_GPU_THREADS>>>(output->data(), output->size(),
-    channel, input_height, input_width,
+  GPUMaxPoolingBackward<DType>
+    <<<BlitzGPUGetBlocks(output->size()), BLITZ_NUM_GPU_THREADS>>>(
+    output->data(), input->data(), max_index->data(),
+    output->size(), channel, input_height, input_width,
     output_height, output_width,
     filter_height, filter_width,
-    stride_height, stride_width,
-    max_index->data(), input->data());
+    stride_height, stride_width);
 }
 
 
