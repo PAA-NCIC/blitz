@@ -43,6 +43,12 @@ shared_ptr<Activation<TensorType, DType> >
   return activation;
 }
 
-INSTANTIATE_SETTER(Activation);
+INSTANTIATE_SETTER_CPU(Activation);
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_SETTER_GPU(Activation);
+#endif
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_SETTER_MIC(Activation);
+#endif
 
 }  // namespace blitz

@@ -33,6 +33,12 @@ shared_ptr<Cost<TensorType, DType> >
   return cost;
 }
 
-INSTANTIATE_SETTER(Cost);
+INSTANTIATE_SETTER_CPU(Cost);
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_SETTER_GPU(Cost);
+#endif
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_SETTER_MIC(Cost);
+#endif
 
 }  // namespace blitz

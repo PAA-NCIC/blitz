@@ -46,6 +46,12 @@ shared_ptr<Optimizer<TensorType, DType> > Parser::SetOptimizer(
   return optimizer;
 }
 
-INSTANTIATE_SETTER(Optimizer);
+INSTANTIATE_SETTER_CPU(Optimizer);
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_SETTER_GPU(Optimizer);
+#endif
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_SETTER_MIC(Optimizer);
+#endif
 
 }  // namespace blitz

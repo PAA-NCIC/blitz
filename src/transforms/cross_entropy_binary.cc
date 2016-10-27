@@ -21,6 +21,12 @@ void CrossEntropyBinary<TensorType, DType>::Derivative(
     output.get(), target.get(), result.get());
 }
 
-INSTANTIATE_CLASS(CrossEntropyBinary);
+INSTANTIATE_CLASS_CPU(CrossEntropyBinary);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(CrossEntropyBinary);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(CrossEntropyBinary);
+#endif
 
 }  // namespace blitz

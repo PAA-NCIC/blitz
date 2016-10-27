@@ -71,6 +71,12 @@ void Pooling<TensorType, DType>::BackwardPropImpl(
   }
 }
 
-INSTANTIATE_CLASS(Pooling);
+INSTANTIATE_CLASS_CPU(Pooling);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Pooling);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Pooling);
+#endif
 
 }  // namespace blitz

@@ -21,6 +21,12 @@ void SquareMean<TensorType, DType>::Derivative(
     output.get(), target.get(), result.get());
 }
 
-INSTANTIATE_CLASS(SquareMean);
+INSTANTIATE_CLASS_CPU(SquareMean);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(SquareMean);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(SquareMean);
+#endif
 
 }  // namespace blitz

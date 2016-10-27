@@ -22,6 +22,12 @@ void Softmax<TensorType, DType>::Derivative(
   }
 }
 
-INSTANTIATE_CLASS(Softmax);
+INSTANTIATE_CLASS_CPU(Softmax);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Softmax);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Softmax);
+#endif
 
 }  // namespace blitz

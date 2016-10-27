@@ -49,40 +49,43 @@
   template class Backend<tensor, double> \
 
 // instaniate class
-#ifdef BLITZ_CPU_ONLY
-  #define INSTANTIATE_CLASS(classname) \
-      char BlitzInstantiationClassGuard##classname; \
-    template class classname<CPUTensor, float>; \
-    template class classname<CPUTensor, double>
-#else
-  #define INSTANTIATE_CLASS(classname) \
-      char BlitzInstantiationClassGuard##classname; \
-    template class classname<CPUTensor, float>; \
-    template class classname<CPUTensor, double>; \
-    template class classname<GPUTensor, float>; \
-    template class classname<GPUTensor, double>
-#endif
+#define INSTANTIATE_CLASS_CPU(classname) \
+    char BlitzInstantiationClassCPUGuard##classname; \
+  template class classname<CPUTensor, float>; \
+  template class classname<CPUTensor, double>
+
+#define INSTANTIATE_CLASS_MIC(classname) \
+    char BlitzInstantiationClassMICGuard##classname; \
+  template class classname<MICTensor, float>; \
+  template class classname<MICTensor, double>
+
+#define INSTANTIATE_CLASS_GPU(classname) \
+    char BlitzInstantiationClassGPUGuard##classname; \
+  template class classname<GPUTensor, float>; \
+  template class classname<GPUTensor, double>
 
 // instaniate functions
-#ifdef BLITZ_CPU_ONLY
-#define INSTANTIATE_SETTER(object) \
-    char BlitzInstantiatiionSetterGuard##object; \
+#define INSTANTIATE_SETTER_CPU(object) \
+    char BlitzInstantiatiionSetterCPUGuard##object; \
   template shared_ptr<object<CPUTensor, float> > \
     Parser::Set##object<CPUTensor, float>(const YAML::Node& node) const; \
   template shared_ptr<object<CPUTensor, double> > \
     Parser::Set##object<CPUTensor, double>(const YAML::Node& node) const
-#else
-#define INSTANTIATE_SETTER(object) \
-    char BlitzInstantiatiionSetterGuard##object; \
-  template shared_ptr<object<CPUTensor, float> > \
-    Parser::Set##object<CPUTensor, float>(const YAML::Node& node) const; \
-  template shared_ptr<object<CPUTensor, double> > \
-    Parser::Set##object<CPUTensor, double>(const YAML::Node& node) const; \
+
+#define INSTANTIATE_SETTER_MIC(object) \
+    char BlitzInstantiatiionSetterMICGuard##object; \
+  template shared_ptr<object<MICTensor, float> > \
+    Parser::Set##object<MICTensor, float>(const YAML::Node& node) const; \
+  template shared_ptr<object<MICTensor, double> > \
+    Parser::Set##object<MICTensor, double>(const YAML::Node& node) const
+
+#define INSTANTIATE_SETTER_GPU(object) \
+    char BlitzInstantiatiionSetterGPUGuard##object; \
   template shared_ptr<object<GPUTensor, float> > \
     Parser::Set##object<GPUTensor, float>(const YAML::Node& node) const; \
   template shared_ptr<object<GPUTensor, double> > \
     Parser::Set##object<GPUTensor, double>(const YAML::Node& node) const
-#endif
+
 
 namespace blitz {
 

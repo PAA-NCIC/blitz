@@ -164,13 +164,8 @@ void BlitzSassConvolution2D(
   blitz_magic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
   blitz_magic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
   blitz_magic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
-  // test param set up
+  // test param set up TODO(keren): erase
   float *test_param;
-#ifdef BLITZ_DEVELOP
-  cudaError_t cuda_error;
-  cuda_error = cudaMalloc((void**)&test_param, sizeof(float) * 1024);
-  cudaMemset(test_param, 0, sizeof(float) * 1024);
-#endif
   // arguments
   size_t gridX, gridY, gridZ;
   CUresult result;

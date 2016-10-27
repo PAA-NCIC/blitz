@@ -11,6 +11,12 @@ void Gaussian<TensorType, DType>::FillImpl(LayerWeightIterator
   Backend<TensorType, DType>::NormalDistributionFunc(weight.get(), loc_, scale_);
 }
 
-INSTANTIATE_CLASS(Gaussian);
+INSTANTIATE_CLASS_CPU(Gaussian);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Gaussian);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Gaussian);
+#endif
 
 }  // namespace blitz

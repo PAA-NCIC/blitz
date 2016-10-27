@@ -66,6 +66,12 @@ void Initializer::Initialize(const Parser& parser) {
   }
 }
 
-REGISTER_INITIALIZER;
+REGISTER_INITIALIZER_CPU;
+#ifdef BLITZ_USE_GPU
+  REGISTER_INITIALIZER_GPU;
+#endif
+#ifdef BLITZ_USE_MIC
+  REGISTER_INITIALIZER_MIC;
+#endif
 
 }  // namespace blitz

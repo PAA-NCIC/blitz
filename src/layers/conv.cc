@@ -1,7 +1,7 @@
 #include "layers/conv.h"
 
 #include "backends/backends.h"
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
 #include "utils/blitz_gpu_function.h"
 #endif
 
@@ -64,7 +64,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
       output_shape.size() + weight_shape.size();
     workspace_shape[0] = workspace_size;
   }
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
   else if (this->kernel_ == "cudnn") {
     // create val
     cudnn_alpha_ = new DType(1.0);
@@ -107,7 +107,7 @@ template<template <typename> class TensorType, typename DType>
 void Conv<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
   // TODO(keren) fusing
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
   if (this->kernel_ == "cudnn") {
     // start cudnn directly from the layer, not throught backend
     // because backend is a general engine
@@ -163,7 +163,7 @@ template<template <typename> class TensorType, typename DType>
 void Conv<TensorType, DType>::BackwardPropImpl(
   shared_ptr<TensorType<DType> > backward_input) {
   if (this->backward_prop_) {
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
     if (this->kernel_ == "cudnn") {
       cudnnConvolutionBackwardData(cudnn_handle_,
         reinterpret_cast<void*>(cudnn_alpha_),
@@ -193,7 +193,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
       this->kernel_);
 #endif
   }
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
   if (this->kernel_ == "cudnn") {
     cudnnConvolutionBackwardFilter(cudnn_handle_,
       reinterpret_cast<void*>(cudnn_alpha_),
@@ -224,6 +224,12 @@ void Conv<TensorType, DType>::BackwardPropImpl(
 #endif
 }
 
-INSTANTIATE_CLASS(Conv);
+INSTANTIATE_CLASS_CPU(Conv);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Conv);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Conv);
+#endif
 
 }  // namespace blitz

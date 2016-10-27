@@ -20,6 +20,12 @@ void Rectlin<TensorType, DType>::Derivative(
     input.get(), output.get(), slope_);
 }
 
-INSTANTIATE_CLASS(Rectlin);
+INSTANTIATE_CLASS_CPU(Rectlin);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Rectlin);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Rectlin);
+#endif
 
 }  // namespace blitz

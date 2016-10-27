@@ -11,6 +11,12 @@ void Uniform<TensorType, DType>::FillImpl(LayerWeightIterator
   Backend<TensorType, DType>::UniformDistributionFunc(weight.get(), low_, high_);
 }
 
-INSTANTIATE_CLASS(Uniform);
+INSTANTIATE_CLASS_CPU(Uniform);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Uniform);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Uniform);
+#endif
 
 }  // namespace blitz

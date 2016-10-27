@@ -42,7 +42,13 @@ void Scheduler<TensorType, DType>::AddLayer(const string& optimizer_name,
   optimizer->AddLayer(layer_name, weight, update);
 }
 
-INSTANTIATE_CLASS(Scheduler);
+INSTANTIATE_CLASS_CPU(Scheduler);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Scheduler);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Scheduler);
+#endif
 
 }  // namespace blitz
 

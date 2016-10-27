@@ -83,6 +83,12 @@ void Affine<TensorType, DType>::BackwardPropImpl(
   #endif  // BLITZ_PERFORMANCE
 }
 
-INSTANTIATE_CLASS(Affine);
+INSTANTIATE_CLASS_CPU(Affine);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Affine);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Affine);
+#endif
 
 }  // namespace blitz

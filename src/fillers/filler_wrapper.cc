@@ -29,6 +29,12 @@ void FillerWrapper<TensorType, DType>::AddLayer(const string& filler_name,
   filler->AddLayer(layer_name, weight);
 }
 
-INSTANTIATE_CLASS(FillerWrapper);
+INSTANTIATE_CLASS_CPU(FillerWrapper);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(FillerWrapper);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(FillerWrapper);
+#endif
 
 }  // namespace blitz

@@ -178,6 +178,12 @@ shared_ptr<TensorType<DType> > DataIterator<TensorType, DType>
   return tensor_pool_[index - current_begin_index_];
 }
 
-INSTANTIATE_CLASS(DataIterator);
+INSTANTIATE_CLASS_CPU(DataIterator);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(DataIterator);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(DataIterator);
+#endif
 
 }  // namespace blitz

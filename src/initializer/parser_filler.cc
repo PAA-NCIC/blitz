@@ -56,6 +56,12 @@ shared_ptr<Filler<TensorType, DType> > Parser::SetFiller(
   return filler;
 }
 
-INSTANTIATE_SETTER(Filler);
+INSTANTIATE_SETTER_CPU(Filler);
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_SETTER_GPU(Filler);
+#endif
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_SETTER_MIC(Filler);
+#endif
 
 }  // namespace blitz

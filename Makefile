@@ -21,7 +21,7 @@ LIBS := $(LIB_DIR)/libblitz.a
 OPTIMIZE_OPTIONS := -O3
 #avx types
 ifeq ($(BLITZ_AVX), 512)
-    OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xMIC-AVX512
+  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xMIC-AVX512
 else ifeq ($(BLITZ_AVX), 3)
   OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xCORE-AVX512
 else ifeq ($(BLITZ_AVX), 2)
@@ -34,13 +34,16 @@ OPENMP_OPTIONS := -fopenmp
 CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
 
-ifeq ($(CPU_ONLY), 1)
-  CXXFLAGS += -DBLITZ_CPU_ONLY
-else
+ifeq ($(BLITZ_USE_GPU), 1)
   NVCC := nvcc
   NVCC_INC := -Iinclude/
   NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
   NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(CC)
+  CXXFLAGS += -DBLITZ_USE_GPU
+endif
+
+ifeq ($(BLITZ_USE_MIC), 1)
+  CXXFLAGS += -DBLITZ_USE_MIC
 endif
 
 #dependency
@@ -50,12 +53,10 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
 #libraries
-ifeq ($(CPU_ONLY), 1)
-  LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time \
-    -lboost_system
-else
-  LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
-    -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
+LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
+
+ifeq ($(BLITZ_USE_GPU), 1)
+  LDFLAGS += -lcudart -lcuda -lcublas -lcudnn -lcurand
 endif
 
 #blitz
@@ -65,9 +66,6 @@ ifeq ($(BLITZ_MODE), release)
 else ifeq ($(BLITZ_MODE), performance)
   CXXFLAGS += -DBLITZ_PERFORMANCE
   NVCC_XCOMPILE += -DBLITZ_PERFORMANCE
-else ifeq ($(BLITZ_MODE), develop)
-  CXXFLAGS += -DBLITZ_DEVELOP -g
-  NVCC_XCOMPILE += -DBLITZ_DEVELOP -g
 endif
 
 CXXFLAGS += -DBLITZ_NUM_THREADS=$(BLITZ_NUM_THREADS)
@@ -109,7 +107,7 @@ BINS := $(BIN_DIR)/$(PROJECT)
 
 AUTODEPS:= $(patsubst %.o, %.d, $(OBJECTS)) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 
-ifeq ($(CPU_ONLY), 0)
+ifeq ($(BLITZ_USE_GPU), 1)
   NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
   NVCC_OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cu, %.o, $(NVCC_SRCS:$(SRC_ROOT)/%=%)))
   NVCC_OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(NVCC_SRCS:$(SRC_ROOT)/%=%))))
@@ -120,12 +118,12 @@ endif
 #mkdir first
 all: dirs bins objects libs
 
-ifeq ($(CPU_ONLY), 1)
-  ALL_OBJECTS_DIR := $(OBJECTS_DIR)
-  ALL_BINS_DIR := $(BIN_DIR)
-else
+#dirs
+ALL_BINS_DIR := $(BIN_DIR)
+ifeq ($(BLITZ_USE_GPU), 1)
   ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
-  ALL_BINS_DIR := $(BIN_DIR)
+else
+  ALL_OBJECTS_DIR := $(OBJECTS_DIR)
 endif
 
 dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR) $(LIB_DIR)
@@ -143,31 +141,28 @@ bins: $(BINS)
 
 libs: $(LIBS)
 
-ifeq ($(CPU_ONLY), 1)
-  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIBS)
-	  $(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
+$(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIBS)
+	$(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
 
-  $(LIBS): $(OBJECTS)
-	ar rcs $@ $^
-
-  objects: $(OBJECTS)
-
-  $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
-	  $(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
-	  $(POSTCOMPILE)
-else
-  $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIBS)
-	  $(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
-
+ifeq ($(BLITZ_USE_GPU), 1)
   $(LIBS): $(OBJECTS) $(NVCC_OBJECTS)
 	ar rcs $@ $^
+else
+  $(LIBS): $(OBJECTS)
+	ar rcs $@ $^
+endif
 
+ifeq ($(BLITZ_USE_GPU), 1)
   objects: $(OBJECTS) $(NVCC_OBJECTS)
+else
+  objects: $(OBJECTS)
+endif
 
-  $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
-	  $(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
-	  $(POSTCOMPILE)
+$(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
+	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
+	$(POSTCOMPILE)
 
+ifeq ($(BLITZ_USE_GPU), 1)
   $(NVCC_OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cu $(BUILD_DIR)/%.d 
 	  $(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
 	  $(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -c $< -o $@

@@ -21,6 +21,12 @@ void AbsMean<TensorType, DType>::Derivative(
     output.get(), target.get(), result.get());
 }
 
-INSTANTIATE_CLASS(AbsMean);
+INSTANTIATE_CLASS_CPU(AbsMean);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(AbsMean);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(AbsMean);
+#endif
 
 }  // namespace blitz

@@ -3,7 +3,7 @@
 
 #include <string>
 
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
 #include <cudnn.h>
 #endif
 #include "layers/param_layer.h"
@@ -50,7 +50,7 @@ class Conv : public ParamLayer<TensorType, DType> {
   double forward_computations_;
   double backward_computations_;
   double backward_update_computations_;
-#ifndef BLITZ_CPU_ONLY
+#ifdef BLITZ_USE_GPU
   cudnnHandle_t cudnn_handle_;
 
   // algorithms for forward and backwards convolutions

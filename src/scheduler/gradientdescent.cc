@@ -23,7 +23,13 @@ void Gradientdescent<TensorType, DType>::OptimizeImpl(
     momentum_coef_, learning_rate, decay_, batch_size);
 }
 
-INSTANTIATE_CLASS(Gradientdescent);
+INSTANTIATE_CLASS_CPU(Gradientdescent);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Gradientdescent);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Gradientdescent);
+#endif
 
 }  // namespace blitz
 

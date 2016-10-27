@@ -171,6 +171,12 @@ shared_ptr<Layer<TensorType, DType> >
   return layer;
 }
 
-INSTANTIATE_SETTER(Layer);
+INSTANTIATE_SETTER_CPU(Layer);
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_SETTER_GPU(Layer);
+#endif
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_SETTER_MIC(Layer);
+#endif
 
 }  // namespace blitz

@@ -103,6 +103,12 @@ void LayerWrapper<TensorType, DType>::SetInferenceMode() {
   }
 }
 
-INSTANTIATE_CLASS(LayerWrapper);
+INSTANTIATE_CLASS_CPU(LayerWrapper);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(LayerWrapper);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(LayerWrapper);
+#endif
 
 }  // namespace blitz

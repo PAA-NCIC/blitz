@@ -176,7 +176,13 @@ void Model<TensorType, DType>::BackwardProp(
   layer_wrapper->BackwardProp();
 }
 
-INSTANTIATE_CLASS(Model);
+INSTANTIATE_CLASS_CPU(Model);
+#ifdef BLITZ_USE_MIC
+  INSTANTIATE_CLASS_MIC(Model);
+#endif
+#ifdef BLITZ_USE_GPU
+  INSTANTIATE_CLASS_GPU(Model);
+#endif
 
 }  // namespace blitz
 
