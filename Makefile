@@ -21,13 +21,13 @@ LIBS := $(LIB_DIR)/libblitz.a
 OPTIMIZE_OPTIONS := -O3
 #avx types
 ifeq ($(BLITZ_AVX), 512)
-  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xMIC-AVX512
+	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xMIC-AVX512
 else ifeq ($(BLITZ_AVX), 3)
-  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xCORE-AVX512
+	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xCORE-AVX512
 else ifeq ($(BLITZ_AVX), 2)
-  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx2
+	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx2
 else
-  OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx
+	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx
 endif
 
 OPENMP_OPTIONS := -fopenmp
@@ -35,18 +35,18 @@ CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIO
 INC := -Iinclude/
 
 ifeq ($(BLITZ_USE_GPU), 1)
-  NVCC := nvcc
-  NVCC_INC := -Iinclude/
-  NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
-  NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(CC)
-  CXXFLAGS += -DBLITZ_USE_GPU
+	NVCC := nvcc
+	NVCC_INC := -Iinclude/
+	NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
+	NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(CC)
+	CXXFLAGS += -DBLITZ_USE_GPU
 endif
 
 ifeq ($(BLITZ_USE_MIC), 1)
-  INC += -I/home/zkr/install/libxsmm/include
-  LIBRARY_DIR += -L/home/zkr/install/libxsmm/lib
-  CXXFLAGS += -DBLITZ_USE_MIC
-  LDFLAGS += libxsmm.a
+	INC += -I/home/zkr/install/libxsmm/include
+	LIBRARY_DIR += -L/home/zkr/install/libxsmm/lib
+	CXXFLAGS += -DBLITZ_USE_MIC
+	LDFLAGS += libxsmm.a
 endif
 
 #dependency
@@ -59,16 +59,16 @@ POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
 
 ifeq ($(BLITZ_USE_GPU), 1)
-  LDFLAGS += -lcudart -lcuda -lcublas -lcudnn -lcurand
+	LDFLAGS += -lcudart -lcuda -lcublas -lcudnn -lcurand
 endif
 
 #blitz
 ifeq ($(BLITZ_MODE), release)
-  CXXFLAGS += -DBLITZ_RELEASE
-  NVCC_XCOMPILE += -DBLITZ_RELEASE
+	CXXFLAGS += -DBLITZ_RELEASE
+	NVCC_XCOMPILE += -DBLITZ_RELEASE
 else ifeq ($(BLITZ_MODE), performance)
-  CXXFLAGS += -DBLITZ_PERFORMANCE
-  NVCC_XCOMPILE += -DBLITZ_PERFORMANCE
+	CXXFLAGS += -DBLITZ_PERFORMANCE
+	NVCC_XCOMPILE += -DBLITZ_PERFORMANCE
 endif
 
 CXXFLAGS += -DBLITZ_NUM_THREADS=$(BLITZ_NUM_THREADS)
@@ -77,31 +77,35 @@ CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=$(BLITZ_ALIGNMENT_SIZE)
 #blas
 BLAS ?= atlas
 ifeq ($(BLAS), mkl)
-  #MKL
-  LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
-  CXXFLAGS += -DUSE_MKL
-  MKL_DIR ?= /opt/intel/mkl
-  BLAS_INCLUDE ?= $(MKL_DIR)/include
-  BLAS_LIB ?= $(MKL_DIR)/lib/intel64
+	#MKL
+	LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
+	CXXFLAGS += -DUSE_MKL
+	MKL_DIR ?= /opt/intel/mkl
+	BLAS_INCLUDE ?= $(MKL_DIR)/include
+	BLAS_LIB ?= $(MKL_DIR)/lib/intel64
 else ifeq ($(BLAS), atlas)
-  #ATLAS
-  LDFLAGS += -lcblas -latlas
+	#ATLAS
+	LDFLAGS += -lcblas -latlas
 endif
 
 ifdef BLAS_INCLUDE
-  INC += -I$(BLAS_INCLUDE)
+	INC += -I$(BLAS_INCLUDE)
 endif
 
 ifdef BLAS_LIB
-  LIBRARY_DIR += -L$(BLAS_LIB)
+	LIBRARY_DIR += -L$(BLAS_LIB)
 endif
 
 ifeq ($(STATIC_LINK), 1)
-  LDFLAGS := -Wl, --start-group $(LDFLAGS) -Wl, --end-group
+	LDFLAGS := -Wl, --start-group $(LDFLAGS) -Wl, --end-group
 endif
 
 #variables
-SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cc" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
+ifeq ($(BLITZ_USE_MIC), 0)
+	SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cc" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*" ! -path "*xsmm*" ! -path "*mic*")
+else
+	SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cc" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
+endif
 
 OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cc, %.o, $(SRCS:$(SRC_ROOT)/%=%)))
 OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(SRCS:$(SRC_ROOT)/%=%))))
@@ -111,10 +115,10 @@ BINS := $(BIN_DIR)/$(PROJECT)
 AUTODEPS:= $(patsubst %.o, %.d, $(OBJECTS)) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 
 ifeq ($(BLITZ_USE_GPU), 1)
-  NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
-  NVCC_OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cu, %.o, $(NVCC_SRCS:$(SRC_ROOT)/%=%)))
-  NVCC_OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(NVCC_SRCS:$(SRC_ROOT)/%=%))))
-  AUTODEPS:= $(AUTODEPS) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
+	NVCC_SRCS := $(shell find $(SRC_ROOT) -maxdepth 4 -name "*.cu" ! -name $(PROJECT).cc ! -path "*backup*" ! -path "*samples*")
+	NVCC_OBJECTS := $(addprefix $(BUILD_DIR)/, $(patsubst %.cu, %.o, $(NVCC_SRCS:$(SRC_ROOT)/%=%)))
+	NVCC_OBJECTS_DIR := $(sort $(addprefix $(BUILD_DIR)/, $(dir $(NVCC_SRCS:$(SRC_ROOT)/%=%))))
+	AUTODEPS:= $(AUTODEPS) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 endif
 
 #rules
@@ -124,9 +128,9 @@ all: dirs bins objects libs
 #dirs
 ALL_BINS_DIR := $(BIN_DIR)
 ifeq ($(BLITZ_USE_GPU), 1)
-  ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
+	ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
 else
-  ALL_OBJECTS_DIR := $(OBJECTS_DIR)
+	ALL_OBJECTS_DIR := $(OBJECTS_DIR)
 endif
 
 dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR) $(LIB_DIR)
@@ -166,9 +170,9 @@ $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d
 	$(POSTCOMPILE)
 
 ifeq ($(BLITZ_USE_GPU), 1)
-  $(NVCC_OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cu $(BUILD_DIR)/%.d 
-	  $(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
-	  $(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -c $< -o $@
+	$(NVCC_OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cu $(BUILD_DIR)/%.d 
+		$(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -M $< -o ${@:.o=.d} -odir $(@D)
+		$(NVCC) $(NVCC_FLAGS) -Xcompiler "$(NVCC_XCOMPILE)" $(NVCC_INC) -c $< -o $@
 endif
 
 clean:

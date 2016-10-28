@@ -98,10 +98,10 @@ class Parser {
     return *data_shape_;
   }
 
-  int label_size() const {
+  size_t label_size() const {
     if (label_size_ == 0) {
       if (config_["label_size"]) {
-        label_size_ = make_shared<int>(config_["label_size"].as<int>());
+        label_size_ = make_shared<size_t>(config_["label_size"].as<size_t>());
       } else {
         LOG(FATAL) << "'label_size' parameter missing";
       }
@@ -109,10 +109,10 @@ class Parser {
     return *label_size_;
   }
 
-  int epoches() const {
+  size_t epoches() const {
     if (epoches_ == 0) {
       if (config_["epoches"]) {
-        epoches_ = make_shared<int>(config_["epoches"].as<int>());
+        epoches_ = make_shared<size_t>(config_["epoches"].as<size_t>());
       } else {
         LOG(WARNING) << "'epoches' parameter missing";
       }
@@ -120,10 +120,10 @@ class Parser {
     return *epoches_;
   }
 
-  int batch_size() const {
+  size_t batch_size() const {
     if (batch_size_ == 0) {
       if (config_["batch_size"]) {
-        batch_size_ = make_shared<int>(config_["batch_size"].as<int>());
+        batch_size_ = make_shared<size_t>(config_["batch_size"].as<size_t>());
       } else {
         LOG(WARNING) << "'batch_size' parameter missing";
       }
@@ -131,12 +131,12 @@ class Parser {
     return *batch_size_;
   }
 
-  int pool_size() const {
+  size_t pool_size() const {
     if (pool_size_ == 0) {
       if (config_["pool_size"]) {
-        pool_size_ = make_shared<int>(config_["pool_size"].as<int>());
+        pool_size_ = make_shared<size_t>(config_["pool_size"].as<size_t>());
       } else {
-        pool_size_ = make_shared<int>(3000);
+        pool_size_ = make_shared<size_t>(3000);
         LOG(WARNING) << "'pool_size' parameter missing";
       }
     }
@@ -377,10 +377,10 @@ class Parser {
   mutable shared_ptr<string> eval_type_;
   mutable shared_ptr<string> backend_type_;
 
-  mutable shared_ptr<int> epoches_;
-  mutable shared_ptr<int> batch_size_;
-  mutable shared_ptr<int> label_size_;
-  mutable shared_ptr<int> pool_size_;
+  mutable shared_ptr<size_t> epoches_;
+  mutable shared_ptr<size_t> batch_size_;
+  mutable shared_ptr<size_t> label_size_;
+  mutable shared_ptr<size_t> pool_size_;
 
   mutable shared_ptr<bool> eval_;
   mutable shared_ptr<bool> inference_;
