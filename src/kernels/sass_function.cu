@@ -2,7 +2,6 @@
 
 #include <cuda.h>
 
-#include <cstdio>
 #include <string>
 
 #include "utils/blitz_math_function.h"

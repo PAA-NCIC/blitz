@@ -43,7 +43,10 @@ ifeq ($(BLITZ_USE_GPU), 1)
 endif
 
 ifeq ($(BLITZ_USE_MIC), 1)
+  INC += -I/home/zkr/install/libxsmm/include
+  LIBRARY_DIR += -L/home/zkr/install/libxsmm/lib
   CXXFLAGS += -DBLITZ_USE_MIC
+  LDFLAGS += libxsmm.a
 endif
 
 #dependency
