@@ -8,26 +8,26 @@ void Scheduler<TensorType, DType>::Run(const size_t epoch, const size_t batch_si
   typename map<string, shared_ptr<Optimizer<TensorType, DType> > >::iterator
     optimizer_it = optimizers_.begin();
 
-  for (; optimizer_it != optimizers_.end(); ++optimizer_it) {
+	for (; optimizer_it != optimizers_.end(); ++optimizer_it) {
 #ifdef BLITZ_DEVELOP
-    LOG(INFO) << optimizer_it->first;
+		LOG(INFO) << optimizer_it->first;
 #endif
 #ifdef BLITZ_PERFORMANCE
-    LOG(INFO) << optimizer_it->first;
-    time_point<system_clock> start, end;
-    duration<double> core_time = duration<double>::zero();
-    start = system_clock::now();
+		LOG(INFO) << optimizer_it->first;
+		time_point<system_clock> start, end;
+		duration<double> core_time = duration<double>::zero();
+		start = system_clock::now();
 #endif
-    shared_ptr<Optimizer<TensorType, DType> > optimizer =
-      optimizer_it->second;
-    optimizer->Optimize(epoch, batch_size);
+		shared_ptr<Optimizer<TensorType, DType> > optimizer =
+			optimizer_it->second;
+		optimizer->Optimize(epoch, batch_size);
 #ifdef BLITZ_PERFORMANCE
-    end = system_clock::now();
-    core_time = end - start;
-    LOG(INFO) << "Optimize time: " <<
-      core_time.count();
+		end = system_clock::now();
+		core_time = end - start;
+		LOG(INFO) << "Optimize time: " <<
+			core_time.count();
 #endif
-  }
+	}
 }
 
 template<template <typename> class TensorType, typename DType>

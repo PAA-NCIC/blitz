@@ -22,23 +22,23 @@ void Backend<MICTensor, DType>::Unpack2DFunc(
   for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
     const size_t channel_offset = channel_index * input_height * input_width;
     const DType* input_slice = input + channel_offset;
-    for (size_t filter_height_index = 0; filter_height_index < filter_height;
-        ++filter_height_index) {
-      for (size_t filter_width_index = 0; filter_width_index < filter_width;
-          ++filter_width_index) {
+    for (size_t filter_height_index = 0; filter_height_index < filter_height; 
+			++filter_height_index) {
+      for (size_t filter_width_index = 0; filter_width_index < filter_width; 
+				++filter_width_index) {
         int filter_height_offset = -padding_height + filter_height_index;
-        for (size_t output_height_index = 0; output_height_index < output_height;
-            ++output_height_index) {
+        for (size_t output_height_index = 0; output_height_index < output_height; 
+					++output_height_index) {
           if (filter_height_offset < 0 || filter_height_offset >=
             static_cast<int>(input_height)) {
-            for (size_t output_width_index = 0; output_width_index < output_width;
-                ++output_width_index) {
+            for (size_t output_width_index = 0; output_width_index < output_width; 
+							++output_width_index) {
               unpack[unpack_index++] = 0;
             }
           } else {
             int filter_width_offset = -padding_width + filter_width_index;
-            for (size_t output_width_index = 0; output_width_index < output_width;
-                ++output_width_index) {
+            for (size_t output_width_index = 0; output_width_index < output_width; 
+							++output_width_index) {
               if (filter_width_offset < 0 || filter_width_offset >=
                 static_cast<int>(input_width)) {
                 unpack[unpack_index++] = 0;
@@ -77,20 +77,20 @@ void Backend<MICTensor, DType>::Pack2DFunc(
   for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
     const size_t channel_offset = channel_index * input_height * input_width;
     DType* input_slice = input + channel_offset;
-    for (size_t filter_height_index = 0; filter_height_index < filter_height;
-        ++filter_height_index) {
-      for (size_t filter_width_index = 0; filter_width_index < filter_width;
-          ++filter_width_index) {
+    for (size_t filter_height_index = 0; filter_height_index < filter_height; 
+			++filter_height_index) {
+      for (size_t filter_width_index = 0; filter_width_index < filter_width; 
+				++filter_width_index) {
         int filter_height_offset = -padding_height + filter_height_index;
-        for (size_t output_height_index = 0; output_height_index < output_height;
-            ++output_height_index) {
+        for (size_t output_height_index = 0; output_height_index < output_height; 
+					++output_height_index) {
           if (filter_height_offset < 0 || filter_height_offset >=
             static_cast<int>(input_height)) {
             pack_index += output_width;
           } else {
             int filter_width_offset = -padding_width + filter_width_index;
-            for (size_t output_width_index = 0; output_width_index < output_width;
-                ++output_width_index) {
+            for (size_t output_width_index = 0; output_width_index < output_width; 
+							++output_width_index) {
               if (filter_width_offset >= 0 && filter_width_offset <
                 static_cast<int>(input_width)) {
                 input_slice[filter_height_offset * input_width +

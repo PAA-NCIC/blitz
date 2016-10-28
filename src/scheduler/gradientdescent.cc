@@ -8,10 +8,10 @@ void Gradientdescent<TensorType, DType>::OptimizeImpl(
   const size_t epoch, const size_t batch_size,
   const DType learning_rate, LayerParamIterator layer_param_it) {
 #ifdef BLITZ_DEVELOP
-    LOG(INFO) << "Optimize: " << layer_param_it->first;
-    LOG(INFO) << "batch_size: " << batch_size;
-    LOG(INFO) << "epoch: " << epoch;
-    LOG(INFO) << "learning_rate: " << learning_rate;
+	LOG(INFO) << "Optimize: " << layer_param_it->first;
+	LOG(INFO) << "batch_size: " << batch_size;
+	LOG(INFO) << "epoch: " << epoch;
+	LOG(INFO) << "learning_rate: " << learning_rate;
 #endif
   shared_ptr<LayerParam> layer_param = layer_param_it->second;
   shared_ptr<TensorType<DType> > weight = layer_param->weight();
