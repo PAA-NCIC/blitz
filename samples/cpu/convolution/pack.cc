@@ -41,6 +41,61 @@ void compare(const float* algo1, const float* algo2, size_t size) {
 	}
 }
 
+void unpack_stride_multi_pad(
+  const float* input,
+  float* unpack,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
+	size_t unpack_id = 0;
+	for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
+		for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
+			for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
+				float* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + channel_index * filter_height * filter_width + filter_height_index * filter_width;
+				if (filter_height_index + output_height_index * stride_height < padding_height ||
+					filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
+					for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
+						#pragma simd
+						#pragma vector aligned
+						for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
+							unpack_slice[filter_width_index] = 0;
+						}
+						unpack_slice += filter_height * filter_width * channel;
+					}
+				} else {
+					const float* input_slice = input + channel_index * input_height * input_width + (output_height_index * stride_height + filter_height_index - padding_height) * input_width;
+					for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
+						size_t filter_width_index = 0; 
+						for (; output_width_index * stride_width + filter_width_index < padding_width; ++filter_width_index) {
+							unpack_slice[filter_width_index] = 0;
+						}
+						size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
+						size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
+						#pragma simd
+						#pragma vector aligned
+						for (; filter_width_index < output_end; ++filter_width_index) {
+							unpack_slice[filter_width_index] = input_slice[filter_width_index - padding_width];
+						}
+						for (; filter_width_index < padding_end; ++filter_width_index) {
+							unpack_slice[filter_width_index] = 0;
+						}
+						unpack_slice += filter_height * filter_width * channel;
+						input_slice += stride_width;
+					}
+				}
+			}
+		}
+	}
+}
+
 void unpack_stride_multi(
   const float* input,
   float* unpack,
@@ -230,7 +285,7 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 					pad_h, pad_w, str_h, str_w);
 			}
 		} else {
-			unpack_stride_multi(
+			unpack_stride_multi_pad(
 				input_cpu.data(), workspace_cpu_copy.data(),
 				input_shape[1], input_shape[2], input_shape[3],
 				filter_shape[2], filter_shape[3],
@@ -260,7 +315,7 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 	compare(workspace_cpu.data(), workspace_cpu_copy.data(), workspace_shape_cpu.size());
 }
 
-void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations) {
+void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations, const int a) {
 }
 
 int main(int argc, char** argv) {
@@ -293,7 +348,7 @@ int main(int argc, char** argv) {
   workspace_shape_cpu[0] = C * R * S * P * Q;
   // run pack
   if (phase == "pack") {
-    pack(pad_h, pad_w, str_h, str_w, iterations);
+    pack(pad_h, pad_w, str_h, str_w, iterations, 1);
   } else if (phase == "unpack") {
     unpack(pad_h, pad_w, str_h, str_w, iterations);
   }
