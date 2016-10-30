@@ -55,7 +55,6 @@ void unpack_stride_multi_pad(
   size_t padding_width,
   size_t stride_height,
   size_t stride_width) {
-	size_t unpack_id = 0;
 	for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
 		for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
 			for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
@@ -63,32 +62,34 @@ void unpack_stride_multi_pad(
 				if (filter_height_index + output_height_index * stride_height < padding_height ||
 					filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
 					for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-						#pragma simd
+						float* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
+						#pragma simd vectorlength(4)
 						#pragma vector aligned
 						for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
-							unpack_slice[filter_width_index] = 0;
+							unpack_slice_slice[filter_width_index] = 0;
 						}
-						unpack_slice += filter_height * filter_width * channel;
 					}
 				} else {
 					const float* input_slice = input + channel_index * input_height * input_width + (output_height_index * stride_height + filter_height_index - padding_height) * input_width;
 					for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-						size_t filter_width_index = 0; 
-						for (; output_width_index * stride_width + filter_width_index < padding_width; ++filter_width_index) {
-							unpack_slice[filter_width_index] = 0;
+						const float* input_slice_slice = input_slice + output_width_index * stride_width;
+						float* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
+						int filter_width_index = 0; 
+						#pragma unroll
+						for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
+							unpack_slice_slice[filter_width_index] = 0;
 						}
 						size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
 						size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
-						#pragma simd
+						#pragma simd vectorlength(4)
 						#pragma vector aligned
 						for (; filter_width_index < output_end; ++filter_width_index) {
-							unpack_slice[filter_width_index] = input_slice[filter_width_index - padding_width];
+							unpack_slice_slice[filter_width_index] = input_slice_slice[filter_width_index - padding_width];
 						}
+						#pragma unroll
 						for (; filter_width_index < padding_end; ++filter_width_index) {
-							unpack_slice[filter_width_index] = 0;
+							unpack_slice_slice[filter_width_index] = 0;
 						}
-						unpack_slice += filter_height * filter_width * channel;
-						input_slice += stride_width;
 					}
 				}
 			}
@@ -116,7 +117,7 @@ void unpack_stride_multi(
 				const float* input_slice = input + channel_index * input_height * input_width + (output_height_index * stride_height + filter_height_index) * input_width;
 				float* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + channel_index * filter_height * filter_width + filter_height_index * filter_width;
 				for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-					#pragma simd
+					#pragma simd vectorlength(4)
 					#pragma vector aligned
 					for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
 						unpack_slice[filter_width_index] = input_slice[filter_width_index];
@@ -203,6 +204,8 @@ void unpack_stride_one_pad(
 				if (filter_height_index + output_height_index < padding_height ||
 					filter_height_index + output_height_index >= padding_height + input_height) {
 					for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
+						#pragma simd
+						#pragma vector aligned
 						for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
 							unpack[output_width_index] = 0;
 						}
@@ -211,6 +214,7 @@ void unpack_stride_one_pad(
 				} else {
 					for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
 						size_t output_width_index = 0;
+						#pragma unroll
 						for (; filter_width_index + output_width_index < padding_width; ++output_width_index) {
 							unpack[output_width_index] = 0;
 						}
@@ -221,6 +225,7 @@ void unpack_stride_one_pad(
 						for (; output_width_index < output_end; ++output_width_index) {
 							unpack[output_width_index] = input[output_width_index - padding_width];
 						}
+						#pragma unroll
 						for (; output_width_index < padding_end; ++output_width_index) {
 							unpack[output_width_index] = 0;
 						}
