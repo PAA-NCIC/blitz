@@ -74,6 +74,7 @@ void unpack_stride_multi(
 	}
 }
 
+
 void unpack_stride_one(
   const float* input,
   float* unpack,
@@ -99,16 +100,17 @@ void unpack_stride_one(
 		unpack = prev_unpack;
 		for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
 			for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
+				const float* input_slice = prev_input + filter_height_index * input_width;
+				float* unpack_slice = prev_unpack + filter_height_index * filter_width * output_height * output_width;
 				for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
+					unpack = unpack_slice + filter_width_index * output_height * output_width;
+					input = input_slice + filter_width_index;
 					#pragma simd
 					#pragma vector aligned
 					for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
 						unpack[output_width_index] = input[output_width_index];
 					}
-					unpack += output_height * output_width;
-					input++;	
 				}
-				input += input_width - filter_width;
 			}
 			prev_unpack += output_width;
 			prev_input += input_width;
@@ -153,14 +155,19 @@ void unpack_stride_one_pad(
 					}
 				} else {
 					for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
-						for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-							if (filter_width_index + output_width_index < padding_width) {
-								unpack[output_width_index] = 0;
-							} else if (filter_width_index + output_width_index >= padding_width + input_width) {
-								unpack[output_width_index] = 0;
-							} else {
-								unpack[output_width_index] = input[output_width_index - padding_width];
-							}
+						size_t output_width_index = 0;
+						for (; filter_width_index + output_width_index < padding_width; ++output_width_index) {
+							unpack[output_width_index] = 0;
+						}
+						const size_t output_end = std::min(padding_width + input_width - filter_width_index, output_width);
+						const size_t padding_end = std::min(input_width + 2 * padding_width - filter_width_index, output_width);
+						#pragma simd
+						#pragma vector aligned
+						for (; output_width_index < output_end; ++output_width_index) {
+							unpack[output_width_index] = input[output_width_index - padding_width];
+						}
+						for (; output_width_index < padding_end; ++output_width_index) {
+							unpack[output_width_index] = 0;
 						}
 						unpack += output_height * output_width;
 						input++;	
@@ -208,7 +215,7 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 	for (size_t i = 0; i < iterations; ++i) {
 		if (str_h == 1 && str_w == 1) {
 			if (pad_h == 0 && pad_w == 0) {
-				unpack_stride_one(
+				unpack_stride_one_pad(
 					input_cpu.data(), workspace_cpu_copy.data(),
 					input_shape[1], input_shape[2], input_shape[3],
 					filter_shape[2], filter_shape[3],
