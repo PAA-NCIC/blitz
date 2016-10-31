@@ -10,7 +10,7 @@ epoches: 10
 data_shape: [3, 224, 224]
 label_size: 1000
 batch_size: 128
-pool_size: 60
+pool_size: 5
 
 fillers:
 -

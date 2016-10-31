@@ -8,8 +8,9 @@ eval: true
 epoches: 10
 # for image is channel, width, height per image
 data_shape: [1, 28, 28]
+pool_size: 256
 label_size: 10
-batch_size: 256
+batch_size: 128
 
 fillers:
 -

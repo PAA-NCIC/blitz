@@ -16,7 +16,7 @@ LIBS := $(DIR)/lib/libblitz.a
 
 #flags
 LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
-CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -march=core-avx2 -g
+CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx -g
 CXXFLAGS += -DBLITZ_RELEASE
 CXXFLAGS += -DBLITZ_NUM_THREADS=16
 CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=64

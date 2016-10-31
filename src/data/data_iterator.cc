@@ -11,7 +11,6 @@ namespace blitz {
 template<template <typename> class TensorType, typename DType>
 void DataIterator<TensorType, DType>::Init() {
   std::ifstream hdf5_files(data_path_.c_str());
-
   if (hdf5_files.is_open()) {
     string file;
     while (hdf5_files >> file) {
@@ -22,14 +21,14 @@ void DataIterator<TensorType, DType>::Init() {
   }
   hdf5_files.close();
 
+	// reading file indices
   int num_sample;
   herr_t status;
   for (size_t i = 0; i < files_.size(); ++i) {
     int file_id = H5Fopen(files_[i].c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
     int sample_id = H5Dopen2(file_id, "sample_num", H5P_DEFAULT);
 
-    status = H5Dread(sample_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
-        &num_sample);
+    status = H5Dread(sample_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &num_sample);
     CHECK_GE(status, 0);
 
     status = H5Dclose(sample_id);
@@ -44,21 +43,22 @@ void DataIterator<TensorType, DType>::Init() {
   file_row_mapping_.push_back(total_);
 
   tensor_pool_.resize(pool_size_);
+	// init copy
   CopyFileBuffer(0);
 }
 
 template<template <typename> class TensorType, typename DType>
-void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
+void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
   vector<string> current_files;
-  vector<int> current_files_row_mapping;
-  int end_offset = begin_offset + pool_size_ * batch_size_;
-  int begin_file_offset = 0;
-  int end_file_offset = 0;
-  int cur_file_offset = 0;
-  int accumulate = 0;
+  vector<size_t> current_files_row_mapping;
+  size_t end_offset = begin_offset + pool_size_ * batch_size_;
+  size_t begin_file_offset = 0;
+  size_t end_file_offset = 0;
+  size_t cur_file_offset = 0;
+  size_t accumulate = 0;
 
   bool find_begin = false, find_end = false;
-  int exit_index = 0;
+  size_t exit_index = 0;
   // find all files in the interval [begin_offset, end_offset]
   // end_offset maybe greater than total_
   // otherwise record the last file
@@ -74,10 +74,8 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
     }
 
     if (find_begin) {
-      current_files_row_mapping.push_back(file_row_mapping_[i + 1] -
-        file_row_mapping_[i]);
-      accumulate += *(current_files_row_mapping.rbegin()) -
-        cur_file_offset;
+      current_files_row_mapping.push_back(file_row_mapping_[i + 1] - file_row_mapping_[i]);
+      accumulate += *(current_files_row_mapping.rbegin()) - cur_file_offset;
       current_files.push_back(files_[i]);
     }
 
@@ -103,11 +101,11 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
   // create a temporary buffer to copy into memory
   size_t input_size = input_shape_.size() / input_shape_[0];
   DType* file_data = new DType[accumulate * input_size];
-  int file_data_offset_size = 0;
+  size_t file_data_offset = 0;
   for (size_t i = 0; i < current_files.size(); ++i) {
     int file_id = H5Fopen(current_files[i].c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
     int data_id = H5Dopen2(file_id, "data", H5P_DEFAULT);
-    int file_size = current_files_row_mapping[i] * input_size;
+    size_t file_size = current_files_row_mapping[i] * input_size;
     DType* current_files_data = new DType[file_size];
 
     herr_t status;
@@ -121,32 +119,32 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
     status = H5Fclose(file_id);
     CHECK_GE(status, 0);
 
-    int copy_size = 0;
-    int current_files_data_offset = 0;
+    size_t copy_size = 0;
+    size_t current_files_data_offset = 0;
     // calculate copy_size
     if (i == 0) {
       current_files_data_offset = begin_file_offset;
       if (current_files.size() == 1) {
         copy_size = (end_file_offset - begin_file_offset) * input_size;
       } else {
-        copy_size = (current_files_row_mapping[i] -
-          begin_file_offset) * input_size;
+        copy_size = (current_files_row_mapping[i] - begin_file_offset) * input_size;
       }
     } else if (current_files.size() - 1 == i) {
       copy_size = end_file_offset * input_size;
     }
 
-    BlitzCPUCopy(current_files_data + current_files_data_offset,
-      file_data + file_data_offset_size, copy_size);
-    file_data_offset_size += copy_size;
+    BlitzCPUCopy(current_files_data + current_files_data_offset * input_size,
+      file_data + file_data_offset, copy_size);
+    file_data_offset += copy_size;
 
     delete [] current_files_data;
   }
 
   // construct tensor
-  int tensor_offset_size = 0;
+  size_t tensor_offset_size = 0;
+	size_t last_index = accumulate / batch_size_;
   // only in the last pool_size_, remaining samples are ignored
-  for (int j = 0; j < accumulate / batch_size_; ++j) {
+  for (size_t j = 0; j < last_index; ++j) {
     shared_ptr<TensorType<DType> > tensor =
       make_shared<TensorType<DType> >(input_shape_);
     Backend<TensorType, DType>::HostCopyToFunc(file_data + tensor_offset_size,
@@ -155,25 +153,31 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(int begin_offset) {
     tensor_offset_size += input_shape_.size();
   }
 
+	// remainder
+	if (accumulate % batch_size_) {
+		// remain batchs
+		Shape shape = input_shape_;
+		shape[0] = accumulate % batch_size_;
+    shared_ptr<TensorType<DType> > tensor = make_shared<TensorType<DType> >(shape);
+    Backend<TensorType, DType>::HostCopyToFunc(file_data + input_shape_.size() * last_index,
+      tensor->data(), shape.size());
+		tensor_pool_[last_index] = tensor;
+	}	
+
   delete [] file_data;
 }
 
 template<template <typename> class TensorType, typename DType>
-shared_ptr<TensorType<DType> > DataIterator<TensorType, DType>
-  ::GenerateTensor(int index) {
+shared_ptr<TensorType<DType> > DataIterator<TensorType, DType>::GenerateTensor(size_t index) {
   if (index >= total_) {
-    LOG(FATAL) << "Index out of range: " <<
-      "index " << index << " total " << total_;
-  } else if (index >= current_begin_index_ &&
-      index < current_begin_index_ + pool_size_) {
-  } else if (index >= 0) {
+    LOG(FATAL) << "Index out of range: " << "index " << index << " total " << total_;
+  } else if (index >= current_begin_index_ && index < current_begin_index_ + pool_size_) {
+  } else {
     // udpate current_begin_index_;
     CopyFileBuffer(index * batch_size_);
     current_begin_index_ = index;
     LOG(INFO) << "Update tensor index to: " << index;
-  } else {
-    LOG(FATAL) << "Index negative: " << "index " << index;
-  }
+  } 
 
   return tensor_pool_[index - current_begin_index_];
 }
