@@ -10,41 +10,41 @@ namespace blitz {
 
 template<template <typename> class TensorType, typename DType>
 void DataIterator<TensorType, DType>::Init() {
-  std::ifstream hdf5_files(data_path_.c_str());
-  if (hdf5_files.is_open()) {
-    string file;
-    while (hdf5_files >> file) {
-      files_.push_back(file);
-    }
-  } else {
-    LOG(FATAL) << "Hdf5 file open error: " << data_path_;
-  }
-  hdf5_files.close();
+	std::ifstream hdf5_files(data_path_.c_str());
+	if (hdf5_files.is_open()) {
+		string file;
+		while (hdf5_files >> file) {
+			files_.push_back(file);
+		}
+	} else {
+		LOG(FATAL) << "Hdf5 file open error: " << data_path_;
+	}
+	hdf5_files.close();
 
 	// reading file indices
-  int num_sample;
-  herr_t status;
-  for (size_t i = 0; i < files_.size(); ++i) {
-    int file_id = H5Fopen(files_[i].c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
-    int sample_id = H5Dopen2(file_id, "sample_num", H5P_DEFAULT);
+	int num_sample;
+	herr_t status;
+	for (size_t i = 0; i < files_.size(); ++i) {
+		int file_id = H5Fopen(files_[i].c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+		int sample_id = H5Dopen2(file_id, "sample_num", H5P_DEFAULT);
 
-    status = H5Dread(sample_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &num_sample);
-    CHECK_GE(status, 0);
+		status = H5Dread(sample_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &num_sample);
+		CHECK_GE(status, 0);
 
-    status = H5Dclose(sample_id);
-    CHECK_GE(status, 0);
+		status = H5Dclose(sample_id);
+		CHECK_GE(status, 0);
 
-    status = H5Fclose(file_id);
-    CHECK_GE(status, 0);
+		status = H5Fclose(file_id);
+		CHECK_GE(status, 0);
 
-    file_row_mapping_.push_back(total_);
-    total_ += num_sample;
-  }
-  file_row_mapping_.push_back(total_);
+		file_row_mapping_.push_back(total_);
+		total_ += num_sample;
+	}
+	file_row_mapping_.push_back(total_);
 
-  tensor_pool_.resize(pool_size_);
+	tensor_pool_.resize(pool_size_);
 	// init copy
-  CopyFileBuffer(0);
+	CopyFileBuffer(0);
 }
 
 template<template <typename> class TensorType, typename DType>
@@ -166,17 +166,17 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
 
 template<template <typename> class TensorType, typename DType>
 shared_ptr<TensorType<DType> > DataIterator<TensorType, DType>::GenerateTensor(size_t index) {
-  if (index >= total_) {
-    LOG(FATAL) << "Index out of range: " << "index " << index << " total " << total_;
-  } else if (index >= current_begin_index_ && index < current_begin_index_ + pool_size_) {
-  } else {
-    // udpate current_begin_index_;
-    CopyFileBuffer(index * batch_size_);
-    current_begin_index_ = index;
-    LOG(INFO) << "Update tensor index to: " << index;
-  } 
+	if (index >= total_) {
+		LOG(FATAL) << "Index out of range: " << "index " << index << " total " << total_;
+	} else if (index >= current_begin_index_ && index < current_begin_index_ + pool_size_) {
+	} else {
+		// udpate current_begin_index_;
+		CopyFileBuffer(index * batch_size_);
+		current_begin_index_ = index;
+		LOG(INFO) << "Update tensor index to: " << index;
+	} 
 
-  return tensor_pool_[index - current_begin_index_];
+	return tensor_pool_[index - current_begin_index_];
 }
 
 INSTANTIATE_CLASS_CPU(DataIterator);
