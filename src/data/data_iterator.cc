@@ -100,17 +100,17 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
 
 	// create a temporary buffer to copy into memory
 	size_t input_size = input_shape_.size() / input_shape_[0];
-	DType* file_data = new DType[accumulate * input_size];
 	size_t file_data_offset = 0;
+	// boost shared_ptr syntax
+	shared_ptr<DType[]> file_data(new DType[accumulate * input_size]);
 	for (size_t i = 0; i < current_files.size(); ++i) {
 		int file_id = H5Fopen(current_files[i].c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
 		int data_id = H5Dopen2(file_id, "data", H5P_DEFAULT);
 		size_t file_size = current_files_row_mapping[i] * input_size;
-		DType* current_files_data = new DType[file_size];
+		shared_ptr<DType[]> current_files_data(new DType[file_size]);
 
 		herr_t status;
-		status = H5Dread(data_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
-			current_files_data);
+		status = H5Dread(data_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, current_files_data.get());
 		CHECK_GE(status, 0);
 
 		status = H5Dclose(data_id);
@@ -133,20 +133,17 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
 			copy_size = end_file_offset * input_size;
 		}
 
-		BlitzCPUCopy(current_files_data + current_files_data_offset * input_size,
-			file_data + file_data_offset, copy_size);
+		BlitzCPUCopy(current_files_data.get() + current_files_data_offset * input_size,
+			file_data.get() + file_data_offset, copy_size);
 		file_data_offset += copy_size;
-
-		delete [] current_files_data;
 	}
-
 	// construct tensor
 	size_t tensor_offset_size = 0;
 	size_t last_index = accumulate / batch_size_;
 	// only in the last pool_size_, remaining samples are ignored
 	for (size_t j = 0; j < last_index; ++j) {
 		shared_ptr<TensorType<DType> > tensor = make_shared<TensorType<DType> >(input_shape_);
-		Backend<TensorType, DType>::HostCopyToFunc(file_data + tensor_offset_size,
+		Backend<TensorType, DType>::HostCopyToFunc(file_data.get() + tensor_offset_size,
 			tensor->data(), input_shape_.size());
 		tensor_pool_[j] = tensor;
 		tensor_offset_size += input_shape_.size();
@@ -156,12 +153,10 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
 		Shape shape = input_shape_;
 		shape[0] = accumulate % batch_size_;
 		shared_ptr<TensorType<DType> > tensor = make_shared<TensorType<DType> >(shape);
-		Backend<TensorType, DType>::HostCopyToFunc(file_data + input_shape_.size() * last_index,
+		Backend<TensorType, DType>::HostCopyToFunc(file_data.get() + input_shape_.size() * last_index,
 			tensor->data(), shape.size());
 		tensor_pool_[last_index] = tensor;
 	}	
-
-	delete [] file_data;
 }
 
 template<template <typename> class TensorType, typename DType>
