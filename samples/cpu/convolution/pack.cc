@@ -97,6 +97,71 @@ void unpack_stride_multi_pad(
 	}
 }
 
+void unpack_stride_multi_pad_hwc(
+  const float* input,
+  float* unpack,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
+	for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
+		for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
+			float* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + filter_height_index * filter_width * channel;
+			if (filter_height_index + output_height_index * stride_height < padding_height ||
+				filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
+				for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
+					float* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
+					#pragma simd
+					#pragma vector aligned
+					for (size_t filter_width_index = 0; filter_width_index < filter_width * channel; ++filter_width_index) {
+						unpack_slice_slice[filter_width_index] = 0;
+					}
+				}
+			} else {
+				const float* input_slice = input + (output_height_index * stride_height + filter_height_index - padding_height) * input_width * channel;
+				for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
+					const float* input_slice_slice = input_slice + output_width_index * stride_width * channel;
+					float* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
+					int filter_width_index = 0; 
+					#pragma unroll
+					for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
+						#pragma simd
+						#pragma vector aligned
+						for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
+							unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
+						}
+					}
+					size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
+					size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
+					#pragma unroll
+					for (; filter_width_index < output_end; ++filter_width_index) {
+						#pragma simd
+						#pragma vector aligned
+						for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
+							unpack_slice_slice[filter_width_index * channel + channel_index] = input_slice_slice[(filter_width_index - padding_width) * channel + channel_index];
+						}
+					}
+					#pragma unroll
+					for (; filter_width_index < padding_end; ++filter_width_index) {
+						#pragma simd
+						#pragma vector aligned
+						for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
+							unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void unpack_stride_multi(
   const float* input,
   float* unpack,
@@ -130,6 +195,36 @@ void unpack_stride_multi(
 	}
 }
 
+void unpack_stride_multi_hwc(
+  const float* input,
+  float* unpack,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
+	for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
+		for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
+			const float* input_slice = input + (output_height_index * stride_height + filter_height_index) * input_width * channel;
+			float* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + filter_height_index * filter_width * channel;
+			for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
+				const float* input_slice_slice = input_slice + output_width_index * stride_width * channel;
+				float* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
+				#pragma simd
+				#pragma vector aligned
+				for (size_t filter_width_index = 0; filter_width_index < filter_width * channel; ++filter_width_index) {
+					unpack_slice_slice[filter_width_index] = input_slice_slice[filter_width_index];
+				}
+			}
+		}
+	}
+}
 
 void unpack_stride_one(
   const float* input,
@@ -245,14 +340,51 @@ void unpack_stride_one_pad(
   }
 }
 
+void input_chw2hwc(const float* chw, float* hwc, size_t channel, size_t input_height, size_t input_width) {
+	for (size_t i = 0; i < channel; ++i) {
+		for (size_t j = 0; j < input_height; ++j) {
+			for (size_t k = 0; k < input_width; ++k) {
+				hwc[j * input_width * channel + k * channel + i] = chw[i * input_height * input_width + j * input_width + k];
+			}
+		}
+	}
+}
+
+void workspace_hwc2chw(const float* hwc, float* chw, size_t output_height, size_t output_width,
+	size_t channel, size_t filter_height, size_t filter_width) {
+	for (size_t i = 0; i < output_height * output_width; ++i) {
+		for (size_t j = 0; j < filter_height; ++j) {
+			for (size_t k = 0; k < filter_width; ++k) {
+				for (size_t v = 0; v < channel; ++v) {
+					chw[i * filter_height * filter_width * channel + v * filter_height * filter_width + j * filter_width + k] = 
+						hwc[i * filter_height * filter_width * channel + j * filter_width * channel + k * channel + v];
+				}
+			}
+		}
+	}
+}
+
 void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations) {
+	// shape decode
+	size_t H = input_shape[2];
+	size_t W = input_shape[3];
+	size_t C = filter_shape[1];
+	size_t R = filter_shape[2];
+	size_t S = filter_shape[3];
+	size_t P = output_shape[2];
+	size_t Q = output_shape[3];
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
+  CPUTensor<float> input_cpu_transform(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   CPUTensor<float> workspace_cpu(workspace_shape_cpu);
-  CPUTensor<float> workspace_cpu_copy(workspace_shape_cpu);
+  CPUTensor<float> workspace_cpu_optimize(workspace_shape_cpu);
+	CPUTensor<float> workspace_cpu_transform(workspace_shape_cpu);
 	Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
+	bool transform = false;
+	bool hwc = false;
+
 	timeval t1, t2; 
 	double elapsed_time = 0.0f;
 
@@ -260,9 +392,7 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 	for (size_t i = 0; i < iterations; ++i) {
 		Backend<CPUTensor, float>::Unpack2DFunc(
 			input_cpu.data(), workspace_cpu.data(),
-			input_shape[1], input_shape[2], input_shape[3],
-			filter_shape[2], filter_shape[3],
-			output_shape[2], output_shape[3],
+			C, H, W, R, S, P, Q,
 			pad_h, pad_w, str_h, str_w);
 	}
 	gettimeofday(&t2, NULL);
@@ -271,31 +401,54 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 	elapsed_time /= 1000.0;
 	std::cout << "general pack time: " << elapsed_time << std::endl;
 
+	if (input_shape[1] >= 8) {
+		hwc = true;
+		input_chw2hwc(input_cpu.data(), input_cpu_transform.data(), C, H, W);
+		memcpy(input_cpu.data(), input_cpu_transform.data(), sizeof(float) * input_cpu_transform.size());	
+	}
+
 	gettimeofday(&t1, NULL);
 	for (size_t i = 0; i < iterations; ++i) {
-		if (str_h == 1 && str_w == 1) {
+		if (input_shape[1] >= 8) {
+			transform = true;
 			if (pad_h == 0 && pad_w == 0) {
-				unpack_stride_one_pad(
-					input_cpu.data(), workspace_cpu_copy.data(),
-					input_shape[1], input_shape[2], input_shape[3],
-					filter_shape[2], filter_shape[3],
-					output_shape[2], output_shape[3],
+				unpack_stride_multi_hwc(
+					input_cpu.data(), workspace_cpu_optimize.data(),
+					C, H, W, R, S, P, Q,
 					pad_h, pad_w, str_h, str_w);
 			} else {
-				unpack_stride_one_pad(
-					input_cpu.data(), workspace_cpu_copy.data(),
-					input_shape[1], input_shape[2], input_shape[3],
-					filter_shape[2], filter_shape[3],
-					output_shape[2], output_shape[3],
+				unpack_stride_multi_pad_hwc(
+					input_cpu.data(), workspace_cpu_optimize.data(),
+					C, H, W, R, S, P, Q,
 					pad_h, pad_w, str_h, str_w);
 			}
 		} else {
-			unpack_stride_multi_pad(
-				input_cpu.data(), workspace_cpu_copy.data(),
-				input_shape[1], input_shape[2], input_shape[3],
-				filter_shape[2], filter_shape[3],
-				output_shape[2], output_shape[3],
-				pad_h, pad_w, str_h, str_w);
+			if (str_h == 1 && str_w == 1) {
+				if (pad_h == 0 && pad_w == 0) {
+					unpack_stride_one_pad(
+						input_cpu.data(), workspace_cpu_optimize.data(),
+						C, H, W, R, S, P, Q,
+						pad_h, pad_w, str_h, str_w);
+				} else {
+					unpack_stride_one_pad(
+						input_cpu.data(), workspace_cpu_optimize.data(),
+						C, H, W, R, S, P, Q,
+						pad_h, pad_w, str_h, str_w);
+				}
+			} else {
+				transform = true;
+				if (pad_h == 0 && pad_w == 0) {
+					unpack_stride_multi(
+						input_cpu.data(), workspace_cpu_optimize.data(),
+						C, H, W, R, S, P, Q,
+						pad_h, pad_w, str_h, str_w);
+				} else {
+					unpack_stride_multi_pad(
+						input_cpu.data(), workspace_cpu_optimize.data(),
+						C, H, W, R, S, P, Q,
+						pad_h, pad_w, str_h, str_w);
+				}
+			}
 		}
 	}
 	gettimeofday(&t2, NULL);
@@ -304,20 +457,24 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 	elapsed_time /= 1000.0;
 	std::cout << "optimize pack time: " << elapsed_time << std::endl;
 
-	if (str_h != 1 && str_w != 1) {
-		size_t output_height = output_shape[2];
-		size_t output_width = output_shape[3];
+	if (hwc == true) {
+		workspace_hwc2chw(workspace_cpu_optimize.data(), workspace_cpu_transform.data(), P, Q, C, R, S);
+		memcpy(workspace_cpu_optimize.data(), workspace_cpu_transform.data(), sizeof(float) * workspace_cpu_optimize.size());	
+	}
+
+	if (transform == true) {
 		Shape shape(2);
-		shape[0] = output_height * output_width;
-		shape[1] = workspace_shape_cpu[0] / (output_width * output_height);
-		workspace_cpu_copy.set_shape(shape);
-		shape[0] = workspace_shape_cpu[0] / (output_width * output_height);
-		shape[1] = output_height * output_width;
-		CPUTensor<float> workspace_cpu_tmp(shape);
-		Backend<CPUTensor, float>::Transpose2DFunc(&workspace_cpu_copy, &workspace_cpu_tmp);
-		memcpy(workspace_cpu_copy.data(), workspace_cpu_tmp.data(), sizeof(float) * workspace_cpu_copy.size());	
+		shape[0] = P * Q;
+		shape[1] = workspace_shape_cpu[0] / (P * Q);
+		workspace_cpu_optimize.set_shape(shape);
+		shape[0] = workspace_shape_cpu[0] / (P * Q);
+		shape[1] = P * Q;
+		workspace_cpu_transform.set_shape(shape);
+		Backend<CPUTensor, float>::Transpose2DFunc(&workspace_cpu_optimize, &workspace_cpu_transform);
+		memcpy(workspace_cpu_optimize.data(), workspace_cpu_transform.data(), sizeof(float) * workspace_cpu_optimize.size());	
 	}	
-	compare(workspace_cpu.data(), workspace_cpu_copy.data(), workspace_shape_cpu.size());
+
+	compare(workspace_cpu.data(), workspace_cpu_optimize.data(), workspace_shape_cpu.size());
 }
 
 void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations, const int a) {
