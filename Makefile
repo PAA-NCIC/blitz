@@ -30,23 +30,29 @@ else
 	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx
 endif
 
-OPENMP_OPTIONS := -fopenmp
+ifeq ($(BLITZ_ICC), icc)
+	OPENMP_OPTIONS := -qopenmp
+else
+	OPENMP_OPTIONS := -fopenmp
+endif
 CXXFLAGS := -Wall -Wno-unused-parameter -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
+
+#libraries
+LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
 
 ifeq ($(BLITZ_USE_GPU), 1)
 	NVCC := nvcc
 	NVCC_INC := -Iinclude/
 	NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
-	NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(CC)
+	NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(BLITZ_CC)
 	CXXFLAGS += -DBLITZ_USE_GPU
 endif
 
 ifeq ($(BLITZ_USE_MIC), 1)
 	INC += -I/home/zkr/install/libxsmm/include
-	LIBRARY_DIR += -L/home/zkr/install/libxsmm/lib
 	CXXFLAGS += -DBLITZ_USE_MIC
-	LDFLAGS += libxsmm.a
+	LDFLAGS += -lxsmm
 endif
 
 #dependency
@@ -54,9 +60,6 @@ DEPDIR := $(BUILD_DIR)
 $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
-
-#libraries
-LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
 
 ifeq ($(BLITZ_USE_GPU), 1)
 	LDFLAGS += -lcudart -lcuda -lcublas -lcudnn -lcurand
@@ -67,8 +70,11 @@ ifeq ($(BLITZ_MODE), release)
 	CXXFLAGS += -DBLITZ_RELEASE
 	NVCC_XCOMPILE += -DBLITZ_RELEASE
 else ifeq ($(BLITZ_MODE), performance)
-	CXXFLAGS += -DBLITZ_PERFORMANCE -g
-	NVCC_XCOMPILE += -DBLITZ_PERFORMANCE -g
+	CXXFLAGS += -DBLITZ_PERFORMANCE
+	NVCC_XCOMPILE += -DBLITZ_PERFORMANCE
+else ifeq ($(BLITZ_MODE), DEVELOP)
+	CXXFLAGS += -DBLITZ_DEVELOP -g 
+	NVCC_XCOMPILE += -DBLITZ_DEVELOP -g 
 endif
 
 CXXFLAGS += -DBLITZ_NUM_THREADS=$(BLITZ_NUM_THREADS)
@@ -149,7 +155,7 @@ bins: $(BINS)
 libs: $(LIBS)
 
 $(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIBS)
-	$(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
+	$(BLITZ_CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $(LDFLAGS) -o $@ $^
 
 ifeq ($(BLITZ_USE_GPU), 1)
   $(LIBS): $(OBJECTS) $(NVCC_OBJECTS)
@@ -166,7 +172,7 @@ else
 endif
 
 $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
-	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
+	$(BLITZ_CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
 	$(POSTCOMPILE)
 
 ifeq ($(BLITZ_USE_GPU), 1)

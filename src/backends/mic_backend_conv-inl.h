@@ -146,7 +146,23 @@ void Backend<MICTensor, DType>::Convolution2DForwardFunc(
       total_gemm_time = gemm_time.count();
       #endif
     }
-  } else {
+  } else if (kernel == "xsmm") {
+		// NOTE(keren): it only support output padding
+		BlitzXsmmConvolution2D(
+			const_cast<MICTensor<DType>*>(input)->data(),
+			output->data(),
+			const_cast<MICTensor<DType>*>(filter)->data(),
+			batch_size,
+			input_channel, input_height, input_width,	
+			filter_height, filter_width,
+			output_channel, output_height, output_width,
+			stride_height, stride_width,
+			padding_height, padding_width,
+			"nchw",
+			"nkpq",
+			"kcrs",
+			"forward");
+	} else {
     LOG(FATAL) << "Unknown kernel type: " << kernel;
   }
 
@@ -200,7 +216,7 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
   double total_gemm_time = 0.0;
   double total_pack_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
-  if (kernel == "blas_batch") {
+  if (kernel == "blas_batch") {  // xsmm not support backward&update
     #pragma omp parallel private(input_batch_offset, output_batch_offset) 
     {
       const size_t tid = omp_get_thread_num();
@@ -261,7 +277,7 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
       }
       #endif
     }
-  } else if (kernel == "blas") {
+  } else if (kernel == "blas" || kernel == "xsmm") {
     for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
       input_batch_offset = batch_index * input_batch_size;
       output_batch_offset = batch_index * output_batch_size;
@@ -302,7 +318,9 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
       total_gemm_time = gemm_time.count();
       #endif
     }
-  }
+  } else {
+    LOG(FATAL) << "Unknown kernel type: " << kernel;
+	}
   #ifdef BLITZ_PERFORMANCE
   LOG(INFO) << "Backward convolution gemm: " << total_gemm_time;
   LOG(INFO) << "Backward convolution pack: " << total_pack_time;
@@ -352,7 +370,7 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
   double total_gemm_time = 0;
   double total_unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
-  if (kernel == "blas_batch") {
+  if (kernel == "blas_batch") {  // xsmm not support backward&update
     #pragma omp parallel private(input_batch_offset, output_batch_offset)
     {
       const size_t tid = omp_get_thread_num();
@@ -422,7 +440,7 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
       }
       #endif
     }
-  } else if (kernel == "blas") {
+  } else if (kernel == "blas" || kernel == "xsmm") {
     for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
       input_batch_offset = batch_index * input_batch_size;
       output_batch_offset = batch_index * output_batch_size;
@@ -462,7 +480,9 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
       total_unpack_time = unpack_time.count();
       #endif
     }
-  }
+  } else {
+    LOG(FATAL) << "Unknown kernel type: " << kernel;
+	}
   #ifdef BLITZ_PERFORMANCE
   LOG(INFO) << "Backward convolution filter gemm: " << total_gemm_time;
   LOG(INFO) << "Backward convolution filter unpack: " << total_unpack_time;
