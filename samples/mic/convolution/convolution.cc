@@ -149,6 +149,7 @@ int main(int argc, char** argv) {
   const size_t pad_w = atoi(argv[13]);
   const size_t str_h = atoi(argv[14]);
   const size_t str_w = atoi(argv[15]);
+  const size_t iterations = atoi(argv[16]);
   // set shapes
   set_input_shape_nchw(N, C, H, W);
   set_filter_shape_kcrs(K, C, R, S);
@@ -157,7 +158,7 @@ int main(int argc, char** argv) {
   workspace_shape_cpu[0] = BLITZ_NUM_THREADS * C * H * W * P * Q;
 	std::cout << phase << std::endl;
   // run convolution
-	for (size_t i = 0; i < 2; ++i) {
+	for (size_t i = 0; i < iterations; ++i) {
 		if (phase == "forward") {
 			convolution_forward(kernel, pad_h, pad_w, str_h, str_w);
 		} else if (phase == "backward") {

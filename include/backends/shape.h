@@ -7,6 +7,8 @@
 
 namespace blitz {
 
+// use compiler-generated copy constructor
+// use self-defined copy assignment to restore size_ to 0
 class Shape {
  public:
   explicit Shape(const size_t dimension) :
@@ -36,12 +38,10 @@ class Shape {
 
   // operator
   size_t operator[](size_t index) const {
-    // TODO(keren) index range check
     return shape_[index];
   }
 
   size_t& operator[](size_t index) {
-    // TODO(keren) index range check
     return shape_[index];
   }
 
