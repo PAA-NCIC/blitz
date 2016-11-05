@@ -44,7 +44,7 @@ LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_chrono -lboost_th
 ifeq ($(BLITZ_USE_GPU), 1)
 	NVCC := nvcc
 	NVCC_INC := -Iinclude/
-	NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC
+	NVCC_XCOMPILE := -O3 -Wall -fopenmp -fPIC -DBLITZ_USE_GPU
 	NVCC_FLAGS := -O3 $(CUDA_ARCH) --use_fast_math -ccbin $(BLITZ_CC)
 	CXXFLAGS += -DBLITZ_USE_GPU
 endif

@@ -21,6 +21,7 @@ CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp
 CXXFLAGS += -DBLITZ_RELEASE
 CXXFLAGS += -DBLITZ_NUM_THREADS=16
 CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=64
+CXXFLAGS += -DBLITZ_USE_GPU
 
 #mkl for compare
 LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
