@@ -89,8 +89,8 @@ class Shape {
  private:
   mutable size_t* size_;
   size_t dimension_;
-	BLITZ_DATA_LAYOUT data_layout_;
   std::vector<size_t> shape_;
+	BLITZ_DATA_LAYOUT data_layout_;
 };
 
 }  // namespace blitz
