@@ -23,8 +23,17 @@ class Tensor {
     return shape_;
   }
 
+	BLITZ_DATA_LAYOUT data_layout() const {
+		return shape_.data_layout();
+	}
+
+	// low-level consistent api
+	const Shape* shape_ptr() const {
+		return &shape_;
+	}
+
   size_t size() const {
-    return this->shape_.size();
+    return shape_.size();
   }
 
   bool row_major() const {
