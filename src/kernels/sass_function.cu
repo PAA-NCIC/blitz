@@ -5,6 +5,8 @@
 #include <string>
 
 #include "utils/blitz_math_function.h"
+#include "utils/blitz_gpu_function.h"
+#include "utils/blitz_cpu_function.h"
 
 namespace blitz {
 

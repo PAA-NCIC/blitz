@@ -4,6 +4,8 @@
 #include <cuda_runtime_api.h>
 
 #include "backends/backends.h"
+#include "utils/blitz_gpu_function.h"
+#include "utils/blitz_cpu_function.h"
 
 using namespace blitz;
 
@@ -17,6 +19,9 @@ Shape output_shape(4);
 Shape workspace_shape_cpu(1);
 // gpu workspace
 Shape workspace_shape_gpu(1);
+// init timer
+float elapsed_time_gpu;
+CUevent event_start, event_stop;
 
 void set_input_shape_nchw(size_t N, size_t C, size_t H, size_t W) {
   input_shape[0] = N;
@@ -57,7 +62,8 @@ void compare_cpu_gpu(
 void convolution_forward(
   const string& kernel,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w,
+	size_t iter) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -85,25 +91,38 @@ void convolution_forward(
     &workspace_cpu,
     pad_h, pad_w, 
     str_h, str_w);
-  // gpu convolution
-  Backend<GPUTensor, float>::Convolution2DForwardFunc(
-    &input_gpu,
-    &filter_gpu,
-    &output_gpu,
-    &workspace_gpu,
-    pad_h, pad_w, 
-    str_h, str_w,
-    kernel);
+	Backend<GPUTensor, float>::Convolution2DForwardFunc(
+		&input_gpu,
+		&filter_gpu,
+		&output_gpu,
+		&workspace_gpu,
+		pad_h, pad_w, 
+		str_h, str_w,
+		kernel);
+	BLITZ_GPU_TIMER_START(elapsed_time_gpu, event_start, event_stop);
+	// gpu convolution
+	for (size_t i = 1; i < iter; ++i) {
+		Backend<GPUTensor, float>::Convolution2DForwardFunc(
+			&input_gpu,
+			&filter_gpu,
+			&output_gpu,
+			&workspace_gpu,
+			pad_h, pad_w, 
+			str_h, str_w,
+			kernel);
+	}
+	BLITZ_GPU_TIMER_END(elapsed_time_gpu, event_start, event_stop);
+	BLITZ_GPU_TIMER_INFO((iter - 1) * 2 * filter_shape.size() * output_shape[0] * output_shape[2] * output_shape[3], elapsed_time_gpu);
   // copy from gpu to cpu
-  cudaMemcpy(output_copy.data(), output_gpu.data(),
-    output_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy(output_copy.data(), output_gpu.data(), output_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
   compare_cpu_gpu(output_cpu.size(), output_cpu.data(), output_copy.data());
 }
 
 void convolution_backward(
   const string& kernel,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w,
+	size_t iter) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -149,7 +168,8 @@ void convolution_backward(
 void convolution_update(
   const string& kernel,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w,
+	size_t iter) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -193,7 +213,7 @@ void convolution_update(
 }
 
 int main(int argc, char** argv) {
-  const size_t NUM_ARGS = 15;
+  const size_t NUM_ARGS = 16;
   // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w
   if (argc != NUM_ARGS + 1) {
     std::cerr << "Not enough args!" << std::endl;
@@ -215,6 +235,7 @@ int main(int argc, char** argv) {
   const size_t pad_w = atoi(argv[13]);
   const size_t str_h = atoi(argv[14]);
   const size_t str_w = atoi(argv[15]);
+  const size_t iterations = atoi(argv[16]);
   // set shapes
   set_input_shape_nchw(N, C, H, W);
   set_filter_shape_kcrs(K, C, R, S);
@@ -224,12 +245,12 @@ int main(int argc, char** argv) {
     input_shape.size() + output_shape.size() + filter_shape.size();
   workspace_shape_cpu[0] = C * H * W * P * Q;
   // run convolution
-  if (phase == "forward") {
-    convolution_forward(kernel, pad_h, pad_w, str_h, str_w);
-  } else if (phase == "backward") {
-    convolution_backward(kernel, pad_h, pad_w, str_h, str_w);
-  } else if (phase == "update") {
-    convolution_update(kernel, pad_h, pad_w, str_h, str_w);
-  }
+	if (phase == "forward") {
+		convolution_forward(kernel, pad_h, pad_w, str_h, str_w, iterations);
+	} else if (phase == "backward") {
+		convolution_backward(kernel, pad_h, pad_w, str_h, str_w, iterations);
+	} else if (phase == "update") {
+		convolution_update(kernel, pad_h, pad_w, str_h, str_w, iterations);
+	}
   return 0;
 }

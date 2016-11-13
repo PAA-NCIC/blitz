@@ -39,11 +39,9 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   const size_t dim_common = input_channel * filter_height * filter_width;
   #ifdef BLITZ_PERFORMANCE  // only valid for a single thread
   cudaEvent_t start, stop;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
-  double elapsed_time = 0;
-  double total_gemm_time = 0;
-  double total_unpack_time = 0;
+  float elapsed_time = 0;
+  float gemm_time = 0;
+  float unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
   if (kernel == "asm_direct") {
     workspace->Fill(0);
@@ -57,6 +55,9 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       workspace->Slice(input->size() + output->size()),
       output_channel,
       input_channel * filter_height * filter_width);
+		#ifdef BLITZ_PERFORMANCE
+		BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
+		#endif
     // direct GEMM
     BlitzSassConvolution2D(
       workspace->data(),
@@ -71,6 +72,11 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       stride_height, stride_width,
       padding_height, padding_width,
       "forward");
+		#ifdef BLITZ_PERFORMANCE
+		BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
+		double computations = 2 * (double)batch_size * (double)filter_shape.size() * (double)output_height * (double)output_width;
+		BLITZ_GPU_TIMER_INFO(computations, elapsed_time);
+		#endif
     // transpose Output
     BlitzGPUTrans(const_cast<DType*>(workspace->Slice(input->size())), 
       output->data(),
@@ -133,8 +139,8 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
     LOG(FATAL) << "Unknown kernel type: " << kernel;
   }
   #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Forward convolution gemm: " << total_gemm_time;
-  LOG(INFO) << "Forward convolution unpack: " << total_unpack_time;
+  LOG(INFO) << "Forward convolution gemm: " << gemm_time;
+  LOG(INFO) << "Forward convolution unpack: " << unpack_time;
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -180,9 +186,9 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
-  double gemm_time = 0;
-  double elapsed_time = 0;
-  double pack_time = 0;
+  float gemm_time = 0;
+  float elapsed_time = 0;
+  float pack_time = 0;
   #endif  // BLITZ_PERFORMANCE
   if (kernel == "asm_direct") {
     workspace->Fill(0);
@@ -335,9 +341,9 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
-  double gemm_time = 0;
-  double elapsed_time = 0;
-  double unpack_time = 0;
+  float gemm_time = 0;
+  float elapsed_time = 0;
+  float unpack_time = 0;
   #endif  // BLITZ_PERFORMANCE
   if (kernel == "asm_direct") {
     workspace->Fill(0);

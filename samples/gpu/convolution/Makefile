@@ -2,7 +2,7 @@
 .PHONY: clean bins
 
 #project
-BINS := convolution shuffle
+BINS := convolution shuffle cudnn
 CC := g++
 
 bins: $(BINS)
@@ -18,7 +18,7 @@ LIBS := $(DIR)/lib/libblitz.a
 LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
   -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
 CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp
-CXXFLAGS += -DBLITZ_RELEASE
+CXXFLAGS += -DBLITZ_PERFORMANCE
 CXXFLAGS += -DBLITZ_NUM_THREADS=16
 CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=64
 CXXFLAGS += -DBLITZ_USE_GPU
