@@ -13,30 +13,23 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   size_t stride_width,
   const string& kernel) {
   // shape decode
-  // input
-  const Shape& input_shape = input->shape();
-  const size_t batch_size = input_shape[0];
-  const size_t input_channel = input_shape[1];
-  const size_t input_height = input_shape[2];
-  const size_t input_width = input_shape[3];
-  // filter
-  const Shape& filter_shape = filter->shape();
-  const size_t filter_height = filter_shape[2];
-  const size_t filter_width = filter_shape[3];
-  // output
-  const Shape& output_shape = output->shape();
-  const size_t output_channel = output_shape[1];
-  const size_t output_height = output_shape[2];
-  const size_t output_width = output_shape[3];
+	size_t NIN, C, H, W;
+	size_t KF, CF, R, S;
+	size_t NOUT, K, P, Q;
+	Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
+	Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
+	Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
+	CHECK_EQ(NIN, NOUT);
+	CHECK_EQ(KF, K);
+	CHECK_EQ(CF, C);
   // offset
   size_t input_batch_offset = 0;
   size_t output_batch_offset = 0;
-  const size_t input_batch_size = input_channel * input_height * input_width;
-  const size_t output_batch_size = output_channel * output_height * output_width;
   // dims
-  const size_t dim_left = output_channel;
-  const size_t dim_right = output_height * output_width;
-  const size_t dim_common = input_channel * filter_height * filter_width;
+	const size_t CHW = C * H * W;
+	const size_t PQ = P * Q;
+	const size_t KPQ = K * PQ;
+	const size_t CRS = C * R * S;
   // time counter
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
@@ -49,18 +42,16 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
     #pragma omp parallel private(input_batch_offset, output_batch_offset)
     {
       const size_t tid = omp_get_thread_num();
-      const size_t workspace_unpack_offset = tid *
-        input_channel * filter_height * filter_width *
-        output_width * output_height;
+      const size_t workspace_unpack_offset = tid * CRS * PQ;
       DType* workspace_unpack_slice = workspace->Slice(workspace_unpack_offset);
       #ifdef BLITZ_PERFORMANCE
         #pragma omp for private(start, end)
       #else
         #pragma omp for
       #endif
-      for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-        input_batch_offset = batch_index * input_batch_size;
-        output_batch_offset = batch_index *  output_batch_size;
+      for (size_t n = 0; n < NIN; ++n) {
+        input_batch_offset = n * CHW;
+        output_batch_offset = n * KPQ;
         #ifdef BLITZ_PERFORMANCE
         start = system_clock::now();
         #endif  // BLITZ_PERFORMANCE
@@ -72,9 +63,9 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         // (output_width * output_height)
         Unpack2DFunc(input->Slice(input_batch_offset),
           workspace_unpack_slice,
-          input_channel, input_height, input_width,
-          filter_height, filter_width,
-          output_height, output_width,
+          C, H, W,
+          R, S,
+          P, Q,
           padding_height, padding_width,
           stride_height, stride_width);
         #ifdef BLITZ_PERFORMANCE
@@ -90,7 +81,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
           output->Slice(output_batch_offset),
           false, false,
           static_cast<DType>(1), static_cast<DType>(0),
-          dim_left, dim_right, dim_common);
+          K, PQ, CRS);
         #ifdef BLITZ_PERFORMANCE
         end = system_clock::now();
         #pragma omp critical
@@ -99,17 +90,15 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       }
       #ifdef BLITZ_PERFORMANCE
       if (tid == 0) {
-        total_unpack_time = unpack_time.count() /
-          omp_get_num_threads();
-        total_gemm_time = gemm_time.count() /
-          omp_get_num_threads();
+        total_unpack_time = unpack_time.count() / omp_get_num_threads();
+        total_gemm_time = gemm_time.count() / omp_get_num_threads();
       }
       #endif
     }
   } else if (kernel == "blas") {  // default blas
-    for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-      input_batch_offset = batch_index * input_batch_size;
-      output_batch_offset = batch_index *  output_batch_size;
+    for (size_t n = 0; n < NIN; ++n) {
+      input_batch_offset = n * CHW;
+      output_batch_offset = n * KPQ;
       #ifdef BLITZ_PERFORMANCE
       start = system_clock::now();
       #endif
@@ -121,9 +110,9 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       // (output_width * output_height)
       Unpack2DFunc(input->Slice(input_batch_offset),
         workspace->data(),
-        input_channel, input_height, input_width,
-        filter_height, filter_width,
-        output_height, output_width,
+        C, H, W,
+        R, S,
+        P, Q,
         padding_height, padding_width,
         stride_height, stride_width);
       #ifdef BLITZ_PERFORMANCE
@@ -138,7 +127,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         output->Slice(output_batch_offset),
         false, false,
         static_cast<DType>(1), static_cast<DType>(0),
-        dim_left, dim_right, dim_common);
+        K, PQ, CRS);
       #ifdef BLITZ_PERFORMANCE
       end = system_clock::now();
       gemm_time += end - start;
@@ -149,7 +138,6 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   } else {
     LOG(FATAL) << "Unknown kernel type: " << kernel;
   }
-
   #ifdef BLITZ_PERFORMANCE
   LOG(INFO) << "Forward convolution gemm: " << total_gemm_time;
   LOG(INFO) << "Forward convolution unpack: " << total_unpack_time;

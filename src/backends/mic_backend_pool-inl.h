@@ -104,12 +104,12 @@ void Backend<MICTensor, DType>::MaxPooling2DForwardFunc(
 	size_t ON, K, P, Q;
   // shape decode
   CHECK_EQ(input->data_layout(), output->data_layout());
-	BlitzPooling2DShape(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
-	BlitzPooling2DShape(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
+	Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
+	Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
   CHECK_EQ(IN, ON);
   CHECK_EQ(C, K);
 	switch (input->data_layout()) {
-		case BLITZ_POOLING_BUFFER_NCHW:
+		case BLITZ_BUFFER_NCHW:
 			MaxPoolingForwardNCHWImpl(
 				input->data(),
 				output->data(),
@@ -120,7 +120,7 @@ void Backend<MICTensor, DType>::MaxPooling2DForwardFunc(
 				filter_height, filter_width,
 				stride_height, stride_width);
 			break;
-		case BLITZ_POOLING_BUFFER_NHWC:
+		case BLITZ_BUFFER_NHWC:
 			MaxPoolingForwardNHWCImpl(
 				input->data(),
 				output->data(),
@@ -203,15 +203,15 @@ void Backend<MICTensor, DType>::MaxPooling2DBackwardFunc(
 	size_t ON, K, P, Q;
   // shape decode
   CHECK_EQ(input->data_layout(), output->data_layout());
-	BlitzPooling2DShape(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
-	BlitzPooling2DShape(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
+	Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
+	Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
   CHECK_EQ(IN, ON);
   CHECK_EQ(C, K);
   // set zero
   input->Fill(0);
   // no padding
 	switch (input->data_layout()) {
-		case BLITZ_POOLING_BUFFER_NCHW:
+		case BLITZ_BUFFER_NCHW:
 			MaxPoolingBackwardNCHWImpl(
 				output->data(),
 				input->data(),
@@ -220,7 +220,7 @@ void Backend<MICTensor, DType>::MaxPooling2DBackwardFunc(
 				C, H, W,
 				K, P, Q);
 			break;
-		case BLITZ_POOLING_BUFFER_NHWC:
+		case BLITZ_BUFFER_NHWC:
 			MaxPoolingBackwardNHWCImpl(
 				output->data(),
 				input->data(),

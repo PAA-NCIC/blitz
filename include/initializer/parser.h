@@ -19,6 +19,7 @@
 #include "fillers/filler.h"
 #include "fillers/filler_wrapper.h"
 #include "utils/common.h"
+#include "utils/blitz_shape_function.h"
 
 namespace blitz {
 
@@ -85,6 +86,18 @@ class Parser {
     }
     return *backend_type_;
   }
+
+	BLITZ_DATA_LAYOUT data_layout() const {
+		if (data_layout_ == 0) {
+			if (config_["data_layout"]) {
+        data_layout_ = make_shared<BLITZ_DATA_LAYOUT>(
+					BlitzParseShape(config_["data_layout"].as<string>()));
+			} else {
+        data_layout_ = make_shared<BLITZ_DATA_LAYOUT>(BLITZ_BUFFER_NCHW);
+			}
+		}
+		return *data_layout_;
+	}
 
   const Shape& data_shape() const {
     if (data_shape_ == 0) {
@@ -176,6 +189,7 @@ class Parser {
       for (size_t i = 0; i < shape.dimension(); ++i) {
         (*input_shape_)[i + 1] = shape[i];
       }
+			input_shape_->set_data_layout(data_layout());
     }
     return *input_shape_;
   }
@@ -381,6 +395,8 @@ class Parser {
   mutable shared_ptr<size_t> batch_size_;
   mutable shared_ptr<size_t> label_size_;
   mutable shared_ptr<size_t> pool_size_;
+
+	mutable shared_ptr<BLITZ_DATA_LAYOUT> data_layout_;
 
   mutable shared_ptr<bool> eval_;
   mutable shared_ptr<bool> inference_;

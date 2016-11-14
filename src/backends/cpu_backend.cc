@@ -4,6 +4,7 @@
 
 #include "utils/blitz_cpu_function.h"
 #include "utils/blitz_cpu_avx.h"
+#include "utils/blitz_shape_function.h"
 
 namespace blitz {
 

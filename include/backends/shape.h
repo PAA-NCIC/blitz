@@ -9,13 +9,11 @@ namespace blitz {
 
 enum BLITZ_DATA_LAYOUT {
 	BLITZ_FLAT = 0,
-	BLITZ_CONVOLUTION_BUFFER_NCHW = 1,
-	BLITZ_CONVOLUTION_BUFFER_NHWC = 2,
-	BLITZ_CONVOLUTION_FILTER_KCRS = 3,
-	BLITZ_CONVOLUTION_FILTER_RSCK = 4,
-	BLITZ_POOLING_BUFFER_NCHW = 5,
-	BLITZ_POOLING_BUFFER_NHWC = 6,
-	BLITZ_UNDEFINED = 7
+	BLITZ_BUFFER_NCHW = 1,
+	BLITZ_BUFFER_NHWC = 2,
+	BLITZ_FILTER_KCRS = 3,
+	BLITZ_FILTER_RSCK = 4,
+	BLITZ_UNDEFINED = 5
 };
 
 // Rule of three: use self-defined copy assignment to restore size_ to 0
@@ -25,9 +23,17 @@ class Shape {
     size_(0), dimension_(dimension),
     shape_(dimension), data_layout_(BLITZ_FLAT) {}
 
+  explicit Shape(const size_t dimension, BLITZ_DATA_LAYOUT data_layout) :
+    size_(0), dimension_(dimension),
+    shape_(dimension), data_layout_(data_layout) {}
+
   explicit Shape(const std::vector<size_t>& shape) :
     size_(0), dimension_(shape.size()),
     shape_(shape), data_layout_(BLITZ_FLAT) {}
+
+  explicit Shape(const std::vector<size_t>& shape, BLITZ_DATA_LAYOUT data_layout) :
+    size_(0), dimension_(shape.size()),
+    shape_(shape), data_layout_(data_layout) {}
 
 	// copy constructor
 	Shape(const Shape& shape) :

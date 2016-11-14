@@ -16,7 +16,7 @@ void Pooling<TensorType, DType>::InitImpl(const Shape& input_shape) {
   size_t output_height = (input_height - filter_) / stride_ + 1;
   size_t output_width = (input_width - filter_) / stride_ + 1;
 
-  Shape output_shape(4);
+  Shape output_shape(4, BLITZ_BUFFER_NCHW);
   output_shape[0] = batch_size;
   output_shape[1] = output_channel;
   output_shape[2] = output_height;

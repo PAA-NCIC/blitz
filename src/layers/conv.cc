@@ -33,7 +33,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
 		output_width = (input_width + 2 * padding_width_ - filter_width) /
 			stride_width_ + 1;
 	}
-  Shape output_shape(4);
+  Shape output_shape(4, BLITZ_BUFFER_NCHW);
   output_shape[0] = batch_size;
   output_shape[1] = output_channel;
   output_shape[2] = output_height;
@@ -42,7 +42,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   this->forward_output_ = make_shared<TensorType<DType> >(output_shape);
   this->backward_output_ = make_shared<TensorType<DType> >(input_shape);
   // weight
-  Shape weight_shape(4);
+  Shape weight_shape(4, BLITZ_FILTER_KCRS);
   weight_shape[0] = output_channel;
   weight_shape[1] = input_channel;
   weight_shape[2] = filter_height;
