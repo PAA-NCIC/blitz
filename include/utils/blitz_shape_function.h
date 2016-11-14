@@ -5,6 +5,17 @@
 
 namespace blitz {
 
+enum BLITZ_DATA_LAYOUT {
+	BLITZ_FLAT = 0,
+	BLITZ_CONVOLUTION_BUFFER_NCHW = 1,
+	BLITZ_CONVOLUTION_BUFFER_NHWC = 2,
+	BLITZ_CONVOLUTION_FILTER_KCRS = 3,
+	BLITZ_CONVOLUTION_FILTER_RSCK = 4,
+	BLITZ_POOLING_BUFFER_NCHW = 5,
+	BLITZ_POOLING_BUFFER_NHWC = 6,
+	BLITZ_UNDEFINED = 7
+};
+
 inline BLITZ_DATA_LAYOUT BlitzParseShape(const string& data_layout) {
 	if (data_layout == "convolution_nchw") {
 		return BLITZ_CONVOLUTION_BUFFER_NCHW;
@@ -25,7 +36,7 @@ inline BLITZ_DATA_LAYOUT BlitzParseShape(const string& data_layout) {
 	}
 }
 
-inline void BlitzConvolution2DShape(BLITZ_DATA_LAYOUT data_layout,
+inline void BlitzConvolution2DBuffer(BLITZ_DATA_LAYOUT data_layout,
 	const Shape* shape, size_t* N, size_t* C, size_t* H, size_t* W) {
 	CHECK_EQ(shape->dimension(), 4);
 	switch (data_layout) {
@@ -69,7 +80,7 @@ inline void BlitzConvolution2DFilter(BLITZ_DATA_LAYOUT data_layout,
 	}
 }
 
-inline void BlitzPooling2DShape(BLITZ_DATA_LAYOUT data_layout,
+inline void BlitzPooling2DBuffer(BLITZ_DATA_LAYOUT data_layout,
 	const Shape* shape, size_t* N, size_t* C, size_t* H, size_t* W) {
 	CHECK_EQ(shape->dimension(), 4);
 	switch (data_layout) {
