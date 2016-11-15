@@ -40,7 +40,7 @@ void Affine<TensorType, DType>::ForwardPropImpl(
     (this->weight_).get(),
     (this->forward_output_).get(),
     false, false, 1, 0,
-    kernel_);
+    this->algorithm_);
 }
 
 template<template <typename> class TensorType, typename DType>
@@ -59,7 +59,7 @@ void Affine<TensorType, DType>::BackwardPropImpl(
       (this->weight_).get(),
       (this->backward_output_).get(), 
       false, true, 1, 0,
-      kernel_);
+      this->algorithm_);
   }
   #ifdef BLITZ_PERFORMANCE
   end = system_clock::now();
@@ -75,7 +75,7 @@ void Affine<TensorType, DType>::BackwardPropImpl(
     backward_input.get(),
     (this->update_).get(),
     true, false, 1, 0,
-    kernel_);
+    this->algorithm_);
   #ifdef BLITZ_PERFORMANCE
   end = system_clock::now();
   time = end - start;

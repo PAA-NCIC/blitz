@@ -15,7 +15,7 @@ inline BLITZ_DATA_LAYOUT BlitzParseShape(const string& data_layout) {
 	} else if (data_layout == "rsck") {
 		return BLITZ_FILTER_RSCK;
 	} else {
-		return BLITZ_UNDEFINED;
+		return BLITZ_SHAPE_UNDEFINED;
 	}
 }
 

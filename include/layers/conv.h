@@ -9,6 +9,7 @@
 #include "layers/param_layer.h"
 #include "transforms/activation.h"
 #include "utils/common.h"
+#include "utils/blitz_algorithm_function.h"
 
 namespace blitz {
 
@@ -22,12 +23,12 @@ class Conv : public ParamLayer<TensorType, DType> {
     const Shape& filter_shape,
     const size_t stride_height = 1, const size_t stride_width = 1,
     const size_t padding_height = 0, const size_t padding_width = 0,
-    const string& kernel = "blas") :
+    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM) :
     ParamLayer<TensorType, DType>(name, filler_name,
     optimizer_name, activation), filter_shape_(filter_shape),
     stride_height_(stride_height), stride_width_(stride_width),
     padding_height_(padding_height), padding_width_(padding_width),
-    kernel_(kernel) {}
+    algorithm_(algorithm) {}
   ~Conv() {}
 
   virtual void InitImpl(const Shape& input_shape);
@@ -45,7 +46,7 @@ class Conv : public ParamLayer<TensorType, DType> {
   const size_t padding_height_;
   const size_t padding_width_;
 
-  const string kernel_;
+  BLITZ_ALGORITHM algorithm_;
 
   double forward_computations_;
   double backward_computations_;

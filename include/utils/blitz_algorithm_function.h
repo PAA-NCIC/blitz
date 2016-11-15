@@ -10,24 +10,30 @@ enum BLITZ_ALGORITHM {
 	BLITZ_CONVOLUTION_BLAS_GEMM = 3,
 	BLITZ_CONVOLUTION_BLAS_GEMM_BATCH = 4,
 	BLITZ_CONVOLUTION_XSMM_DIRECT = 5,
-	BLITZ_UNDEFINED = 6
+	BLITZ_BLAS_GEMM = 6,
+	BLITZ_SASS_GEMM = 7,
+	BLITZ_ALGORITHM_UNDEFINED = 8
 };
 
 inline BLITZ_ALGORITHM BlitzParseAlgorithm(const string& algorithm) {
-	if (algorithm == "sass_gemm") {
+	if (algorithm == "convolution_sass_gemm") {
 		return BLITZ_CONVOLUTION_SASS_GEMM;
-	} else if (algorithm == "sass_direct") {
+	} else if (algorithm == "convolution_sass_direct") {
 		return BLITZ_CONVOLUTION_SASS_DIRECT;
-	} else if (algorithm == "cudnn") {
+	} else if (algorithm == "convolution_cudnn") {
 		return BLITZ_CONVOLUTION_CUDNN;
-	} else if (algorithm == "blas_gemm") {
+	} else if (algorithm == "convolution_blas_gemm") {
 		return BLITZ_CONVOLUTION_BLAS_GEMM;
-	} else if (algorithm == "blas_gemm_batch") {
+	} else if (algorithm == "convolution_blas_gemm_batch") {
 		return BLITZ_CONVOLUTION_BLAS_GEMM_BATCH;
-	} else if (algorithm == "xsmm_direct") {
+	} else if (algorithm == "convolution_xsmm_direct") {
 		return BLITZ_CONVOLUTION_XSMM_DIRECT;
+	} else if (algorithm == "blas_gemm") {
+		return BLITZ_BLAS_GEMM;
+	} else if (algorithm == "sass_gemm") {
+		return BLITZ_SASS_GEMM;
 	} else {
-		return BLITZ_UNDEFINED;
+		return BLITZ_ALGORITHM_UNDEFINED;
 	}
 }
 

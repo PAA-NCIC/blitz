@@ -29,7 +29,7 @@ layers:
     activation: 
         type: Rectlin
     optimizer: op1
-    kernel: blas_batch
+    kernel: convolution_blas_gemm_batch
 -
     type: Pooling
     name: Pooling1
@@ -46,7 +46,7 @@ layers:
     activation:
         type: Rectlin
     optimizer: op1
-    kernel: blas_batch
+    kernel: convolution_blas_gemm_batch
 -
     type: Pooling
     name: Pooling1

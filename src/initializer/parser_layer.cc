@@ -6,6 +6,7 @@
 #include "layers/pooling.h"
 #include "layers/dropout.h"
 #include "layers/param_layer.h"
+#include "utils/blitz_algorithm_function.h"
 
 namespace blitz {
 
@@ -37,14 +38,15 @@ shared_ptr<Layer<TensorType, DType> > Parser::SetLayer(const YAML::Node& node) c
 			int nout = node["nout"].as<int>();
 			string filler_name = node["filler"].as<string>();
 			string optimizer_name = node["optimizer"].as<string>();
-			string kernel = node["kernel"] ? node["kernel"].as<string>() : "blas";
+			BLITZ_ALGORITHM algorithm = node["kernel"] ?
+				BlitzParseAlgorithm(node["kernel"].as<string>()) : BLITZ_BLAS_GEMM;
 
 			shared_ptr<Activation<TensorType, DType> > activation;
 			if (node["activation"])
 				activation = SetActivation<TensorType, DType>(node["activation"]);
 			param_layer = static_pointer_cast<ParamLayer<TensorType, DType> >(
 				make_shared<Affine<TensorType, DType> >(name, filler_name,
-					optimizer_name, activation, nout, kernel));
+					optimizer_name, activation, nout, algorithm));
 		} else if (type == "Conv") {
 			int stride = 1;
 			int padding = 0;
@@ -69,7 +71,8 @@ shared_ptr<Layer<TensorType, DType> > Parser::SetLayer(const YAML::Node& node) c
 			Shape shape(node["fshape"].as<vector<size_t> >());
 			string filler_name = node["filler"].as<string>();
 			string optimizer_name = node["optimizer"].as<string>();
-			string kernel = node["kernel"] ? node["kernel"].as<string>() : "blas";
+			BLITZ_ALGORITHM algorithm = node["kernel"] ?
+				BlitzParseAlgorithm(node["kernel"].as<string>()) : BLITZ_CONVOLUTION_BLAS_GEMM;
 
 			shared_ptr<Activation<TensorType, DType> > activation;
 			if (node["activation"])
@@ -79,7 +82,7 @@ shared_ptr<Layer<TensorType, DType> > Parser::SetLayer(const YAML::Node& node) c
 				static_pointer_cast<ParamLayer<TensorType, DType> >(
 					new Conv<TensorType, DType>(name, filler_name,
 						optimizer_name, activation, shape, stride, stride, padding,
-						padding, kernel)));
+						padding, algorithm)));
 		}
 
 		if (node["bias"]) {

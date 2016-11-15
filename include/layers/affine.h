@@ -6,6 +6,7 @@
 #include "layers/param_layer.h"
 #include "transforms/activation.h"
 #include "utils/common.h"
+#include "utils/blitz_algorithm_function.h"
 
 namespace blitz {
 
@@ -16,9 +17,9 @@ class Affine : public ParamLayer<TensorType, DType> {
     const string& name, const string& filler_name,
     const string& optimizer_name,
     shared_ptr<Activation<TensorType, DType> > activation,
-    size_t nout, const string& kernel = "blas") :
+    size_t nout, BLITZ_ALGORITHM algorithm = BLITZ_BLAS_GEMM) :
     ParamLayer<TensorType, DType>(name, filler_name,
-    optimizer_name, activation), nout_(nout), kernel_(kernel) {}
+    optimizer_name, activation), nout_(nout), algorithm_(algorithm) {}
   ~Affine() {}
 
   virtual void InitImpl(const Shape& input_shape);
@@ -28,7 +29,7 @@ class Affine : public ParamLayer<TensorType, DType> {
  private:
   size_t nout_;
 
-  const string kernel_;
+  BLITZ_ALGORITHM algorithm_;
 
   DISABLE_COPY_AND_ASSIGN(Affine);
 };

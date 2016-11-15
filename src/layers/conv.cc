@@ -20,7 +20,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   // output shape encode
   size_t output_channel = filter_shape_[0];
   size_t output_height, output_width;
-	if (this->kernel_ == "xsmm") {
+	if (this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {
 		// this kernel only support output padding, therefore we do not support it if padding is not zero
 		if (padding_height_ != 0 || padding_width_ != 0) {
 			LOG(FATAL) << "xsmm kernel do not support backward phase for padding > 0";
@@ -55,23 +55,24 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     this->forward_computations_ = static_cast<double>(batch_size) *
     static_cast<double>(output_channel * output_height * output_width) *
     static_cast<double>(input_channel * filter_height * filter_width * 2);
-  if (this->kernel_ == "asm" || this->kernel_ == "blas") {
+  if (this->algorithm_ == BLITZ_CONVOLUTION_SASS_GEMM ||
+		this->algorithm_ == BLITZ_CONVOLUTION_BLAS_GEMM) {
     workspace_shape[0] = input_channel *
       filter_height * filter_width * output_height * output_width;
-  } else if (this->kernel_ == "asm_batch" || this->kernel_ == "blas_batch" ||
-		this->kernel_ == "xsmm") {  //xsmm kernel fallback to blas_batch in backward phase
+  } else if (this->algorithm_ == BLITZ_CONVOLUTION_BLAS_GEMM_BATCH ||
+		this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {  //xsmm kernel fallback to blas_batch in backward phase
     size_t workspace_unpack_size = BLITZ_NUM_THREADS * input_channel *
       filter_height * filter_width * output_height * output_width;
     size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *
       input_channel * filter_height * filter_width;
     workspace_shape[0] = workspace_unpack_size + workspace_update_size;
-  } else if (this->kernel_ == "asm_direct" || this->kernel_ == "blas_direct") {
+  } else if (this->algorithm_ == BLITZ_CONVOLUTION_SASS_DIRECT) {
     size_t workspace_size = input_shape.size() +
       output_shape.size() + weight_shape.size();
     workspace_shape[0] = workspace_size;
   }
 	#ifdef BLITZ_USE_GPU
-  else if (this->kernel_ == "cudnn") {
+  else if (this->algorithm_ == BLITZ_CONVOLUTION_CUDNN) {
     // create val
     cudnn_alpha_ = new DType(1.0);
     cudnn_beta_ = new DType(0.0);
@@ -114,7 +115,7 @@ void Conv<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
   // TODO(keren) fusing
 	#ifdef BLITZ_USE_GPU
-  if (this->kernel_ == "cudnn") {
+  if (this->algorithm_ == BLITZ_CONVOLUTION_CUDNN) {
     // start cudnn directly from the layer, not throught backend
     // because backend is a general engine
     #ifdef BLITZ_PERFORMANCE
@@ -150,7 +151,7 @@ void Conv<TensorType, DType>::ForwardPropImpl(
       (this->workspace_).get(),
       padding_height_, padding_width_,
       stride_height_, stride_width_,
-      this->kernel_);
+      this->algorithm_);
 
   }
 	#else
@@ -161,7 +162,7 @@ void Conv<TensorType, DType>::ForwardPropImpl(
     (this->workspace_).get(),
     padding_height_, padding_width_,
     stride_height_, stride_width_,
-    this->kernel_);
+    this->algorithm_);
 	#endif
 }
 
@@ -170,7 +171,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
   shared_ptr<TensorType<DType> > backward_input) {
   if (this->backward_prop_) {
 #ifdef BLITZ_USE_GPU
-    if (this->kernel_ == "cudnn") {
+    if (this->algorithm_ == BLITZ_CONVOLUTION_CUDNN) {
       cudnnConvolutionBackwardData(cudnn_handle_,
         reinterpret_cast<void*>(cudnn_alpha_),
         filter_desc_, (this->weight_)->data(),
@@ -186,7 +187,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
       (this->workspace_).get(),
       padding_height_, padding_width_,
       stride_height_, stride_width_,
-      this->kernel_);
+      this->algorithm_);
     }
 #else
     Backend<TensorType, DType>::Convolution2DBackwardFunc(
@@ -196,11 +197,11 @@ void Conv<TensorType, DType>::BackwardPropImpl(
       (this->workspace_).get(),
       padding_height_, padding_width_,
       stride_height_, stride_width_,
-      this->kernel_);
+      this->algorithm_);
 #endif
   }
 #ifdef BLITZ_USE_GPU
-  if (this->kernel_ == "cudnn") {
+  if (this->algorithm_ == BLITZ_CONVOLUTION_CUDNN) {
     cudnnConvolutionBackwardFilter(cudnn_handle_,
       reinterpret_cast<void*>(cudnn_alpha_),
       input_desc_, (this->forward_input_)->data(),
@@ -216,7 +217,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
       (this->workspace_).get(),
       padding_height_, padding_width_,
       stride_height_, stride_width_,
-      this->kernel_);
+      this->algorithm_);
   }
 #else
   Backend<TensorType, DType>::Convolution2DUpdateFunc(
@@ -226,7 +227,7 @@ void Conv<TensorType, DType>::BackwardPropImpl(
     (this->workspace_).get(),
     padding_height_, padding_width_,
     stride_height_, stride_width_,
-    this->kernel_);
+    this->algorithm_);
 #endif
 }
 

@@ -294,7 +294,7 @@ void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
   bool transb,
   DType alpha,
   DType beta,
-  const string& kernel) {
+  BLITZ_ALGORITHM algorithm) {
   bool gpu_transa = left->row_major()? transa : !transa;
   bool gpu_transb = right->row_major()? transb : !transb;
   size_t dim_left = gpu_transa ? left->size() / (left->shape())[0] :
@@ -316,23 +316,29 @@ void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
   cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
   cuEventRecord(event_start, NULL);
 #endif  // BLITZ_PERFORMANCE
-  if (kernel == "blas") {
-    BlitzGPUGemm(
-      const_cast<GPUTensor<DType>*>(left)->data(),
-      const_cast<GPUTensor<DType>*>(right)->data(),
-      output->data(),
-      gpu_transa, gpu_transb,
-      alpha, beta,
-      dim_left, dim_right, dim_common_left);
-  } else if (kernel == "asm") {
-    BlitzSassGemm(
-      const_cast<GPUTensor<DType>*>(left)->data(),
-      const_cast<GPUTensor<DType>*>(right)->data(),
-      output->data(),
-      gpu_transa, gpu_transb,
-      alpha, beta,
-      dim_left, dim_right, dim_common_left);
-  }
+	switch (algorithm) {
+		case BLITZ_BLAS_GEMM:
+			BlitzGPUGemm(
+				const_cast<GPUTensor<DType>*>(left)->data(),
+				const_cast<GPUTensor<DType>*>(right)->data(),
+				output->data(),
+				gpu_transa, gpu_transb,
+				alpha, beta,
+				dim_left, dim_right, dim_common_left);
+			break;
+		case BLITZ_SASS_GEMM:
+			BlitzSassGemm(
+				const_cast<GPUTensor<DType>*>(left)->data(),
+				const_cast<GPUTensor<DType>*>(right)->data(),
+				output->data(),
+				gpu_transa, gpu_transb,
+				alpha, beta,
+				dim_left, dim_right, dim_common_left);
+			break;
+		default:
+			LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+			break;
+	}
 #ifdef BLITZ_PERFORMANCE
   cuEventRecord(event_stop, NULL);
   cuEventSynchronize(event_stop);

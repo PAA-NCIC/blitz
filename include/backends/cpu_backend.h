@@ -103,7 +103,7 @@ class Backend<CPUTensor, DType> {
     bool transb,
     DType alpha,
     DType beta,
-    const string& kernel = "blas");
+    BLITZ_ALGORITHM algorithm = BLITZ_BLAS_GEMM);
 
   static void Transpose2DFunc(
     const CPUTensor<DType>* input, CPUTensor<DType>* output);
@@ -137,7 +137,7 @@ class Backend<CPUTensor, DType> {
     CPUTensor<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    const string& kernel = "blas");
+    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
 
   static void Convolution2DBackwardFunc(
     const CPUTensor<DType>* output,
@@ -146,7 +146,7 @@ class Backend<CPUTensor, DType> {
     CPUTensor<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    const string& kernel = "blas");
+    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
 
   static void Convolution2DUpdateFunc(
     const CPUTensor<DType>* input,
@@ -155,7 +155,7 @@ class Backend<CPUTensor, DType> {
     CPUTensor<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-    const string& kernel = "blas");
+    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
 
   static void MaxPooling2DForwardFunc(
     const CPUTensor<DType>* input,
