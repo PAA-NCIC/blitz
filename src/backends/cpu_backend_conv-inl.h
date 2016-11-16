@@ -164,54 +164,45 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   size_t stride_width,
 	BLITZ_ALGORITHM algorithm) {
   // shape decode
-  // input
-  const Shape& input_shape = input->shape();
-  const size_t batch_size = input_shape[0];
-  const size_t input_channel = input_shape[1];
-  const size_t input_height = input_shape[2];
-  const size_t input_width = input_shape[3];
-  // filter
-  const Shape& filter_shape = filter->shape();
-  const size_t filter_height = filter_shape[2];
-  const size_t filter_width = filter_shape[3];
-  // output
-  const Shape& output_shape = output->shape();
-  const size_t output_channel = output_shape[1];
-  const size_t output_height = output_shape[2];
-  const size_t output_width = output_shape[3];
-  // offset
-  size_t input_batch_offset = 0;
-  size_t output_batch_offset = 0;
-  const size_t input_batch_size = input_channel * input_height * input_width;
-  const size_t output_batch_size = output_channel * output_height * output_width;
+	size_t NIN, C, H, W;
+	size_t KF, CF, R, S;
+	size_t NOUT, K, P, Q;
+	Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
+	Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
+	Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
+	CHECK_EQ(NIN, NOUT);
+	CHECK_EQ(KF, K);
+	CHECK_EQ(CF, C);
   // dims
-  const size_t dim_left = input_channel * filter_height * filter_width;
-  const size_t dim_right = output_height * output_width;
-  const size_t dim_common = output_channel;
+  const size_t CHW = C * H * W;
+  const size_t PQ = P * Q;
+  const size_t KPQ = K * PQ;
+  const size_t CRS = C * R * S;
+  // offset
+  size_t nCHW = 0;
+  size_t nKPQ = 0;
   input->Fill(0);
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
-  duration<double> gemm_time = duration<double>::zero();
-  duration<double> pack_time = duration<double>::zero();
-  double total_gemm_time = 0.0;
-  double total_pack_time = 0.0;
+  duration<float> gemm_time = duration<float>::zero();
+  duration<float> pack_time = duration<float>::zero();
+  float total_gemm_time = 0.0;
+  float total_pack_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
 		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
-			#pragma omp parallel private(input_batch_offset, output_batch_offset) 
+			#pragma omp parallel private(nCHW, nKPQ) 
 			{
 				const size_t tid = omp_get_thread_num();
-				const size_t workspace_unpack_offset = tid *
-					input_channel * filter_height * filter_width *
-					output_width * output_height;
+				const size_t workspace_unpack_offset = tid * CRS * PQ;
 				#ifdef BLITZ_PERFORMANCE
 					#pragma omp for private(start, end)
 				#else
 					#pragma omp for
 				#endif
-				for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-					input_batch_offset = batch_index * input_batch_size;
-					output_batch_offset = batch_index * output_batch_size;
+				for (size_t n = 0; n < NIN; ++n) {
+					nCHW = n * CHW;
+					nKPQ = n * KPQ;
 					#ifdef BLITZ_PERFORMANCE
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
@@ -219,11 +210,11 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 					// (output_width * output_height) *
 					// (input_channel * filter_height * filter_width)
 					BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-						const_cast<CPUTensor<DType>*>(output)->Slice(output_batch_offset),
+						const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 						workspace->Slice(workspace_unpack_offset),
 						true, false,
 						static_cast<DType>(1), static_cast<DType>(0),
-						dim_left, dim_right, dim_common);
+						PQ, CRS, K);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					#pragma omp critical
@@ -237,10 +228,10 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 					// (input_channel) *
 					// (input_height * input_width)
 					Pack2DFunc(workspace->Slice(workspace_unpack_offset),
-						input->Slice(input_batch_offset),
-						input_channel, input_height, input_width,
-						filter_height, filter_width,
-						output_height, output_width,
+						input->Slice(nCHW),
+						C, H, W,
+						R, S,
+						P, Q,
 						padding_height, padding_width,
 						stride_height, stride_width);
 					#ifdef BLITZ_PERFORMANCE
@@ -260,9 +251,9 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 			}
 			break;
 		case BLITZ_CONVOLUTION_BLAS_GEMM:
-			for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-				input_batch_offset = batch_index * input_batch_size;
-				output_batch_offset = batch_index * output_batch_size;
+			for (size_t n = 0; n < NIN; ++n) {
+				nCHW = n * CHW;
+				nKPQ = n * KPQ;
 				#ifdef BLITZ_PERFORMANCE
 				start = system_clock::now();
 				#endif
@@ -270,11 +261,11 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 				// (output_width * output_height) *
 				// (input_channel * filter_height * filter_width)
 				BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-					const_cast<CPUTensor<DType>*>(output)->Slice(output_batch_offset),
+					const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 					workspace->data(),
 					true, false,
 					static_cast<DType>(1), static_cast<DType>(0),
-					dim_left, dim_right, dim_common);
+					PQ, CRS, K);
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				gemm_time += end - start;
@@ -287,10 +278,10 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 				// (input_channel) *
 				// (input_height * input_width)
 				Pack2DFunc(workspace->data(),
-					input->Slice(input_batch_offset),
-					input_channel, input_height, input_width,
-					filter_height, filter_width,
-					output_height, output_width,
+					input->Slice(nCHW),
+					C, H, W,
+					R, S,
+					P, Q,
 					padding_height, padding_width,
 					stride_height, stride_width);
 				#ifdef BLITZ_PERFORMANCE
@@ -306,8 +297,8 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 			break;
 	}
   #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Backward convolution gemm: " << total_gemm_time;
-  LOG(INFO) << "Backward convolution pack: " << total_pack_time;
+  LOG(INFO) << "Backward convolution compute: " << total_gemm_time;
+  LOG(INFO) << "Backward convolution transform: " << total_pack_time;
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -322,31 +313,24 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   size_t stride_height,
   size_t stride_width,
 	BLITZ_ALGORITHM algorithm) {
-  // extract shapes
-  // input
-  const Shape& input_shape = input->shape();
-  const size_t batch_size = input_shape[0];
-  const size_t input_channel = input_shape[1];
-  const size_t input_height = input_shape[2];
-  const size_t input_width = input_shape[3];
-  // filter
-  const Shape& filter_shape = update->shape();
-  const size_t filter_height = filter_shape[2];
-  const size_t filter_width = filter_shape[3];
-  // output
-  const Shape& output_shape = output->shape();
-  const size_t output_channel = output_shape[1];
-  const size_t output_height = output_shape[2];
-  const size_t output_width = output_shape[3];
-  // offset
-  size_t input_batch_offset = 0;
-  size_t output_batch_offset = 0;
-  const size_t input_batch_size = input_channel * input_height * input_width;
-  const size_t output_batch_size = output_channel * output_height * output_width;
+  // shape decode
+	size_t NIN, C, H, W;
+	size_t KF, CF, R, S;
+	size_t NOUT, K, P, Q;
+	Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
+	Blitz2DFilter(update->data_layout(), update->shape_ptr(), &KF, &CF, &R, &S);
+	Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
+	CHECK_EQ(NIN, NOUT);
+	CHECK_EQ(KF, K);
+	CHECK_EQ(CF, C);
   // dims
-  const size_t dim_left = output_channel;
-  const size_t dim_right = input_channel * filter_height * filter_width;
-  const size_t dim_common = output_height * output_width;
+  const size_t CHW = C * H * W;
+  const size_t PQ = P * Q;
+  const size_t KPQ = K * PQ;
+  const size_t CRS = C * R * S;
+  // offset
+  size_t nCHW = 0;
+  size_t nKPQ = 0;
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
   duration<double> gemm_time = duration<double>::zero();
@@ -356,25 +340,21 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
 		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
-			#pragma omp parallel private(input_batch_offset, output_batch_offset)
+			#pragma omp parallel private(nCHW, nKPQ)
 			{
 				const size_t tid = omp_get_thread_num();
-				const size_t workspace_unpack_size = input_channel *
-					filter_height * filter_width * output_height * output_width;
-				const size_t workspace_update_size = output_channel *
-					input_channel * filter_height * filter_width;
-				const size_t workspace_unpack_offset = tid *
-					(workspace_unpack_size + workspace_update_size);
-				const size_t workspace_update_offset = workspace_unpack_offset +
-					workspace_update_size;
+				const size_t workspace_unpack_size = CRS * PQ;
+				const size_t workspace_update_size = K * CRS;
+				const size_t workspace_unpack_offset = tid * (workspace_unpack_size + workspace_update_size);
+				const size_t workspace_update_offset = workspace_unpack_offset + workspace_update_size;
 				#ifdef BLITZ_PERFORMANCE
 					#pragma omp for private(start, end)
 				#else
 					#pragma omp for
 				#endif
-				for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-					input_batch_offset = batch_index * input_batch_size;
-					output_batch_offset = batch_index * output_batch_size;
+				for (size_t n = 0; n < NIN; ++n) {
+					nCHW = n * CHW;
+					nKPQ = n * KPQ;
 					#ifdef BLITZ_PERFORMANCE
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
@@ -384,11 +364,11 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 					// to
 					// (input_channel * filter_height * filter_width)
 					// (output_width * output_height)
-					Unpack2DFunc(input->Slice(input_batch_offset),
+					Unpack2DFunc(input->Slice(nCHW),
 						workspace->Slice(workspace_unpack_offset),
-						input_channel, input_height, input_width,
-						filter_height, filter_width,
-						output_height, output_width,
+						C, H, W,
+						R, S,
+						P, Q,
 						padding_height, padding_width,
 						stride_height, stride_width);
 					#ifdef BLITZ_PERFORMANCE
@@ -400,12 +380,12 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 					// gemm generate
 					// (output_channel) *
 					// (input_channel * filter_height * filter_width)
-					BlitzCPUGemm(const_cast<CPUTensor<DType>*>(output)->Slice(output_batch_offset),
+					BlitzCPUGemm(const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 						workspace->Slice(workspace_unpack_offset),
 						workspace->Slice(workspace_update_offset),
 						false, true,
 						static_cast<DType>(1), static_cast<DType>(1),
-						dim_left, dim_right, dim_common);
+						K, CRS, PQ);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					#pragma omp critical
@@ -427,9 +407,9 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 			}
 			break;
 		case BLITZ_CONVOLUTION_BLAS_GEMM:
-			for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-				input_batch_offset = batch_index * input_batch_size;
-				output_batch_offset = batch_index * output_batch_size;
+			for (size_t n = 0; n < NIN; ++n) {
+				nCHW = n * CHW;
+				nKPQ = n * KPQ;
 				#ifdef BLITZ_PERFORMANCE
 				start = system_clock::now();
 				#endif
@@ -439,11 +419,11 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 				// to
 				// (input_channel * filter_height * filter_width)
 				// (output_width * output_height)
-				Unpack2DFunc(input->Slice(input_batch_offset),
+				Unpack2DFunc(input->Slice(nCHW),
 					workspace->data(),
-					input_channel, input_height, input_width,
-					filter_height, filter_width,
-					output_height, output_width,
+					C, H, W,
+					R, S,
+					P, Q,
 					padding_height, padding_width,
 					stride_height, stride_width);
 				#ifdef BLITZ_PERFORMANCE
@@ -454,11 +434,11 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 				// gemm generate
 				// (output_channel) *
 				// (input_channel * filter_height * filter_width)
-				BlitzCPUGemm(const_cast<CPUTensor<DType>*>(output)->Slice(output_batch_offset),
+				BlitzCPUGemm(const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 					workspace->data(), update->data(),
 					false, true,
 					static_cast<DType>(1), static_cast<DType>(1),
-					dim_left, dim_right, dim_common);
+					K, CRS, PQ);
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				gemm_time += end - start;
