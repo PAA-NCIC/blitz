@@ -1,5 +1,7 @@
 #include <iostream>
 #include "backends/backends.h"
+#include "utils/blitz_algorithm_function.h"
+#include "utils/blitz_shape_function.h"
 
 using namespace blitz;
 
@@ -41,6 +43,7 @@ void set_input_shape_nchw(size_t N, size_t C, size_t H, size_t W) {
   input_shape[1] = C;
   input_shape[2] = H;
   input_shape[3] = W;
+	input_shape.set_data_layout(BLITZ_BUFFER_NCHW);
 }
 
 void set_filter_shape_kcrs(size_t K, size_t C, size_t R, size_t S) {
@@ -48,6 +51,7 @@ void set_filter_shape_kcrs(size_t K, size_t C, size_t R, size_t S) {
   filter_shape[1] = C;
   filter_shape[2] = R;
   filter_shape[3] = S;
+	filter_shape.set_data_layout(BLITZ_FILTER_KCRS);
 }
 
 void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q) {
@@ -55,16 +59,17 @@ void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q) {
   output_shape[1] = K;
   output_shape[2] = P;
   output_shape[3] = Q;
+	output_shape.set_data_layout(BLITZ_BUFFER_NCHW);
 }
 
 void convolution_forward(
-  const string& kernel,
+	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
 }
 
 void convolution_backward(
-  const string& kernel,
+	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
   // set up cpu
@@ -85,7 +90,7 @@ void convolution_backward(
     &workspace_cpu,
     pad_h, pad_w, 
     str_h, str_w,
-    kernel);
+    algorithm);
   output_convolution_transform(
     input_shape[0],
     input_shape.size() / input_shape[0],
@@ -93,7 +98,7 @@ void convolution_backward(
 }
 
 void convolution_update(
-  const string& kernel,
+	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
 }
@@ -129,11 +134,11 @@ int main(int argc, char** argv) {
   workspace_shape_cpu[0] = C * H * W * P * Q;
   // run convolution
   if (phase == "forward") {
-    convolution_forward(kernel, pad_h, pad_w, str_h, str_w);
+    convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
   } else if (phase == "backward") {
-    convolution_backward(kernel, pad_h, pad_w, str_h, str_w);
+    convolution_backward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
   } else if (phase == "update") {
-    convolution_update(kernel, pad_h, pad_w, str_h, str_w);
+    convolution_update(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
   }
   return 0;
 }

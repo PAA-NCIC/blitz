@@ -6,15 +6,16 @@
 #include "backends/backends.h"
 #include "utils/blitz_gpu_function.h"
 #include "utils/blitz_cpu_function.h"
+#include "utils/blitz_algorithm_function.h"
 
 using namespace blitz;
 
 // N C H W
-Shape input_shape(4);
+Shape input_shape(4, BLITZ_BUFFER_NCHW);
 // K C R S
-Shape filter_shape(4);
+Shape filter_shape(4, BLITZ_FILTER_KCRS);
 // N K P Q
-Shape output_shape(4);
+Shape output_shape(4, BLITZ_BUFFER_NCHW);
 // cpu workspace
 Shape workspace_shape_cpu(1);
 // gpu workspace
@@ -60,7 +61,7 @@ void compare_cpu_gpu(
 
 // conmpare gpu result to cpu result
 void convolution_forward(
-  const string& kernel,
+	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w,
 	size_t iter) {
@@ -98,7 +99,7 @@ void convolution_forward(
 		&workspace_gpu,
 		pad_h, pad_w, 
 		str_h, str_w,
-		kernel);
+		algorithm);
 	BLITZ_GPU_TIMER_START(elapsed_time_gpu, event_start, event_stop);
 	// gpu convolution
 	for (size_t i = 1; i < iter; ++i) {
@@ -109,7 +110,7 @@ void convolution_forward(
 			&workspace_gpu,
 			pad_h, pad_w, 
 			str_h, str_w,
-			kernel);
+			algorithm);
 	}
 	BLITZ_GPU_TIMER_END(elapsed_time_gpu, event_start, event_stop);
 	BLITZ_GPU_TIMER_INFO((iter - 1) * 2 * filter_shape.size() * output_shape[0] * output_shape[2] * output_shape[3], elapsed_time_gpu);
@@ -119,7 +120,7 @@ void convolution_forward(
 }
 
 void convolution_backward(
-  const string& kernel,
+	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w,
 	size_t iter) {
@@ -158,7 +159,7 @@ void convolution_backward(
     &workspace_gpu,
     pad_h, pad_w, 
     str_h, str_w,
-    kernel);
+    algorithm);
   // copy from gpu to cpu
   cudaMemcpy(input_copy.data(), input_gpu.data(),
     input_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
@@ -166,7 +167,7 @@ void convolution_backward(
 }
 
 void convolution_update(
-  const string& kernel,
+	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w,
 	size_t iter) {
@@ -205,7 +206,7 @@ void convolution_update(
     &workspace_gpu,
     pad_h, pad_w, 
     str_h, str_w,
-    kernel);
+    algorithm);
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_gpu.data(),
     filter_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
@@ -246,11 +247,11 @@ int main(int argc, char** argv) {
   workspace_shape_cpu[0] = C * H * W * P * Q;
   // run convolution
 	if (phase == "forward") {
-		convolution_forward(kernel, pad_h, pad_w, str_h, str_w, iterations);
+		convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iterations);
 	} else if (phase == "backward") {
-		convolution_backward(kernel, pad_h, pad_w, str_h, str_w, iterations);
+		convolution_backward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iterations);
 	} else if (phase == "update") {
-		convolution_update(kernel, pad_h, pad_w, str_h, str_w, iterations);
+		convolution_update(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iterations);
 	}
   return 0;
 }

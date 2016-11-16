@@ -184,17 +184,28 @@ void BlitzSassConvolution2D(
       &Q, &PQ, &QN, &PQN, &MPQN,
       &magic_Q, &shift_Q,
       &magic_PQ, &shift_PQ};
-    gridX = MPQ;
-    gridY = K / 64 + (K % 64 != 0);
-    gridZ = N / 64 + (N % 64 != 0);
-    kernel_name = "sconv_fprop_K64_N64";
-    // TODO(keren): tune kernels in future
-    function = CubinModule::GetFunction(kernel_name);
-    result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      64, 1, 1, 64 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
-    if (result != CUDA_SUCCESS) {
-      LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
-    }
+		if (K <= 64 && N <= 64) {
+			gridX = MPQ;
+			gridY = K / 64 + (K % 64 != 0);
+			gridZ = N / 64 + (N % 64 != 0);
+			kernel_name = "sconv_fprop_K64_N64";
+			// TODO(keren): tune kernels in future
+			function = CubinModule::GetFunction(kernel_name);
+			result = cuLaunchKernel(function, gridX, gridY, gridZ,
+				64, 1, 1, 64 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+		} else {
+			gridX = MPQ;
+			gridY = K / 128 + (K % 128 != 0);
+			gridZ = N / 128 + (N % 128 != 0);
+			kernel_name = "sconv_fprop_K128_N128";
+			// TODO(keren): tune kernels in future
+			function = CubinModule::GetFunction(kernel_name);
+			result = cuLaunchKernel(function, gridX, gridY, gridZ,
+				256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+		}
+		if (result != CUDA_SUCCESS) {
+			LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+		}
   } else if (phase == "backward") {
     if (C % 64 == 0) {  // C64
       void *args[45] = {
