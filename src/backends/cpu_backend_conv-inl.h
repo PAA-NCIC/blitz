@@ -182,12 +182,17 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   size_t nCHW = 0;
   size_t nKPQ = 0;
   input->Fill(0);
+	// time counter
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
-  duration<float> gemm_time = duration<float>::zero();
-  duration<float> pack_time = duration<float>::zero();
-  float total_gemm_time = 0.0;
+  duration<float> pack_time[BLITZ_NUM_THREADS];
+  duration<float> gemm_time[BLITZ_NUM_THREADS];
+	for (size_t i = 0; i < BLITZ_NUM_THREADS; ++i) {
+		pack_time[i] = duration<float>::zero();
+		gemm_time[i] = duration<float>::zero();
+	}
   float total_pack_time = 0.0;
+  float total_gemm_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
 		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
@@ -217,8 +222,7 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 						CRS, PQ, K);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
-					#pragma omp critical
-					gemm_time += end - start;
+					gemm_time[tid] += end - start;
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
 					// pack
@@ -236,17 +240,16 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 						stride_height, stride_width);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
-					#pragma omp critical
-					pack_time += end - start;
+					pack_time[tid] += end - start;
 					#endif  // BLITZ_PERFORMANCE
 				}
 				#ifdef BLITZ_PERFORMANCE
-				if (tid == 0) {
-					total_pack_time = pack_time.count() /
-						omp_get_num_threads();
-					total_gemm_time = gemm_time.count() /
-						omp_get_num_threads();
+				for (size_t i = 0; i < BLITZ_NUM_THREADS; ++i) {
+					total_unpack_time += pack_time[i].count();
+					total_gemm_time += gemm_time[i].count();
 				}
+				total_unpack_time /= BLITZ_NUM_THREADS;
+				total_gemm_time /= BLITZ_NUM_THREADS;
 				#endif
 			}
 			break;
@@ -258,17 +261,17 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 				start = system_clock::now();
 				#endif
 				// gemm generate
-				// (output_width * output_height) *
 				// (input_channel * filter_height * filter_width)
+				// (output_width * output_height) *
 				BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
 					const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 					workspace->data(),
 					true, false,
 					static_cast<DType>(1), static_cast<DType>(0),
-					PQ, CRS, K);
+					CRS, PQ, K);
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
-				gemm_time += end - start;
+				gemm_time[0] += end - start;
 				start = system_clock::now();
 				#endif
 				// pack
@@ -286,9 +289,9 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 					stride_height, stride_width);
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
-				pack_time += end - start;
-				total_pack_time = pack_time.count();
-				total_gemm_time = gemm_time.count();
+				pack_time[0] += end - start;
+				total_pack_time = pack_time[0].count();
+				total_gemm_time = gemm_time[0].count();
 				#endif
 			}
 			break;
@@ -333,10 +336,14 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   size_t nKPQ = 0;
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
-  duration<double> gemm_time = duration<double>::zero();
-  duration<double> unpack_time = duration<double>::zero();
-  double total_gemm_time = 0;
-  double total_unpack_time = 0;
+  duration<float> unpack_time[BLITZ_NUM_THREADS];
+  duration<float> gemm_time[BLITZ_NUM_THREADS];
+	for (size_t i = 0; i < BLITZ_NUM_THREADS; ++i) {
+		unpack_time[i] = duration<float>::zero();
+		gemm_time[i] = duration<float>::zero();
+	}
+  float total_unpack_time = 0.0;
+  float total_gemm_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
 		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
@@ -373,8 +380,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 						stride_height, stride_width);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
-					#pragma omp critical
-					unpack_time += end - start;
+					unpack_time[tid] += end - start;
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
 					// gemm generate
@@ -388,8 +394,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 						K, CRS, PQ);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
-					#pragma omp critical
-					gemm_time += end - start;
+					gemm_time[tid] += end - start;
 					#endif  // BLITZ_PERFORMANCE
 				}
 				for (size_t i = 0; i < update->size(); ++i) {
@@ -397,12 +402,12 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 					(*update)[i] += *(workspace->Slice(workspace_update_offset + i));
 				}
 				#ifdef BLITZ_PERFORMANCE
-				if (tid == 0) {
-					total_unpack_time = unpack_time.count() /
-						omp_get_num_threads();
-					total_gemm_time = gemm_time.count() /
-						omp_get_num_threads();
+				for (size_t i = 0; i < BLITZ_NUM_THREADS; ++i) {
+					total_unpack_time += unpack_time[i].count();
+					total_gemm_time += gemm_time[i].count();
 				}
+				total_unpack_time /= BLITZ_NUM_THREADS;
+				total_gemm_time /= BLITZ_NUM_THREADS;
 				#endif
 			}
 			break;
@@ -428,7 +433,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 					stride_height, stride_width);
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
-				unpack_time += end - start;
+				unpack_time[0] += end - start;
 				start = system_clock::now();
 				#endif
 				// gemm generate
@@ -441,9 +446,9 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 					K, CRS, PQ);
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
-				gemm_time += end - start;
-				total_gemm_time = gemm_time.count();
-				total_unpack_time = unpack_time.count();
+				gemm_time[0] += end - start;
+				total_gemm_time = gemm_time[0].count();
+				total_unpack_time = unpack_time[0].count();
 				#endif
 			}
 			break;
