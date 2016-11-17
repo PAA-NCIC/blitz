@@ -14,13 +14,12 @@ Shape output_shape(4);
 // cpu workspace
 Shape workspace_shape_cpu(1);
 
-void output_convolution_transform(size_t N, size_t CHW, float* output) {
-  for (size_t j = 0; j < CHW; ++j) {
-    for (size_t i = 0; i < N; ++i) {
-      std::cout << output[i * CHW + j] << " ";
-    }
-  }
-  std::cout << std::endl;
+void compare(float* algo1, float* algo2, size_t size) {
+	for (size_t i = 0; i < size; ++i) {
+		if (algo1[i] > algo2[i] + 1e-2 || algo1[i] < algo2[i] - 1e-2) {
+			std::cout << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i] << std::endl;
+		}
+	}
 }
 
 void init_output(size_t N, size_t K, size_t P, size_t Q, float* output) {
@@ -66,6 +65,37 @@ void convolution_forward(
 	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
+  // set up cpu
+  CPUTensor<float> input_cpu(input_shape);
+  CPUTensor<float> filter_cpu(filter_shape);
+  CPUTensor<float> output_cpu(output_shape);
+  CPUTensor<float> output_cpu_algorithm(output_shape);
+  CPUTensor<float> workspace_cpu(workspace_shape_cpu);
+	size_t workspace_size = workspace_shape_cpu.size() * BLITZ_NUM_THREADS;
+	Shape workspace_shape_algorithm(1);
+	workspace_shape_algorithm[0] = workspace_size;
+  CPUTensor<float> workspace_cpu_algorithm(workspace_shape_algorithm);
+  // init values
+	Backend<CPUTensor, float>::UniformDistributionFunc(&filter_cpu, 0.0, 1.0);
+	Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
+  // cpu convolution 
+  Backend<CPUTensor, float>::Convolution2DForwardFunc(
+    &input_cpu,
+    &filter_cpu,
+    &output_cpu,
+    &workspace_cpu,
+    pad_h, pad_w, 
+    str_h, str_w);
+	// different algorithm
+  Backend<CPUTensor, float>::Convolution2DForwardFunc(
+    &input_cpu,
+    &filter_cpu,
+    &output_cpu_algorithm,
+    &workspace_cpu_algorithm,
+    pad_h, pad_w, 
+    str_h, str_w,
+    algorithm);
+	compare(output_cpu.data(), output_cpu_algorithm.data(), output_cpu.size());
 }
 
 void convolution_backward(
@@ -74,14 +104,17 @@ void convolution_backward(
   size_t str_h, size_t str_w) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
+  CPUTensor<float> input_cpu_algorithm(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   CPUTensor<float> workspace_cpu(workspace_shape_cpu);
+	size_t workspace_size = workspace_shape_cpu.size() * BLITZ_NUM_THREADS;
+	Shape workspace_shape_algorithm(1);
+	workspace_shape_algorithm[0] = workspace_size;
+  CPUTensor<float> workspace_cpu_algorithm(workspace_shape_algorithm);
   // init values
-  init_filter(filter_shape[0], filter_shape[1], filter_shape[2], filter_shape[3],
-    filter_cpu.data());
-  init_output(output_shape[0], output_shape[1], output_shape[2], output_shape[3],
-    output_cpu.data());
+	Backend<CPUTensor, float>::UniformDistributionFunc(&filter_cpu, 0.0, 1.0);
+	Backend<CPUTensor, float>::UniformDistributionFunc(&output_cpu, 0.0, 1.0);
   // cpu convolution 
   Backend<CPUTensor, float>::Convolution2DBackwardFunc(
     &output_cpu,
@@ -89,18 +122,54 @@ void convolution_backward(
     &input_cpu,
     &workspace_cpu,
     pad_h, pad_w, 
+    str_h, str_w);
+	// different algorithm
+  Backend<CPUTensor, float>::Convolution2DBackwardFunc(
+    &output_cpu,
+    &filter_cpu,
+    &input_cpu_algorithm,
+    &workspace_cpu_algorithm,
+    pad_h, pad_w, 
     str_h, str_w,
     algorithm);
-  output_convolution_transform(
-    input_shape[0],
-    input_shape.size() / input_shape[0],
-    input_cpu.data());
+	compare(input_cpu.data(), input_cpu_algorithm.data(), input_cpu.size());
 }
 
 void convolution_update(
 	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
+  // set up cpu
+  CPUTensor<float> input_cpu(input_shape);
+  CPUTensor<float> filter_cpu(filter_shape);
+  CPUTensor<float> filter_cpu_algorithm(filter_shape);
+  CPUTensor<float> output_cpu(output_shape);
+  CPUTensor<float> workspace_cpu(workspace_shape_cpu);
+	size_t workspace_size = workspace_shape_cpu.size() * BLITZ_NUM_THREADS;
+	Shape workspace_shape_algorithm(1);
+	workspace_shape_algorithm[0] = workspace_size;
+  CPUTensor<float> workspace_cpu_algorithm(workspace_shape_algorithm);
+  // init values
+	Backend<CPUTensor, float>::UniformDistributionFunc(&output_cpu, 0.0, 1.0);
+	Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
+  // cpu convolution 
+  Backend<CPUTensor, float>::Convolution2DUpdateFunc(
+    &input_cpu,
+    &output_cpu,
+    &filter_cpu,
+    &workspace_cpu,
+    pad_h, pad_w, 
+    str_h, str_w);
+	// different algorithm
+  Backend<CPUTensor, float>::Convolution2DUpdateFunc(
+    &input_cpu,
+    &output_cpu,
+    &filter_cpu_algorithm,
+    &workspace_cpu_algorithm,
+    pad_h, pad_w, 
+    str_h, str_w,
+    algorithm);
+	compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size());
 }
 
 int main(int argc, char** argv) {

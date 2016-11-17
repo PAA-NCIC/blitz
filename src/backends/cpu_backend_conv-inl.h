@@ -334,6 +334,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   // offset
   size_t nCHW = 0;
   size_t nKPQ = 0;
+	workspace->Fill(0);
   #ifdef BLITZ_PERFORMANCE
   time_point<system_clock> start, end;
   duration<float> unpack_time[BLITZ_NUM_THREADS];
@@ -353,7 +354,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 				const size_t workspace_unpack_size = CRS * PQ;
 				const size_t workspace_update_size = K * CRS;
 				const size_t workspace_unpack_offset = tid * (workspace_unpack_size + workspace_update_size);
-				const size_t workspace_update_offset = workspace_unpack_offset + workspace_update_size;
+				const size_t workspace_update_offset = workspace_unpack_offset + workspace_unpack_size;
 				#ifdef BLITZ_PERFORMANCE
 					#pragma omp for private(start, end)
 				#else
