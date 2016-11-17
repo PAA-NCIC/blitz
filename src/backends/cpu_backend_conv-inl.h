@@ -207,14 +207,14 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
 					// gemm generate
-					// (output_width * output_height) *
 					// (input_channel * filter_height * filter_width)
+					// (output_width * output_height) *
 					BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
 						const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 						workspace->Slice(workspace_unpack_offset),
 						true, false,
 						static_cast<DType>(1), static_cast<DType>(0),
-						PQ, CRS, K);
+						CRS, PQ, K);
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					#pragma omp critical

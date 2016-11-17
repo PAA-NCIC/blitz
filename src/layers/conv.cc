@@ -152,7 +152,6 @@ void Conv<TensorType, DType>::ForwardPropImpl(
       padding_height_, padding_width_,
       stride_height_, stride_width_,
       this->algorithm_);
-
   }
 	#else
   Backend<TensorType, DType>::Convolution2DForwardFunc(
