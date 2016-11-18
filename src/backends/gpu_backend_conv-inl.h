@@ -399,8 +399,8 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
 			break;
 	}
   #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Backward convolution filter gemm: " << gemm_time;
-  LOG(INFO) << "Backward convolution filter unpack: " << unpack_time;
+  LOG(INFO) << "Backward convolution filter gemm: " << compute_time;
+  LOG(INFO) << "Backward convolution filter unpack: " << transform_time;
   #endif  // BLITZ_PERFORMANCE
 }
 

@@ -184,7 +184,7 @@ void BlitzSassConvolution2D(
       &Q, &PQ, &QN, &PQN, &MPQN,
       &magic_Q, &shift_Q,
       &magic_PQ, &shift_PQ};
-		if (K <= 64 && N <= 64) {
+		if (K <= 64 || N <= 64) {
 			gridX = MPQ;
 			gridY = K / 64 + (K % 64 != 0);
 			gridZ = N / 64 + (N % 64 != 0);

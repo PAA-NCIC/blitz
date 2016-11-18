@@ -245,10 +245,10 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 				}
 				#ifdef BLITZ_PERFORMANCE
 				for (size_t i = 0; i < BLITZ_NUM_THREADS; ++i) {
-					total_unpack_time += pack_time[i].count();
+					total_pack_time += pack_time[i].count();
 					total_gemm_time += gemm_time[i].count();
 				}
-				total_unpack_time /= BLITZ_NUM_THREADS;
+				total_pack_time /= BLITZ_NUM_THREADS;
 				total_gemm_time /= BLITZ_NUM_THREADS;
 				#endif
 			}
