@@ -14,6 +14,8 @@
 
 #include "kernels/sass_function.h"
 #include "utils/blitz_gpu_function.h"
+#include "utils/blitz_shape_function.h"
+#include "utils/blitz_algorithm_function.h"
 
 namespace blitz {
 
