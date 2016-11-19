@@ -122,8 +122,11 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
 			break;
 	}
   #ifdef BLITZ_PERFORMANCE
+	double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
   LOG(INFO) << "Forward convolution compute: " << compute_time;
   LOG(INFO) << "Forward convolution transform: " << transform_time;
+  LOG(INFO) << "Forward convolution compute gflops: " << computations / (compute_time * 1e9);
+  LOG(INFO) << "Forward convolution total gflops: " << computations / ((transform_time + compute_time) * 1e9);
   #endif  // BLITZ_PERFORMANCE
 }
 

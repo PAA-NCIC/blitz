@@ -297,25 +297,15 @@ void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
   BLITZ_ALGORITHM algorithm) {
   bool gpu_transa = left->row_major()? transa : !transa;
   bool gpu_transb = right->row_major()? transb : !transb;
-  size_t dim_left = gpu_transa ? left->size() / (left->shape())[0] :
-    (left->shape())[0];
-  size_t dim_right = gpu_transb ? (right->shape())[0] :
-    right->size() / (right->shape())[0];
-  size_t dim_common_left = gpu_transa ? (left->shape())[0] :
-    left->size() / (left->shape())[0];
-  size_t dim_common_right = gpu_transb ? right->size() / (right->shape())[0] :
-    (right->shape())[0];
+  size_t dim_left = gpu_transa ? left->size() / (left->shape())[0] : (left->shape())[0];
+  size_t dim_right = gpu_transb ? (right->shape())[0] : right->size() / (right->shape())[0];
+  size_t dim_common_left = gpu_transa ? (left->shape())[0] : left->size() / (left->shape())[0];
+  size_t dim_common_right = gpu_transb ? right->size() / (right->shape())[0] : (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
-  CHECK_NE(dim_left, 0);
-  CHECK_NE(dim_common_right, 0);
-  CHECK_NE(dim_right, 0);
-#ifdef BLITZ_PERFORMANCE
   float elapsed_time = 0.0f;
-  CUevent event_start, event_stop;
-  cuEventCreate(&event_start, CU_EVENT_BLOCKING_SYNC);
-  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
-  cuEventRecord(event_start, NULL);
-#endif  // BLITZ_PERFORMANCE
+  CUevent event_start;
+	CUevent event_stop;
+	BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop);
 	switch (algorithm) {
 		case BLITZ_BLAS_GEMM:
 			BlitzGPUGemm(
@@ -339,19 +329,12 @@ void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
 			LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
 			break;
 	}
-#ifdef BLITZ_PERFORMANCE
-  cuEventRecord(event_stop, NULL);
-  cuEventSynchronize(event_stop);
-  cuEventElapsedTime(&elapsed_time, event_start, event_stop);
-  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
-  double computations = 2 * static_cast<double>(dim_right) *
-    static_cast<double>(dim_left) * static_cast<double>(dim_common_left);
-  LOG(INFO) << "GEMM time: " << elapsed_time / 1000.0;
-  LOG(INFO) << "GEMM computations: " << computations;
-  LOG(INFO) << "GEMM gflops: " << computations / (elapsed_time * 1e6);
-  cuEventDestroy(event_start);
-  cuEventDestroy(event_stop);
-#endif  // BLITZ_PERFORMANCE
+	BLITZ_GPU_TIMER_END(elapsed_time, event_start, event_stop);
+	#ifdef BLITZ_PERFORMANCE
+  double computations = static_cast<double>(2 * dim_right) * static_cast<double>(dim_left) * static_cast<double>(dim_common_left);
+  LOG(INFO) << "GEMM time: " << elapsed_time;
+  LOG(INFO) << "GEMM gflops: " << computations / (elapsed_time * 1e9);
+	#endif  // BLITZ_PERFORMANCE
 }
 
 template<typename DType>
