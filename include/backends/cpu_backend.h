@@ -222,6 +222,16 @@ class Backend<CPUTensor, DType> {
     size_t stride_height,
     size_t stride_width,
 		BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
+
+ private:
+	static void ConvolutionForwardGEMMDispatch(
+		DType* unpack,
+		DType* output,
+		DType* filter,
+		size_t K, size_t PQ, size_t CRS,
+		BLITZ_DATA_LAYOUT unpack_data_layout,
+		BLITZ_DATA_LAYOUT output_data_layout,
+		BLITZ_DATA_LAYOUT filter_data_layout);
 };
 
 }  // namespace blitz

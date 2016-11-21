@@ -12,6 +12,7 @@ namespace blitz {
 #include "cpu_backend_conv-inl.h"
 #include "cpu_backend_pack-inl.h"
 #include "cpu_backend_pool-inl.h"
+#include "cpu_backend_dispatch-inl.h"
 
 INSTANTIATE_BACKEND(CPUTensor);
 

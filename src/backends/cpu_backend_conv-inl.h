@@ -79,47 +79,13 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 					unpack_time[tid] += end -start;
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
-					if (unpack_data_layout == BLITZ_PACK_PQCRS) {
-						if (output->data_layout() == BLITZ_BUFFER_NCHW) {
-							BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-								workspace_unpack_slice,
-								output->Slice(nKPQ),
-								false, true,
-								static_cast<DType>(1), static_cast<DType>(0),
-								K, PQ, CRS);
-						} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
-							BlitzCPUGemm(workspace_unpack_slice,
-								const_cast<CPUTensor<DType>*>(filter)->data(),
-								output->Slice(nKPQ),
-								false, true,
-								static_cast<DType>(1), static_cast<DType>(0),
-								PQ, K, CRS);
-						} else {
-							LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-								" and " << output->data_layout();
-						}
-					} else if (unpack_data_layout == BLITZ_PACK_CRSPQ) {
-						if (output->data_layout() == BLITZ_BUFFER_NCHW) {
-							BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-								workspace_unpack_slice,
-								output->Slice(nKPQ),
-								false, false,
-								static_cast<DType>(1), static_cast<DType>(0),
-								K, PQ, CRS);
-						} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
-							BlitzCPUGemm(workspace_unpack_slice,
-								const_cast<CPUTensor<DType>*>(filter)->data(),
-								output->Slice(nKPQ),
-								true, true,
-								static_cast<DType>(1), static_cast<DType>(0),
-								PQ, K, CRS);
-						} else {
-							LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-								" and " << output->data_layout();
-						}
-					} else {
-						LOG(FATAL) << "Unsupported layout type: " << unpack_data_layout;
-					}
+					ConvolutionForwardGEMMDispatch(workspace_unpack_slice,
+						output->Slice(nKPQ),
+						const_cast<CPUTensor<DType>*>(filter)->data(),
+						K, PQ, CRS,
+						unpack_data_layout,
+						output->data_layout(),
+						filter->data_layout());
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					gemm_time[tid] += end - start;
@@ -160,47 +126,13 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 				unpack_time[0] += end - start;
 				start = system_clock::now();
 				#endif
-				if (unpack_data_layout == BLITZ_PACK_PQCRS) {
-					if (output->data_layout() == BLITZ_BUFFER_NCHW) {
-						BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-							workspace->data(),
-							output->Slice(nKPQ),
-							false, true,
-							static_cast<DType>(1), static_cast<DType>(0),
-							K, PQ, CRS);
-					} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
-						BlitzCPUGemm(workspace->data(),
-							const_cast<CPUTensor<DType>*>(filter)->data(),
-							output->Slice(nKPQ),
-							false, true,
-							static_cast<DType>(1), static_cast<DType>(0),
-							PQ, K, CRS);
-					} else {
-						LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-							" and " << output->data_layout();
-					}
-				} else if (unpack_data_layout == BLITZ_PACK_CRSPQ) {
-					if (output->data_layout() == BLITZ_BUFFER_NCHW) {
-						BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-							workspace->data(),
-							output->Slice(nKPQ),
-							false, false,
-							static_cast<DType>(1), static_cast<DType>(0),
-							K, PQ, CRS);
-					} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
-						BlitzCPUGemm(workspace->data(),
-							const_cast<CPUTensor<DType>*>(filter)->data(),
-							output->Slice(nKPQ),
-							true, true,
-							static_cast<DType>(1), static_cast<DType>(0),
-							PQ, K, CRS);
-					} else {
-						LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-							" and " << output->data_layout();
-					}
-				} else {
-					LOG(FATAL) << "Unsupported layout type: " << unpack_data_layout;
-				}
+				ConvolutionForwardGEMMDispatch(workspace->data(),
+					output->Slice(nKPQ),
+					const_cast<CPUTensor<DType>*>(filter)->data(),
+					K, PQ, CRS,
+					unpack_data_layout,
+					output->data_layout(),
+					filter->data_layout());
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				gemm_time[0] += end - start;
