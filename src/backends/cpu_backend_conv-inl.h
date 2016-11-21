@@ -43,7 +43,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   float total_gemm_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
-		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
+		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: // NCHW & NHWC
 			#pragma omp parallel private(nCHW, nKPQ)
 			{
 				const size_t tid = omp_get_thread_num();
@@ -66,26 +66,60 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 					// to
 					// (input_channel * filter_height * filter_width)
 					// (output_width * output_height)
-					Unpack2DFunc(input->Slice(nCHW),
+					BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
 						workspace_unpack_slice,
 						C, H, W,
 						R, S,
 						P, Q,
 						padding_height, padding_width,
-						stride_height, stride_width);
+						stride_height, stride_width,
+						input->data_layout());
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					unpack_time[tid] += end -start;
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
-					// gemm generate
-					// (output_channel) * (output_height * output_width)
-					BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-						workspace_unpack_slice,
-						output->Slice(nKPQ),
-						false, false,
-						static_cast<DType>(1), static_cast<DType>(0),
-						K, PQ, CRS);
+					if (unpack_data_layout == BLITZ_PACK_PQCRS) {
+						if (output->data_layout() == BLITZ_BUFFER_NCHW) {
+							BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
+								workspace_unpack_slice,
+								output->Slice(nKPQ),
+								false, true,
+								static_cast<DType>(1), static_cast<DType>(0),
+								K, PQ, CRS);
+						} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
+							BlitzCPUGemm(workspace_unpack_slice,
+								const_cast<CPUTensor<DType>*>(filter)->data(),
+								output->Slice(nKPQ),
+								false, true,
+								static_cast<DType>(1), static_cast<DType>(0),
+								PQ, K, CRS);
+						} else {
+							LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
+								" and " << output->data_layout();
+						}
+					} else if (unpack_data_layout == BLITZ_PACK_CRSPQ) {
+						if (output->data_layout() == BLITZ_BUFFER_NCHW) {
+							BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
+								workspace_unpack_slice,
+								output->Slice(nKPQ),
+								false, false,
+								static_cast<DType>(1), static_cast<DType>(0),
+								K, PQ, CRS);
+						} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
+							BlitzCPUGemm(workspace_unpack_slice,
+								const_cast<CPUTensor<DType>*>(filter)->data(),
+								output->Slice(nKPQ),
+								true, true,
+								static_cast<DType>(1), static_cast<DType>(0),
+								PQ, K, CRS);
+						} else {
+							LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
+								" and " << output->data_layout();
+						}
+					} else {
+						LOG(FATAL) << "Unsupported layout type: " << unpack_data_layout;
+					}
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					gemm_time[tid] += end - start;
@@ -114,7 +148,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 				// to
 				// (input_channel * filter_height * filter_width)
 				// (output_width * output_height)
-				Unpack2DFunc(input->Slice(nCHW),
+				BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
 					workspace->data(),
 					C, H, W,
 					R, S,
@@ -126,14 +160,47 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 				unpack_time[0] += end - start;
 				start = system_clock::now();
 				#endif
-				// gemm generate
-				// (output_channel) * (output_height * output_width)
-				BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
-					workspace->data(),
-					output->Slice(nKPQ),
-					false, false,
-					static_cast<DType>(1), static_cast<DType>(0),
-					K, PQ, CRS);
+				if (unpack_data_layout == BLITZ_PACK_PQCRS) {
+					if (output->data_layout() == BLITZ_BUFFER_NCHW) {
+						BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
+							workspace->data(),
+							output->Slice(nKPQ),
+							false, true,
+							static_cast<DType>(1), static_cast<DType>(0),
+							K, PQ, CRS);
+					} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
+						BlitzCPUGemm(workspace->data(),
+							const_cast<CPUTensor<DType>*>(filter)->data(),
+							output->Slice(nKPQ),
+							false, true,
+							static_cast<DType>(1), static_cast<DType>(0),
+							PQ, K, CRS);
+					} else {
+						LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
+							" and " << output->data_layout();
+					}
+				} else if (unpack_data_layout == BLITZ_PACK_CRSPQ) {
+					if (output->data_layout() == BLITZ_BUFFER_NCHW) {
+						BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
+							workspace->data(),
+							output->Slice(nKPQ),
+							false, false,
+							static_cast<DType>(1), static_cast<DType>(0),
+							K, PQ, CRS);
+					} else if (output->data_layout() == BLITZ_BUFFER_NHWC) {
+						BlitzCPUGemm(workspace->data(),
+							const_cast<CPUTensor<DType>*>(filter)->data(),
+							output->Slice(nKPQ),
+							true, true,
+							static_cast<DType>(1), static_cast<DType>(0),
+							PQ, K, CRS);
+					} else {
+						LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
+							" and " << output->data_layout();
+					}
+				} else {
+					LOG(FATAL) << "Unsupported layout type: " << unpack_data_layout;
+				}
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				gemm_time[0] += end - start;

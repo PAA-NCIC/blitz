@@ -109,7 +109,7 @@ __global__ void GPUUnpackKernel(
 }
 
 template<typename DType>
-void Backend<GPUTensor, DType>::Unpack2DFunc(
+BLITZ_DATA_LAYOUT Backend<GPUTensor, DType>::Unpack2DFunc(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -122,7 +122,8 @@ void Backend<GPUTensor, DType>::Unpack2DFunc(
   size_t padding_height,
   size_t padding_width,
   size_t stride_height,
-  size_t stride_width) {
+  size_t stride_width,
+	BLITZ_DATA_LAYOUT input_data_layout) {
   if (channel <= 64 && output_height * output_width <= 256) {
     dim3 thread_per_block(output_height, output_width);
     GPUUnpack1024Kernel<DType><<<channel, thread_per_block>>>(
@@ -142,6 +143,7 @@ void Backend<GPUTensor, DType>::Unpack2DFunc(
       padding_height, padding_width,
       stride_height, stride_width);
   }
+	return BLITZ_PACK_CRSPQ;
 }
 
 // small kernel
@@ -247,7 +249,7 @@ __global__ void GPUPackKernel(
 }
 
 template<typename DType>
-void Backend<GPUTensor, DType>::Pack2DFunc(
+BLITZ_DATA_LAYOUT Backend<GPUTensor, DType>::Pack2DFunc(
   const DType* pack,
   DType* input,
   size_t channel,
@@ -260,7 +262,8 @@ void Backend<GPUTensor, DType>::Pack2DFunc(
   size_t padding_height,
   size_t padding_width,
   size_t stride_height,
-  size_t stride_width) {
+  size_t stride_width,
+	BLITZ_DATA_LAYOUT pack_data_layout) {
   if (channel <= 64 && input_height * input_width <= 256) {
     dim3 thread_per_block(input_height, input_width);
     GPUPack1024Kernel<DType><<<channel, thread_per_block>>>(
@@ -279,6 +282,7 @@ void Backend<GPUTensor, DType>::Pack2DFunc(
       padding_height, padding_width,
       stride_height, stride_width);
   }
+	return BLITZ_BUFFER_NCHW;
 }
 
 #endif  // SRC_BACKENDS_GPU_BACKEND_PACK_INL_H_

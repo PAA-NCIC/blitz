@@ -191,7 +191,7 @@ class Backend<CPUTensor, DType> {
   static float EvaluateRegressFunc(
     const CPUTensor<DType>* output, const CPUTensor<DType>* target);
 
-  static void Unpack2DFunc(
+  static BLITZ_DATA_LAYOUT Unpack2DFunc(
     const DType* input,
     DType* unpack,
     size_t channel,
@@ -204,9 +204,10 @@ class Backend<CPUTensor, DType> {
     size_t padding_height,
     size_t padding_width,
     size_t stride_height,
-    size_t stride_width);
+    size_t stride_width,
+		BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
 
-  static void Pack2DFunc(
+  static BLITZ_DATA_LAYOUT Pack2DFunc(
     const DType* pack,
     DType* input,
     size_t channel,
@@ -219,7 +220,8 @@ class Backend<CPUTensor, DType> {
     size_t padding_height,
     size_t padding_width,
     size_t stride_height,
-    size_t stride_width);
+    size_t stride_width,
+		BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
 };
 
 }  // namespace blitz

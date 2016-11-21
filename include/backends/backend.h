@@ -6,6 +6,7 @@
 
 #include "utils/common.h"
 #include "utils/blitz_algorithm_function.h"
+#include "utils/blitz_shape_function.h"
 
 namespace blitz {
 
@@ -191,7 +192,7 @@ class Backend {
   static float EvaluateRegressFunc(
     const TensorType<DType>* output, const TensorType<DType>* target);
 
-  static void Unpack2DFunc(
+  static BLITZ_DATA_LAYOUT Unpack2DFunc(
     const DType* input,
     DType* unpack,
     size_t channel,
@@ -204,9 +205,10 @@ class Backend {
     size_t padding_height,
     size_t padding_width,
     size_t stride_height,
-    size_t stride_width);
+    size_t stride_width,
+		BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
 
-  static void Pack2DFunc(
+  static BLITZ_DATA_LAYOUT Pack2DFunc(
     const DType* pack,
     DType* input,
     size_t channel,
@@ -219,7 +221,8 @@ class Backend {
     size_t padding_height,
     size_t padding_width,
     size_t stride_height,
-    size_t stride_width);
+    size_t stride_width,
+		BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
 
   DISABLE_COPY_AND_ASSIGN(Backend);
 };

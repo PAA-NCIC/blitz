@@ -2,7 +2,7 @@
 #define SRC_BACKENDS_CPU_BACKEND_PACK_INL_H_
 
 template<typename DType>
-void Backend<CPUTensor, DType>::Unpack2DFunc(
+BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Unpack2DFunc(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -15,7 +15,8 @@ void Backend<CPUTensor, DType>::Unpack2DFunc(
   size_t padding_height,
   size_t padding_width,
   size_t stride_height,
-  size_t stride_width) {
+  size_t stride_width,
+	BLITZ_DATA_LAYOUT input_data_layout) {
 	// (input_channel * filter_height * filter_width) *
 	// (output_width * output_height)
 	size_t unpack_index = 0;
@@ -46,10 +47,11 @@ void Backend<CPUTensor, DType>::Unpack2DFunc(
 			}
 		}
 	}
+	return BLITZ_PACK_CRSPQ;
 }
 
 template<typename DType>
-void Backend<CPUTensor, DType>::Pack2DFunc(
+BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Pack2DFunc(
   const DType* pack,
   DType* input,
   size_t channel,
@@ -62,7 +64,8 @@ void Backend<CPUTensor, DType>::Pack2DFunc(
   size_t padding_height,
   size_t padding_width,
   size_t stride_height,
-  size_t stride_width) {
+  size_t stride_width,
+	BLITZ_DATA_LAYOUT input_data_layout) {
   // (input_channel * filter_height * filter_width) *
 	// (output_width * output_height)
 	size_t pack_index = 0;
@@ -90,6 +93,7 @@ void Backend<CPUTensor, DType>::Pack2DFunc(
 			}
 		}
 	}
+	return BLITZ_BUFFER_NCHW;
 }
 
 #endif  // SRC_BACKENDS_CPU_BACKEND_PACK_INL_H_

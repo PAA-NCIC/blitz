@@ -13,7 +13,9 @@ enum BLITZ_DATA_LAYOUT {
 	BLITZ_BUFFER_NHWC = 2,
 	BLITZ_FILTER_KCRS = 3,
 	BLITZ_FILTER_RSCK = 4,
-	BLITZ_SHAPE_UNDEFINED = 5
+	BLITZ_PACK_PQCRS = 5,
+	BLITZ_PACK_CRSPQ = 6,
+	BLITZ_SHAPE_UNDEFINED = 7
 };
 
 // Rule of three: use self-defined copy assignment to restore size_ to 0
