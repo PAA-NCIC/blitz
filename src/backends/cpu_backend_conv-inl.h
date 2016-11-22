@@ -42,8 +42,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   float total_unpack_time = 0.0;
   float total_gemm_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
-	switch (algorithm) {
-		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: // NCHW & NHWC
+	switch (algorithm) { // NCHW & NHWC
+		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
 			#pragma omp parallel private(nCHW, nKPQ)
 			{
 				const size_t tid = omp_get_thread_num();
@@ -79,7 +79,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 					unpack_time[tid] += end -start;
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
-					ConvolutionForwardGEMMDispatch(workspace_unpack_slice,
+					Convolution2DForwardGEMMDispatch(workspace_unpack_slice,
 						output->Slice(nKPQ),
 						const_cast<CPUTensor<DType>*>(filter)->data(),
 						K, PQ, CRS,
@@ -101,7 +101,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 			total_gemm_time /= BLITZ_NUM_THREADS;
 			#endif
 			break;
-		case BLITZ_CONVOLUTION_BLAS_GEMM:
+		}
+		case BLITZ_CONVOLUTION_BLAS_GEMM: {
 			for (size_t n = 0; n < NIN; ++n) {
 				nCHW = n * CHW;
 				nKPQ = n * KPQ;
@@ -126,7 +127,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 				unpack_time[0] += end - start;
 				start = system_clock::now();
 				#endif
-				ConvolutionForwardGEMMDispatch(workspace->data(),
+				Convolution2DForwardGEMMDispatch(workspace->data(),
 					output->Slice(nKPQ),
 					const_cast<CPUTensor<DType>*>(filter)->data(),
 					K, PQ, CRS,
@@ -141,6 +142,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 				#endif
 			}
 			break;
+		}
 		default:
 			LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
 			break;
@@ -194,7 +196,7 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   float total_gemm_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
-		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
+		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
 			#pragma omp parallel private(nCHW, nKPQ) 
 			{
 				const size_t tid = omp_get_thread_num();
@@ -252,7 +254,8 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 				#endif
 			}
 			break;
-		case BLITZ_CONVOLUTION_BLAS_GEMM:
+		}
+		case BLITZ_CONVOLUTION_BLAS_GEMM: {
 			for (size_t n = 0; n < NIN; ++n) {
 				nCHW = n * CHW;
 				nKPQ = n * KPQ;
@@ -294,6 +297,7 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
 				#endif
 			}
 			break;
+		}
 		default:
 			LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
 			break;
@@ -346,7 +350,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   float total_gemm_time = 0.0;
   #endif  // BLITZ_PERFORMANCE
 	switch (algorithm) {
-		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH:
+		case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
 			#pragma omp parallel private(nCHW, nKPQ)
 			{
 				const size_t tid = omp_get_thread_num();
@@ -371,27 +375,27 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 					// to
 					// (input_channel * filter_height * filter_width)
 					// (output_width * output_height)
-					Unpack2DFunc(input->Slice(nCHW),
+					BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
 						workspace->Slice(workspace_unpack_offset),
 						C, H, W,
 						R, S,
 						P, Q,
 						padding_height, padding_width,
-						stride_height, stride_width);
+						stride_height, stride_width,
+						input->data_layout());
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					unpack_time[tid] += end - start;
 					start = system_clock::now();
 					#endif  // BLITZ_PERFORMANCE
-					// gemm generate
-					// (output_channel) *
-					// (input_channel * filter_height * filter_width)
-					BlitzCPUGemm(const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
+					Convolution2DUpdateGEMMDispatch(
 						workspace->Slice(workspace_unpack_offset),
+						const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
 						workspace->Slice(workspace_update_offset),
-						false, true,
-						static_cast<DType>(1), static_cast<DType>(1),
-						K, CRS, PQ);
+						K, CRS, PQ,
+						unpack_data_layout,
+						output->data_layout(),
+						update->data_layout());
 					#ifdef BLITZ_PERFORMANCE
 					end = system_clock::now();
 					gemm_time[tid] += end - start;
@@ -411,7 +415,8 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 				#endif
 			}
 			break;
-		case BLITZ_CONVOLUTION_BLAS_GEMM:
+		}
+		case BLITZ_CONVOLUTION_BLAS_GEMM: {
 			for (size_t n = 0; n < NIN; ++n) {
 				nCHW = n * CHW;
 				nKPQ = n * KPQ;
@@ -424,26 +429,27 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 				// to
 				// (input_channel * filter_height * filter_width)
 				// (output_width * output_height)
-				Unpack2DFunc(input->Slice(nCHW),
+				BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
 					workspace->data(),
 					C, H, W,
 					R, S,
 					P, Q,
 					padding_height, padding_width,
-					stride_height, stride_width);
+					stride_height, stride_width,
+					input->data_layout());
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				unpack_time[0] += end - start;
 				start = system_clock::now();
 				#endif
-				// gemm generate
-				// (output_channel) *
-				// (input_channel * filter_height * filter_width)
-				BlitzCPUGemm(const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
-					workspace->data(), update->data(),
-					false, true,
-					static_cast<DType>(1), static_cast<DType>(1),
-					K, CRS, PQ);
+				Convolution2DUpdateGEMMDispatch(
+					workspace->data(),
+					const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
+					update->data(),
+					K, CRS, PQ,
+					unpack_data_layout,
+					output->data_layout(),
+					update->data_layout());
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				gemm_time[0] += end - start;
@@ -452,6 +458,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
 				#endif
 			}
 			break;
+		}
 		default:
 			LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
 			break;
