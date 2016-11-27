@@ -121,7 +121,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
 					R, S,
 					P, Q,
 					padding_height, padding_width,
-					stride_height, stride_width);
+					stride_height, stride_width,
+					input->data_layout());
 				#ifdef BLITZ_PERFORMANCE
 				end = system_clock::now();
 				unpack_time[0] += end - start;

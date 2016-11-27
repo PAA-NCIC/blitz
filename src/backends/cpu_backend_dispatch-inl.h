@@ -10,7 +10,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
 	BLITZ_DATA_LAYOUT unpack_data_layout,
 	BLITZ_DATA_LAYOUT output_data_layout,
 	BLITZ_DATA_LAYOUT filter_data_layout) {
-	if (unpack_data_layout == BLITZ_PACK_PQCRS) {
+	if (unpack_data_layout == BLITZ_PACK_PQCRS || unpack_data_layout == BLITZ_PACK_PQRSC) {
 		if (output_data_layout == BLITZ_BUFFER_NCHW) {
 			BlitzCPUGemm(filter,
 				unpack,
@@ -29,7 +29,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
 			LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
 				" and " << output_data_layout;
 		}
-	} else if (unpack_data_layout == BLITZ_PACK_CRSPQ) {
+	} else if (unpack_data_layout == BLITZ_PACK_CRSPQ || unpack_data_layout == BLITZ_PACK_RSCPQ) {
 		if (output_data_layout == BLITZ_BUFFER_NCHW) {
 			BlitzCPUGemm(filter,
 				unpack,
