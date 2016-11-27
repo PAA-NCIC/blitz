@@ -64,7 +64,8 @@ void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q) {
 void convolution_forward(
 	BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w,
+	size_t iter) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -173,8 +174,8 @@ void convolution_update(
 }
 
 int main(int argc, char** argv) {
-  const size_t NUM_ARGS = 15;
-  // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w
+  const size_t NUM_ARGS = 16;
+  // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w iter
   if (argc != NUM_ARGS + 1) {
     std::cerr << "Not enough args!" << std::endl;
     exit(1);
@@ -195,6 +196,7 @@ int main(int argc, char** argv) {
   const size_t pad_w = atoi(argv[13]);
   const size_t str_h = atoi(argv[14]);
   const size_t str_w = atoi(argv[15]);
+	const size_t iter = atoi(argv[16]);
   // set shapes
   set_input_shape_nchw(N, C, H, W);
   set_filter_shape_kcrs(K, C, R, S);
@@ -203,7 +205,7 @@ int main(int argc, char** argv) {
   workspace_shape_cpu[0] = C * H * W * P * Q;
   // run convolution
   if (phase == "forward") {
-    convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
+    convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   } else if (phase == "backward") {
     convolution_backward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
   } else if (phase == "update") {
