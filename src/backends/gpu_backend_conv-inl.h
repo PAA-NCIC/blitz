@@ -193,10 +193,10 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
 				BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
 				compute_time = elapsed_time;
 			} else {
-				// transpose filter
-				BlitzGPUTrans(const_cast<DType*>(filter->data()), 
+				// shuffle filter
+				BlitzFilter2DShuffle(const_cast<DType*>(filter->data()), 
 					workspace->Slice(input->size() + output->size()),
-					K, CRS);
+					K, C, R, S);
 				BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
 				transform_time = elapsed_time;
 				BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
