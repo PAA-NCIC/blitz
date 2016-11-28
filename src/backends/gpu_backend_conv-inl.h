@@ -320,7 +320,7 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
 			// transpose input
 			BlitzGPUTrans(const_cast<DType*>(input->data()), 
 				workspace->data(), 
-				NIN, CRS);
+				NIN, CHW);
 			// transpose output
 			BlitzGPUTrans(const_cast<DType*>(output->data()), 
 				workspace->Slice(input->size()), 

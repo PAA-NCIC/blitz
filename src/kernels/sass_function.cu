@@ -273,21 +273,21 @@ void BlitzSassConvolution2D(
       &magic_PQu, &shift_PQu,
       &grid_P, &grid_Q, &grid_PQ};
     gridX = grid_PQM;
-    if ((K <= 64 && K % 128 != 0) || Q > 56) {
-      gridY = CRST / 128 + (CRST % 128 != 0);
-      gridZ = K / 64 + (K % 64 != 0);
-      kernel_name = "sconv_update_C128_K64";
-      function = CubinModule::GetFunction(kernel_name);
-      result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        128, 1, 1, 0, 0, args, NULL);
-    } else {
+    //if ((K <= 64 && K % 128 != 0) || Q > 56) {
+    //  gridY = CRST / 128 + (CRST % 128 != 0);
+    //  gridZ = K / 64 + (K % 64 != 0);
+    //  kernel_name = "sconv_update_C128_K64";
+    //  function = CubinModule::GetFunction(kernel_name);
+    //  result = cuLaunchKernel(function, gridX, gridY, gridZ,
+    //    128, 1, 1, 0, 0, args, NULL);
+    //} else {
       gridY = CRST / 128 + (CRST % 128 != 0);
       gridZ = K / 128 + (K % 128 != 0);
       kernel_name = "sconv_update_C128_K128";
       function = CubinModule::GetFunction(kernel_name);
       result = cuLaunchKernel(function, gridX, gridY, gridZ,
         256, 1, 1, 0, 0, args, NULL);
-    }
+    //}
     if (result != CUDA_SUCCESS) {
       LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
     }
