@@ -219,7 +219,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
 			// transpose input
 			BlitzGPUTrans(const_cast<DType*>(workspace->data()), 
 				input->data(), 
-				CRS, NIN);
+				CHW, NIN);
 			BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
 			transform_time += elapsed_time;
 			break;
