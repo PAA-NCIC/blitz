@@ -47,20 +47,6 @@ void set_forward_algorithm(const string& name) {
 	}
 }
 
-void set_backward_data_algorithm(const string& name) {
-	if (name == "fft_tiling") {
-		backward_data_algorithm = CUDNN_CONVOLUTION_BWD_DATA_ALGO_FFT_TILING;
-	} else if (name == "fft") {
-		backward_data_algorithm = CUDNN_CONVOLUTION_BWD_DATA_ALGO_FFT;
-	} else if (name == "gemm_non_deter") {
-		backward_data_algorithm = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
-	} else if (name == "gemm_deter") {
-		backward_data_algorithm = CUDNN_CONVOLUTION_BWD_DATA_ALGO_1;
-	} else if (name == "winograd") {
-		backward_data_algorithm = CUDNN_CONVOLUTION_BWD_DATA_ALGO_WINOGRAD;
-	}
-}
-
 void parse_forward_algorithm() {
 	switch (forward_algorithm) {
 		case CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM:
@@ -82,28 +68,6 @@ void parse_forward_algorithm() {
 			std::cout << "FFT tiling" << std::endl;
 			break;
 		case CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD:
-			std::cout << "Winograd" << std::endl;
-			break;
-		default:
-			break;
-	}
-}
-
-void parse_backward_data_algorithm() {
-	switch (backward_data_algorithm) {
-		case CUDNN_CONVOLUTION_BWD_DATA_ALGO_0:
-			std::cout << "GEMM non-deterministic" << std::endl;
-			break;
-		case CUDNN_CONVOLUTION_BWD_DATA_ALGO_1:
-			std::cout << "GEMM deterministic" << std::endl;
-			break;
-		case CUDNN_CONVOLUTION_BWD_DATA_ALGO_FFT:
-			std::cout << "FFT" << std::endl;
-			break;
-		case CUDNN_CONVOLUTION_BWD_DATA_ALGO_FFT_TILING:
-			std::cout << "FFT tiling" << std::endl;
-			break;
-		case CUDNN_CONVOLUTION_BWD_DATA_ALGO_WINOGRAD:
 			std::cout << "Winograd" << std::endl;
 			break;
 		default:
@@ -133,68 +97,6 @@ void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q) {
 }
 
 void convolution_backward(const string& kernel, size_t iter) {
-  // set up gpu
-  GPUTensor<float> input_gpu(input_shape);
-  GPUTensor<float> filter_gpu(filter_shape);
-  GPUTensor<float> output_gpu(output_shape);
-	size_t workspace_size = 0;
-	// set algorithms
-	if (kernel == "auto") {  // fastest
-		CUDNN_CHECK(cudnnGetConvolutionBackwardDataAlgorithm(cudnn_handle,
-			filter_desc,
-			output_desc,
-			conv_desc,
-			input_desc,
-			CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST,
-			2e9,  // memoryLimitInBytes,
-			&backward_data_algorithm));
-	}	else {
-		set_backward_data_algorithm(kernel);
-	}
-	parse_backward_data_algorithm();
-	// config workspace
-	CUDNN_CHECK(cudnnGetConvolutionBackwardDataWorkspaceSize(cudnn_handle,
-		filter_desc,
-		output_desc,
-		conv_desc,
-		input_desc,
-		backward_data_algorithm,
-		&workspace_size));
-	std::cout << "workspace_size: " << workspace_size << std::endl;
-	Shape workspace_shape(1);
-	workspace_shape[0] = workspace_size;
-	GPUTensor<float> workspace_gpu(workspace_shape);
-	CUDNN_CHECK(cudnnConvolutionBackwardData(cudnn_handle,
-		reinterpret_cast<void*>(cudnn_alpha),
-		filter_desc,
-		filter_gpu.data(),
-		output_desc,
-		output_gpu.data(),
-		conv_desc,
-		backward_data_algorithm,
-		workspace_gpu.data(),
-		workspace_size,
-		reinterpret_cast<void*>(cudnn_beta),
-		input_desc,
-		input_gpu.data()));
-	BLITZ_GPU_TIMER_START(elapsed_time_gpu, event_start, event_stop);
-	for (size_t i = 1; i < iter; ++i) {
-		CUDNN_CHECK(cudnnConvolutionBackwardData(cudnn_handle,
-			reinterpret_cast<void*>(cudnn_alpha),
-			filter_desc,
-			filter_gpu.data(),
-			output_desc,
-			output_gpu.data(),
-			conv_desc,
-			backward_data_algorithm,
-			workspace_gpu.data(),
-			workspace_size,
-			reinterpret_cast<void*>(cudnn_beta),
-			input_desc,
-			input_gpu.data()));
-	}
-	BLITZ_GPU_TIMER_END(elapsed_time_gpu, event_start, event_stop);
-	BLITZ_GPU_TIMER_INFO((iter - 1) * 2 * filter_shape.size() * output_shape[0] * output_shape[2] * output_shape[3], elapsed_time_gpu);
 }
 
 void convolution_update(const string& kernel, size_t iter) {
