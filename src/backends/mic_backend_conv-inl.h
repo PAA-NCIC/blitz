@@ -11,7 +11,7 @@ void Backend<MICTensor, DType>::Convolution2DForwardFunc(
   size_t padding_width,
   size_t stride_height,
   size_t stride_width,
-	BLITZ_ALGORITHM algorithm) {
+  BLITZ_ALGORITHM algorithm) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
@@ -187,7 +187,7 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
   size_t padding_width,
   size_t stride_height,
   size_t stride_width,
-	BLITZ_ALGORITHM algorithm) {
+  BLITZ_ALGORITHM algorithm) {
   // shape decode
   // input
   const Shape& input_shape = input->shape();
@@ -345,7 +345,7 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
   size_t padding_width,
   size_t stride_height,
   size_t stride_width,
-	BLITZ_ALGORITHM algorithm) {
+  BLITZ_ALGORITHM algorithm) {
   // extract shapes
   // input
   const Shape& input_shape = input->shape();
