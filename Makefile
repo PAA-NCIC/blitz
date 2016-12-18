@@ -18,7 +18,7 @@ LIB_DIR := lib
 LIBS := $(LIB_DIR)/libblitz.a
 
 #compilers
-OPTIMIZE_OPTIONS := -O3
+OPTIMIZE_OPTIONS := -O1
 #avx types
 ifeq ($(BLITZ_AVX), 512)
 	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xMIC-AVX512
@@ -35,7 +35,7 @@ ifeq ($(BLITZ_ICC), icc)
 else
 	OPENMP_OPTIONS := -fopenmp
 endif
-CXXFLAGS := -Wall -Wno-unused-parameter -Wunknown-pragmas -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
+CXXFLAGS := -g -Wall -Wno-unused-parameter -Wunknown-pragmas -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
 
 #libraries
@@ -50,6 +50,7 @@ ifeq ($(BLITZ_USE_GPU), 1)
 endif
 
 ifeq ($(BLITZ_USE_MIC), 1)
+	INC += -I/home/scy/software/libxsmm/include
 	CXXFLAGS += -DBLITZ_USE_MIC
 	LDFLAGS += -lxsmm
 	XSMM_LIB ?= /home/scy/software/libxsmm/lib	

@@ -42,7 +42,7 @@ void compare(float* algo1, float* algo2, size_t size) {
   size_t i = 0;
   for (i = 0; i < size; ++i) {
     if ((algo1[i] - algo2[i] > EPSILON )|| (algo1[i] - algo2[i] < -EPSILON)) {
-      std::cout << "Index: " << i << " " << algo1[i] - algo2[i] << std::endl;
+      std::cout << "Index: " << i << " diff:" << algo1[i] - algo2[i] << std::endl;
     }
   }
 }
@@ -266,6 +266,7 @@ void convolution_backward(
   compare(input_cpu.data(), nchw, input_mic.size());
   free(nchw);
 }
+
 
 void convolution_update(
   BLITZ_ALGORITHM algorithm,

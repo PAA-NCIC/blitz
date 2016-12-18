@@ -10,9 +10,11 @@
 #include "backends/shape.h"
 #include "utils/common.h"
 
+#include "../backends/shape.h"
 namespace blitz {
 
 #define CHKERR_LIBXSMM_DNN(A) if (A != LIBXSMM_DNN_SUCCESS ) std::cerr << libxsmm_dnn_get_error(A);
+
 
 typedef struct {
   libxsmm_dnn_conv_handle* libxsmm_handle;

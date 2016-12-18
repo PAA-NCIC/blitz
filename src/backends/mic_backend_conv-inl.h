@@ -161,4 +161,5 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
+
 #endif  // SRC_BACKENDS_MIC_BACKEND_CONV_INL_H_
