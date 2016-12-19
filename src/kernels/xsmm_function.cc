@@ -18,11 +18,11 @@ XsmmBuffer BlitzXsmmPrepare2D(
     size_t padding_h, size_t padding_w){
     libxsmm_dnn_conv_desc conv_desc;
     libxsmm_dnn_err_t status;
-//#if defined(_OPENMP)
-//    int nThreads = omp_get_max_threads();
-//#else
+#if defined(_OPENMP)
+    int nThreads = omp_get_max_threads();
+#else
     int nThreads = 1;
-//#endif
+#endif
        //setup libxsmm handle
     if(input_shape.data_layout() == BLITZ_BUFFER_NCHW) {
        conv_desc.buffer_format = LIBXSMM_DNN_CONV_FORMAT_LIBXSMM;
@@ -56,8 +56,8 @@ XsmmBuffer BlitzXsmmPrepare2D(
            conv_desc.S = filter_shape[3];
         } else if(filter_shape.data_layout() == BLITZ_FILTER_RSCK) {
             conv_desc.filter_format = LIBXSMM_DNN_CONV_FORMAT_RSCK;
-            conv_desc.R = input_shape[0];
-            conv_desc.S = input_shape[1];
+            conv_desc.R = filter_shape[0];
+            conv_desc.S = filter_shape[1];
         } else {
             //@TODO filter in other format
         }
@@ -79,8 +79,7 @@ XsmmBuffer BlitzXsmmPrepare2D(
    
     //a handle add only once
    if(!Xsmm::HasBuffer(conv_desc)) {
-       Xsmm::AddBuffer(conv_desc, static_cast<void *>(input), static_cast<void *>(output),
-               static_cast<void *>(filter));
+       Xsmm::AddBuffer(conv_desc, static_cast<void *>(input), static_cast<void *>(output), static_cast<void *>(filter));
    }
     //return buffer
     return Xsmm::GetBuffer(conv_desc);
