@@ -40,18 +40,18 @@ void Backend<MICTensor, DType>::Convolution2DForwardFunc(
                   stride_height, stride_width,
                   padding_height, padding_width);
   
-//          #if defined(_OPENMP)
-//              #pragma omp parallel
-//          #endif
+          #if defined(_OPENMP)
+              #pragma omp parallel
+          #endif
               {
-//              #if defined(_OPENMP)
-//                  const int tid = omp_get_thread_num();
-//              #else
+              #if defined(_OPENMP)
+                  const int tid = omp_get_thread_num();
+              #else
                   const int tid = 0;
-//              #endif
+              #endif
               CHKERR_LIBXSMM_DNN(libxsmm_dnn_convolve_st(xsmmBuffer.libxsmm_handle, LIBXSMM_DNN_CONV_KIND_FWD, 0, tid)); 
               }
-              CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyout_buffer(xsmmBuffer.libxsmm_output, output->data(), LIBXSMM_DNN_CONV_FORMAT_NCHW));
+             // CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyout_buffer(xsmmBuffer.libxsmm_output, output->data(), LIBXSMM_DNN_CONV_FORMAT_NCHW));
   			break;
   		default:
   			LOG(FATAL) << "Unupported algorithm type: " << algorithm;
@@ -114,7 +114,7 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
               #endif
               CHKERR_LIBXSMM_DNN(libxsmm_dnn_convolve_st(xsmmBuffer.libxsmm_handle, LIBXSMM_DNN_CONV_KIND_BWD, 0, tid)); 
               }
-//              CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyout_buffer(xsmmBuffer.libxsmm_intput, input->data(), LIBXSMM_DNN_CONV_FORMAT_NCHW));
+//              CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyout_buffer(xsmmBuffer.libxsmm_input, input->data(), LIBXSMM_DNN_CONV_FORMAT_NCHW));
   			break;
   		default:
   			LOG(FATAL) << "Unupported algorithm type: " << algorithm;
@@ -177,7 +177,7 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
               #endif
               CHKERR_LIBXSMM_DNN(libxsmm_dnn_convolve_st(xsmmBuffer.libxsmm_handle, LIBXSMM_DNN_CONV_KIND_UPD, 0, tid)); 
               }
-              CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyout_filter(xsmmBuffer.libxsmm_filter, filter->data(), LIBXSMM_DNN_CONV_FORMAT_KCRS));
+              //CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyout_filter(xsmmBuffer.libxsmm_filter, filter->data(), LIBXSMM_DNN_CONV_FORMAT_KCRS));
   			break;
   		default:
   			LOG(FATAL) << "Unupported algorithm type: " << algorithm;
