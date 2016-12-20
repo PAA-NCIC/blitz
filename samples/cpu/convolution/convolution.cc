@@ -16,7 +16,7 @@ Shape workspace_shape_cpu(1);
 
 void compare(float* algo1, float* algo2, size_t size) {
 	for (size_t i = 0; i < size; ++i) {
-		if (algo1[i] > algo2[i] + 1e-2 || algo1[i] < algo2[i] - 1e-2) {
+		if (algo1[i] > algo2[i] + 1e-3 || algo1[i] < algo2[i] - 1e-3) {
 			std::cout << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i] << std::endl;
 		}
 	}

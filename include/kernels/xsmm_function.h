@@ -9,9 +9,11 @@
 
 #include "utils/common.h"
 
+#include "../backends/shape.h"
 namespace blitz {
 
 #define CHKERR_LIBXSMM_DNN(A) if (A != LIBXSMM_DNN_SUCCESS ) std::cerr << libxsmm_dnn_get_error(A);
+
 
 typedef struct {
   libxsmm_dnn_conv_handle* libxsmm_handle;
@@ -35,39 +37,54 @@ class XsmmLoadBuffer {
   }
 
   void AddBuffer(libxsmm_dnn_conv_desc conv_desc, void* input, void* output, void* filter) {
-		libxsmm_dnn_err_t status;
-		libxsmm_dnn_buffer* libxsmm_input;
-		libxsmm_dnn_buffer* libxsmm_output;
-		libxsmm_dnn_filter* libxsmm_filter;
-		libxsmm_dnn_conv_handle* libxsmm_handle =
-			libxsmm_dnn_create_conv_handle_check(conv_desc, &status);;
-		// create buffers
-		if (conv_desc.buffer_format == LIBXSMM_DNN_CONV_FORMAT_LIBXSMM) {
-			libxsmm_input = libxsmm_dnn_create_input_buffer_check(libxsmm_handle, &status);
-		} else {
-			libxsmm_input = libxsmm_dnn_link_input_buffer_check(libxsmm_handle,
-				input, LIBXSMM_DNN_CONV_FORMAT_NHWC_PTR, &status);
-		}
-		CHKERR_LIBXSMM_DNN(status);
-		if (conv_desc.buffer_format == LIBXSMM_DNN_CONV_FORMAT_LIBXSMM) {
-			libxsmm_output = libxsmm_dnn_create_output_buffer_check(libxsmm_handle, &status);
-		} else {
-			libxsmm_output = libxsmm_dnn_link_output_buffer_check(libxsmm_handle,
-				output, LIBXSMM_DNN_CONV_FORMAT_NHWC_PTR, &status);
-		}
-		CHKERR_LIBXSMM_DNN(status);
-		if (conv_desc.filter_format == LIBXSMM_DNN_CONV_FORMAT_LIBXSMM) {
-			libxsmm_filter = libxsmm_dnn_create_filter_check(libxsmm_handle, &status);
-		} else {
-			libxsmm_filter = libxsmm_dnn_link_filter_check(libxsmm_handle,
-				filter, LIBXSMM_DNN_CONV_FORMAT_RSCK_PTR, &status);
-		}
-		CHKERR_LIBXSMM_DNN(status);
-		// bind buffers
-		CHKERR_LIBXSMM_DNN(libxsmm_dnn_bind_input_buffer(libxsmm_handle, libxsmm_input));
-		CHKERR_LIBXSMM_DNN(libxsmm_dnn_bind_output_buffer(libxsmm_handle, libxsmm_output));
-		CHKERR_LIBXSMM_DNN(libxsmm_dnn_bind_filter(libxsmm_handle, libxsmm_filter));
-		// add into map
+
+          libxsmm_dnn_err_t status;
+          //create handle
+          libxsmm_dnn_conv_handle *libxsmm_handle = libxsmm_dnn_create_conv_handle_check(conv_desc, &status);
+          //create buffer
+          libxsmm_dnn_buffer* libxsmm_input;
+          libxsmm_dnn_buffer* libxsmm_output;
+          libxsmm_dnn_filter* libxsmm_filter;
+          //input
+          if(conv_desc.buffer_format == LIBXSMM_DNN_CONV_FORMAT_LIBXSMM) {
+              libxsmm_input = libxsmm_dnn_create_input_buffer_check(libxsmm_handle, &status);
+              CHKERR_LIBXSMM_DNN(status);
+              CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyin_buffer(libxsmm_input, input, LIBXSMM_DNN_CONV_FORMAT_NCHW));
+          } else if(conv_desc.buffer_format == LIBXSMM_DNN_CONV_FORMAT_NHWC) {
+              libxsmm_input = libxsmm_dnn_link_input_buffer_check(libxsmm_handle, input, LIBXSMM_DNN_CONV_FORMAT_NHWC_PTR, &status);
+              CHKERR_LIBXSMM_DNN(status);
+          } else {
+              //@TODO input in other format
+          }
+          //filter
+          if(conv_desc.filter_format == LIBXSMM_DNN_CONV_FORMAT_LIBXSMM) {
+              libxsmm_filter = libxsmm_dnn_create_filter_check(libxsmm_handle, &status);
+              CHKERR_LIBXSMM_DNN(status);
+              CHKERR_LIBXSMM_DNN(libxsmm_dnn_copyin_filter(libxsmm_filter, filter, LIBXSMM_DNN_CONV_FORMAT_KCRS));
+          } else if(conv_desc.filter_format == LIBXSMM_DNN_CONV_FORMAT_RSCK) {
+              libxsmm_filter = libxsmm_dnn_link_filter_check(libxsmm_handle, filter, LIBXSMM_DNN_CONV_FORMAT_RSCK_PTR, &status);
+              CHKERR_LIBXSMM_DNN(status);
+          } else {
+              //@TODO filter in other format
+          }
+          //output
+          if(conv_desc.buffer_format == LIBXSMM_DNN_CONV_FORMAT_LIBXSMM) {
+              libxsmm_output = libxsmm_dnn_create_output_buffer_check(libxsmm_handle, &status);
+              CHKERR_LIBXSMM_DNN(status);
+              CHKERR_LIBXSMM_DNN(libxsmm_dnn_zero_buffer(libxsmm_output));
+          } else if (conv_desc.buffer_format == LIBXSMM_DNN_CONV_FORMAT_NHWC) {
+              libxsmm_output = libxsmm_dnn_link_output_buffer_check(libxsmm_handle, output, LIBXSMM_DNN_CONV_FORMAT_NHWC_PTR, &status);
+              CHKERR_LIBXSMM_DNN(status);
+          } else {
+              //@TODO output in other format
+          }
+
+          // bind buffers
+          CHKERR_LIBXSMM_DNN(libxsmm_dnn_bind_input_buffer(libxsmm_handle, libxsmm_input));
+          CHKERR_LIBXSMM_DNN(libxsmm_dnn_bind_output_buffer(libxsmm_handle, libxsmm_output));
+          CHKERR_LIBXSMM_DNN(libxsmm_dnn_bind_filter(libxsmm_handle, libxsmm_filter));
+
+          //add XsmmBuffer 
 		XsmmBuffer buffer;
 		buffer.libxsmm_handle = libxsmm_handle;
 		buffer.libxsmm_input = libxsmm_input;
@@ -127,31 +144,52 @@ class Xsmm {
 	}
 
 	static bool HasBuffer(libxsmm_dnn_conv_desc desc) {
-		XsmmLoadBuffer& xsmm_load_buffer = Xsmm::GetInstance();
-		return xsmm_load_buffer.HasBuffer(desc);
+		XsmmLoadBuffer& xsmm_load_handle = Xsmm::GetInstance();
+		return xsmm_load_handle.HasBuffer(desc);
 	}
 
 	static XsmmBuffer GetBuffer(libxsmm_dnn_conv_desc desc) {
-		XsmmLoadBuffer& xsmm_load_buffer = Xsmm::GetInstance();
-		return xsmm_load_buffer.GetBuffer(desc);
+		XsmmLoadBuffer& xsmm_load_handle = Xsmm::GetInstance();
+		return xsmm_load_handle.GetBuffer(desc);
 	}
 
 	static void AddBuffer(libxsmm_dnn_conv_desc desc, void* input, void* output, void* filter) {
-		XsmmLoadBuffer& xsmm_load_buffer = Xsmm::GetInstance();
-		return xsmm_load_buffer.AddBuffer(desc, input, output, filter);
+		XsmmLoadBuffer& xsmm_load_handle = Xsmm::GetInstance();
+		return xsmm_load_handle.AddBuffer(desc, input, output, filter);
 	}
 
 	virtual ~Xsmm();
 
  private:
-	Xsmm();
-
 	static scoped_ptr<XsmmLoadBuffer> instance_;
 	static boost::once_flag flag_;
 
+	Xsmm();
 	DISABLE_COPY_AND_ASSIGN(Xsmm);
 };
 
+/*=============================================================================
+ *  do some prepare work for using libxsmm convolution, includeding:
+ *  #transfom data format to proper format if needed
+ *  #create a handle for libxsmm convolution
+ *=============================================================================*/
+template<typename DType>
+XsmmBuffer BlitzXsmmPrepare2D(
+    DType* input,
+    DType* output,
+    DType* filter,
+    const Shape& input_shape,
+    const Shape& filter_shape,
+    const Shape& output_shape,
+    size_t stride_h, size_t stride_w,
+    size_t padding_h, size_t padding_w);
+
+
+
+/*=============================================================================
+ *  old things to be changed
+ *=============================================================================*/
+#if 0
 template<typename DType>
 void BlitzXsmmConvolution2D(
 	DType* input,
@@ -169,7 +207,6 @@ void BlitzXsmmConvolution2D(
 	const string& output_format,
 	const string& filter_format,
 	const string& phase);
-
+#endif
 }  // namespace blitz
-
 #endif  // INCLUDE_KERNELS_XSMM_FUNCTION_H_
