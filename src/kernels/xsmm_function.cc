@@ -5,7 +5,6 @@ namespace blitz {
 scoped_ptr<XsmmLoadBuffer> Xsmm::instance_(0);
 boost::once_flag Xsmm::flag_ = BOOST_ONCE_INIT;
 
-
 template<>
 XsmmBuffer BlitzXsmmPrepare2D(
     float* input,

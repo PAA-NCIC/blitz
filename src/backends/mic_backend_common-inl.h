@@ -357,11 +357,7 @@ void Backend<MICTensor, DType>::MatrixMultiplyFunc(
   bool transb,
   DType alpha,
   DType beta,
-<<<<<<< HEAD
-  BLITZ_ALGORITHM blitz_algorithm) {
-=======
   BLITZ_ALGORITHM algorithm ) {
->>>>>>> 80b7acd2a1e3559e7aae9f2a0fc0c6c22b9b3b23
   size_t dim_left = transa ? left->size() / (left->shape())[0] :
     (left->shape())[0];
   size_t dim_right = transb ? (right->shape())[0] :
