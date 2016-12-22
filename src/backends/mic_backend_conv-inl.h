@@ -12,14 +12,18 @@ void Backend<MICTensor, DType>::Convolution2DForwardFunc(
   size_t stride_height,
   size_t stride_width,
   BLITZ_ALGORITHM algorithm) {
-    // Get the shape 
-    // input
-    const Shape& input_shape = input->shape();
-    // filter
-    const Shape& filter_shape = filter->shape();
-    // output
-    const Shape& output_shape = output->shape();
-  
+    //decode the shape
+     //get N, H, W, C, K, R, S, buffer_layout, filter_layout
+    size_t NIN, C, H, W;
+    size_t KF, CF, R, S;
+    size_t NOUT, K, P, Q;
+    Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
+    Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
+    Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
+    CHECK_EQ(NIN, NOUT);
+    CHECK_EQ(KF, K);
+    CHECK_EQ(CF, C);
+
     // time counter
     #ifdef BLITZ_PERFORMANCE
     time_point<system_clock> start, end;
@@ -36,7 +40,8 @@ void Backend<MICTensor, DType>::Convolution2DForwardFunc(
                   const_cast<MICTensor<DType>*>(input)->data(),
                   output->data(),
                   const_cast<MICTensor<DType>*>(filter)->data(),
-                  input_shape, filter_shape, output_shape, 
+                  input->data_layout(), filter->data_layout(),
+                  NIN, H, W, C, K, R, S,
                   stride_height, stride_width,
                   padding_height, padding_width);
   
@@ -75,13 +80,17 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
   size_t stride_height,
   size_t stride_width,
   BLITZ_ALGORITHM algorithm){
-    //get the Shape
-    //input shape
-    const Shape& input_shape = input->shape();
-    //output shape
-    const Shape& output_shape = output->shape();
-    //filter shape
-    const Shape& filter_shape = filter->shape();
+    //decode the shape
+    //get N, H, W, C, K, R, S, buffer_layout, filter_layout
+    size_t NIN, C, H, W;
+    size_t KF, CF, R, S;
+    size_t NOUT, K, P, Q;
+    Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
+    Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
+    Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
+    CHECK_EQ(NIN, NOUT);
+    CHECK_EQ(KF, K);
+    CHECK_EQ(CF, C);
 
     // time counter
     #ifdef BLITZ_PERFORMANCE
@@ -99,7 +108,8 @@ void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
                   input->data(),
                   const_cast<MICTensor<DType>*>(output)->data(),
                   const_cast<MICTensor<DType>*>(filter)->data(),
-                  input_shape, filter_shape, output_shape,
+                  input->data_layout(), filter->data_layout(),
+                  NIN, H, W, C, K, R, S,
                   stride_height, stride_width,
                   padding_height, padding_width);
   
@@ -138,13 +148,17 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
   size_t stride_height,
   size_t stride_width,
   BLITZ_ALGORITHM algorithm){
-    //get the Shape
-    //input shape
-    const Shape& input_shape = input->shape();
-    //output shape
-    const Shape& output_shape = output->shape();
-    //filter shape
-    const Shape& filter_shape = filter->shape();
+
+    //get N, H, W, C, K, R, S, buffer_layout, filter_layout
+    size_t NIN, C, H, W;
+    size_t KF, CF, R, S;
+    size_t NOUT, K, P, Q;
+    Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
+    Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
+    Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
+    CHECK_EQ(NIN, NOUT);
+    CHECK_EQ(KF, K);
+    CHECK_EQ(CF, C);
 
     // time counter
     #ifdef BLITZ_PERFORMANCE
@@ -162,7 +176,8 @@ void Backend<MICTensor, DType>::Convolution2DUpdateFunc(
                   const_cast<MICTensor<DType>*>(input)->data(),
                   const_cast<MICTensor<DType>*>(output)->data(),
                   filter->data(),
-                  input_shape, filter_shape, output_shape, 
+                  input->data_layout(), filter->data_layout(),
+                  NIN, H, W, C, K, R, S,
                   stride_height, stride_width,
                   padding_height, padding_width);
   

@@ -178,35 +178,13 @@ XsmmBuffer BlitzXsmmPrepare2D(
     DType* input,
     DType* output,
     DType* filter,
-    const Shape& input_shape,
-    const Shape& filter_shape,
-    const Shape& output_shape,
-    size_t stride_h, size_t stride_w,
-    size_t padding_h, size_t padding_w);
+    BLITZ_DATA_LAYOUT buffer_layout,
+    BLITZ_DATA_LAYOUT filter_layout,
+    const size_t N, const size_t H, const size_t W,
+    const size_t C, const size_t K, const size_t R, 
+    const size_t S, 
+    const size_t stride_h, const size_t stride_w,
+    const size_t padding_h, const size_t padding_w);
 
-
-
-/*=============================================================================
- *  old things to be changed
- *=============================================================================*/
-#if 0
-template<typename DType>
-void BlitzXsmmConvolution2D(
-	DType* input,
-	DType* output,
-	DType* filter,
-	size_t batch_size,
-	size_t input_channel,
-	size_t input_height, size_t input_width,
-	size_t filter_height, size_t filter_width,
-	size_t output_channel,
-	size_t output_height, size_t output_width,
-	size_t stride_height, size_t stride_width,
-	size_t padding_height, size_t padding_width,
-	const string& input_format,
-	const string& output_format,
-	const string& filter_format,
-	const string& phase);
-#endif
 }  // namespace blitz
 #endif  // INCLUDE_KERNELS_XSMM_FUNCTION_H_
