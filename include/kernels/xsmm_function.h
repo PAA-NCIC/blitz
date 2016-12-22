@@ -176,10 +176,13 @@ XsmmBuffer BlitzXsmmPrepare2D(
     DType* input,
     DType* output,
     DType* filter,
-    const Shape& input_shape,
-    const Shape& filter_shape,
-    const Shape& output_shape,
-    size_t stride_h, size_t stride_w,
-    size_t padding_h, size_t padding_w);
+    BLITZ_DATA_LAYOUT buffer_layout,
+    BLITZ_DATA_LAYOUT filter_layout,
+    const size_t N, const size_t H, const size_t W,
+    const size_t C, const size_t K, const size_t R, 
+    const size_t S, 
+    const size_t stride_h, const size_t stride_w,
+    const size_t padding_h, const size_t padding_w);
+
 }  // namespace blitz
 #endif  // INCLUDE_KERNELS_XSMM_FUNCTION_H_
