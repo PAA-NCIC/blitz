@@ -304,37 +304,37 @@ void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
   CHECK_EQ(dim_common_left, dim_common_right);
   float elapsed_time = 0.0f;
   CUevent event_start;
-	CUevent event_stop;
-	BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop);
-	switch (algorithm) {
-		case BLITZ_BLAS_GEMM:
-			BlitzGPUGemm(
-				const_cast<GPUTensor<DType>*>(left)->data(),
-				const_cast<GPUTensor<DType>*>(right)->data(),
-				output->data(),
-				gpu_transa, gpu_transb,
-				alpha, beta,
-				dim_left, dim_right, dim_common_left);
-			break;
-		case BLITZ_SASS_GEMM:
-			BlitzSassGemm(
-				const_cast<GPUTensor<DType>*>(left)->data(),
-				const_cast<GPUTensor<DType>*>(right)->data(),
-				output->data(),
-				gpu_transa, gpu_transb,
-				alpha, beta,
-				dim_left, dim_right, dim_common_left);
-			break;
-		default:
-			LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
-			break;
-	}
-	BLITZ_GPU_TIMER_END(elapsed_time, event_start, event_stop);
-	#ifdef BLITZ_PERFORMANCE
+  CUevent event_stop;
+  BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop);
+  switch (algorithm) {
+    case BLITZ_BLAS_GEMM:
+      BlitzGPUGemm(
+        const_cast<GPUTensor<DType>*>(left)->data(),
+        const_cast<GPUTensor<DType>*>(right)->data(),
+        output->data(),
+        gpu_transa, gpu_transb,
+        alpha, beta,
+        dim_left, dim_right, dim_common_left);
+      break;
+    case BLITZ_SASS_GEMM:
+      BlitzSassGemm(
+        const_cast<GPUTensor<DType>*>(left)->data(),
+        const_cast<GPUTensor<DType>*>(right)->data(),
+        output->data(),
+        gpu_transa, gpu_transb,
+        alpha, beta,
+        dim_left, dim_right, dim_common_left);
+      break;
+    default:
+      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      break;
+  }
+  BLITZ_GPU_TIMER_END(elapsed_time, event_start, event_stop);
+  #ifdef BLITZ_PERFORMANCE
   double computations = static_cast<double>(2 * dim_right) * static_cast<double>(dim_left) * static_cast<double>(dim_common_left);
   LOG(INFO) << "GEMM time: " << elapsed_time;
   LOG(INFO) << "GEMM gflops: " << computations / (elapsed_time * 1e9);
-	#endif  // BLITZ_PERFORMANCE
+  #endif  // BLITZ_PERFORMANCE
 }
 
 template<typename DType>

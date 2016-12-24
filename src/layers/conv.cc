@@ -20,19 +20,19 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
   // output shape encode
   size_t output_channel = filter_shape_[0];
   size_t output_height, output_width;
-	if (this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {
-		// this kernel only support output padding, therefore we do not support it if padding is not zero
-		if (padding_height_ != 0 || padding_width_ != 0) {
-			LOG(FATAL) << "xsmm kernel do not support backward phase for padding > 0";
-		}
-		output_height = (input_height - filter_height) / stride_height_ + 1 + 2 * padding_height_;
-		output_width = (input_width - filter_width) / stride_width_ + 1 + 2 * padding_width_;
-	} else {
-		output_height = (input_height + 2 * padding_height_ - filter_height) /
-			stride_height_ + 1;
-		output_width = (input_width + 2 * padding_width_ - filter_width) /
-			stride_width_ + 1;
-	}
+  if (this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {
+    // this kernel only support output padding, therefore we do not support it if padding is not zero
+    if (padding_height_ != 0 || padding_width_ != 0) {
+      LOG(FATAL) << "xsmm kernel do not support backward phase for padding > 0";
+    }
+    output_height = (input_height - filter_height) / stride_height_ + 1 + 2 * padding_height_;
+    output_width = (input_width - filter_width) / stride_width_ + 1 + 2 * padding_width_;
+  } else {
+    output_height = (input_height + 2 * padding_height_ - filter_height) /
+      stride_height_ + 1;
+    output_width = (input_width + 2 * padding_width_ - filter_width) /
+      stride_width_ + 1;
+  }
   Shape output_shape(4, BLITZ_BUFFER_NCHW);
   output_shape[0] = batch_size;
   output_shape[1] = output_channel;
@@ -56,11 +56,11 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     static_cast<double>(output_channel * output_height * output_width) *
     static_cast<double>(input_channel * filter_height * filter_width * 2);
   if (this->algorithm_ == BLITZ_CONVOLUTION_SASS_GEMM ||
-		this->algorithm_ == BLITZ_CONVOLUTION_BLAS_GEMM) {
+    this->algorithm_ == BLITZ_CONVOLUTION_BLAS_GEMM) {
     workspace_shape[0] = input_channel *
       filter_height * filter_width * output_height * output_width;
   } else if (this->algorithm_ == BLITZ_CONVOLUTION_BLAS_GEMM_BATCH ||
-		this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {  //xsmm kernel fallback to blas_batch in backward phase
+    this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {  //xsmm kernel fallback to blas_batch in backward phase
     size_t workspace_unpack_size = BLITZ_NUM_THREADS * input_channel *
       filter_height * filter_width * output_height * output_width;
     size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *
@@ -71,7 +71,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
       output_shape.size() + weight_shape.size();
     workspace_shape[0] = workspace_size;
   }
-	#ifdef BLITZ_USE_GPU
+  #ifdef BLITZ_USE_GPU
   else if (this->algorithm_ == BLITZ_CONVOLUTION_CUDNN) {
     // create val
     cudnn_alpha_ = new DType(1.0);
@@ -98,7 +98,7 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
     backward_filter_algorithm_ = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0;
     backward_data_algorithm_ = CUDNN_CONVOLUTION_BWD_DATA_ALGO_0;
   }
-	#endif
+  #endif
   this->workspace_ = make_shared<TensorType<DType> >(workspace_shape);
 
   LOG(INFO) << "Conv Layer: " << this->name_;
@@ -114,7 +114,7 @@ template<template <typename> class TensorType, typename DType>
 void Conv<TensorType, DType>::ForwardPropImpl(
   shared_ptr<TensorType<DType> > forward_input) {
   // TODO(keren) fusing
-	#ifdef BLITZ_USE_GPU
+  #ifdef BLITZ_USE_GPU
   if (this->algorithm_ == BLITZ_CONVOLUTION_CUDNN) {
     // start cudnn directly from the layer, not throught backend
     // because backend is a general engine
@@ -134,7 +134,7 @@ void Conv<TensorType, DType>::ForwardPropImpl(
       stride_height_, stride_width_,
       this->algorithm_);
   }
-	#else
+  #else
   Backend<TensorType, DType>::Convolution2DForwardFunc(
     forward_input.get(),
     (this->weight_).get(),
@@ -143,7 +143,7 @@ void Conv<TensorType, DType>::ForwardPropImpl(
     padding_height_, padding_width_,
     stride_height_, stride_width_,
     this->algorithm_);
-	#endif
+  #endif
 }
 
 template<template <typename> class TensorType, typename DType>

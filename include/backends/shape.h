@@ -8,16 +8,16 @@
 namespace blitz {
 
 enum BLITZ_DATA_LAYOUT {
-	BLITZ_FLAT = 0,
-	BLITZ_BUFFER_NCHW = 1,
-	BLITZ_BUFFER_NHWC = 2,
-	BLITZ_FILTER_KCRS = 3,
-	BLITZ_FILTER_RSCK = 4,
-	BLITZ_PACK_PQRSC = 5,
-	BLITZ_PACK_PQCRS = 6,
-	BLITZ_PACK_CRSPQ = 7,
-	BLITZ_PACK_RSCPQ = 8,
-	BLITZ_SHAPE_UNDEFINED = 9
+  BLITZ_FLAT = 0,
+  BLITZ_BUFFER_NCHW = 1,
+  BLITZ_BUFFER_NHWC = 2,
+  BLITZ_FILTER_KCRS = 3,
+  BLITZ_FILTER_RSCK = 4,
+  BLITZ_PACK_PQRSC = 5,
+  BLITZ_PACK_PQCRS = 6,
+  BLITZ_PACK_CRSPQ = 7,
+  BLITZ_PACK_RSCPQ = 8,
+  BLITZ_SHAPE_UNDEFINED = 9
 };
 
 // Rule of three: use self-defined copy assignment to restore size_ to 0
@@ -39,17 +39,17 @@ class Shape {
     size_(0), dimension_(shape.size()),
     shape_(shape), data_layout_(data_layout) {}
 
-	// copy constructor
-	Shape(const Shape& shape) :
+  // copy constructor
+  Shape(const Shape& shape) :
     size_(0), dimension_(shape.dimension_),
     shape_(shape.shape_), data_layout_(shape.data_layout_) {}
 
-	// setters
-	void set_data_layout(BLITZ_DATA_LAYOUT data_layout) {
-		this->data_layout_ = data_layout;
-	}
+  // setters
+  void set_data_layout(BLITZ_DATA_LAYOUT data_layout) {
+    this->data_layout_ = data_layout;
+  }
 
-	// getters
+  // getters
   size_t dimension() const {
     return dimension_;
   }
@@ -67,9 +67,9 @@ class Shape {
     return *(size_);
   }
 
-	BLITZ_DATA_LAYOUT data_layout() const {
-		return this->data_layout_;
-	}
+  BLITZ_DATA_LAYOUT data_layout() const {
+    return this->data_layout_;
+  }
 
   // operator
   size_t operator[](size_t index) const {
@@ -80,7 +80,7 @@ class Shape {
     return shape_[index];
   }
 
-	// copy assignment
+  // copy assignment
   Shape& operator=(const Shape& other) {  // check for self-assignment
     if(&other == this)
       return *this;  // reuse storage when possible
@@ -88,19 +88,19 @@ class Shape {
     size_ = 0;
     dimension_ = other.dimension_;
     shape_ = other.shape_;
-		data_layout_ = other.data_layout_;
+    data_layout_ = other.data_layout_;
     return *this;
   }  // note: copy-and-swap would always cause a reallocation
 
-	~Shape() {
-		delete this->size_;
-	}
+  ~Shape() {
+    delete this->size_;
+  }
 
  private:
   mutable size_t* size_;
   size_t dimension_;
   std::vector<size_t> shape_;
-	BLITZ_DATA_LAYOUT data_layout_;
+  BLITZ_DATA_LAYOUT data_layout_;
 };
 
 }  // namespace blitz

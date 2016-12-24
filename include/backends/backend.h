@@ -147,7 +147,7 @@ class Backend {
     TensorType<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-		BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
 
   static void Convolution2DUpdateFunc(
     const TensorType<DType>* input,
@@ -156,7 +156,7 @@ class Backend {
     TensorType<DType>* workspace,
     size_t padding_height, size_t padding_width,
     size_t stride_height, size_t stride_width,
-		BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
 
   static void MaxPooling2DForwardFunc(
     const TensorType<DType>* input,
@@ -206,7 +206,7 @@ class Backend {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width,
-		BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
+    BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
 
   static BLITZ_DATA_LAYOUT Pack2DFunc(
     const DType* pack,
@@ -222,7 +222,7 @@ class Backend {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width,
-		BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
+    BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
 
   DISABLE_COPY_AND_ASSIGN(Backend);
 };
