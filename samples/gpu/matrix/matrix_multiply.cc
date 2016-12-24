@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     std::cerr << "Not enough args!" << std::endl;
     exit(1);
   }
-	std::string kernel = std::string(argv[1]);
+  std::string kernel = std::string(argv[1]);
   const size_t M = atoi(argv[2]);
   const size_t N = atoi(argv[3]);
   const size_t K = atoi(argv[4]);
