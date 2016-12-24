@@ -45,6 +45,14 @@ void set_input_shape_nchw(size_t N, size_t C, size_t H, size_t W) {
   input_shape.set_data_layout(BLITZ_BUFFER_NCHW);
 }
 
+void set_input_shape_nhwc(size_t N, size_t C, size_t H, size_t W) {
+  input_shape[0] = N;
+  input_shape[1] = H;
+  input_shape[2] = W;
+  input_shape[3] = C;
+  input_shape.set_data_layout(BLITZ_BUFFER_NHWC);
+}
+
 void set_filter_shape_kcrs(size_t K, size_t C, size_t R, size_t S) {
   filter_shape[0] = K;
   filter_shape[1] = C;
@@ -59,6 +67,14 @@ void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q) {
   output_shape[2] = P;
   output_shape[3] = Q;
   output_shape.set_data_layout(BLITZ_BUFFER_NCHW);
+}
+
+void set_output_shape_npqk(size_t N, size_t K, size_t P, size_t Q) {
+  output_shape[0] = N;
+  output_shape[1] = P;
+  output_shape[2] = Q;
+  output_shape[3] = K;
+  output_shape.set_data_layout(BLITZ_BUFFER_NHWC);
 }
 
 void convolution_forward(
@@ -174,7 +190,7 @@ void convolution_update(
 }
 
 int main(int argc, char** argv) {
-  const size_t NUM_ARGS = 16;
+  const size_t NUM_ARGS = 18;
   // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w iter
   if (argc != NUM_ARGS + 1) {
     std::cerr << "Not enough args!" << std::endl;
@@ -183,24 +199,34 @@ int main(int argc, char** argv) {
   // get args
   const std::string phase = std::string(argv[1]); 
   const std::string kernel = std::string(argv[2]); 
-  const size_t N = atoi(argv[3]);
-  const size_t C = atoi(argv[4]);
-  const size_t H = atoi(argv[5]);
-  const size_t W = atoi(argv[6]);
-  const size_t R = atoi(argv[7]);
-  const size_t S = atoi(argv[8]);
-  const size_t K = atoi(argv[9]);
-  const size_t P = atoi(argv[10]);
-  const size_t Q = atoi(argv[11]);
-  const size_t pad_h = atoi(argv[12]);
-  const size_t pad_w = atoi(argv[13]);
-  const size_t str_h = atoi(argv[14]);
-  const size_t str_w = atoi(argv[15]);
-  const size_t iter = atoi(argv[16]);
+  const std::string input_layout = std::string(argv[3]); 
+  const std::string output_layout = std::string(argv[4]); 
+  const size_t N = atoi(argv[5]);
+  const size_t C = atoi(argv[6]);
+  const size_t H = atoi(argv[7]);
+  const size_t W = atoi(argv[8]);
+  const size_t R = atoi(argv[9]);
+  const size_t S = atoi(argv[10]);
+  const size_t K = atoi(argv[11]);
+  const size_t P = atoi(argv[12]);
+  const size_t Q = atoi(argv[13]);
+  const size_t pad_h = atoi(argv[14]);
+  const size_t pad_w = atoi(argv[15]);
+  const size_t str_h = atoi(argv[16]);
+  const size_t str_w = atoi(argv[17]);
+  const size_t iter = atoi(argv[18]);
   // set shapes
-  set_input_shape_nchw(N, C, H, W);
+  if (input_layout == "nhwc") {
+    set_input_shape_nhwc(N, C, H, W);
+  } else {
+    set_input_shape_nchw(N, C, H, W);
+  }
+  if (output_layout == "nhwc") {
+    set_output_shape_nkpq(N, K, P, Q);
+  } else {
+    set_output_shape_npqk(N, K, P, Q);
+  }
   set_filter_shape_kcrs(K, C, R, S);
-  set_output_shape_nkpq(N, K, P, Q);
   // set workspace shape
   workspace_shape_cpu[0] = C * H * W * P * Q;
   // run convolution

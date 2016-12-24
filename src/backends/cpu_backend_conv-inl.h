@@ -60,13 +60,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
           #ifdef BLITZ_PERFORMANCE
           start = system_clock::now();
           #endif  // BLITZ_PERFORMANCE
-          // unpack
-          // (input_channel) *
-          // (input_width * input_height)
-          // to
-          // (input_channel * filter_height * filter_width)
-          // (output_width * output_height)
-          BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
+          BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(
+            input->Slice(nCHW),
             workspace_unpack_slice,
             C, H, W,
             R, S,
@@ -109,13 +104,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         #ifdef BLITZ_PERFORMANCE
         start = system_clock::now();
         #endif
-        // unpack
-        // (input_channel) *
-        // (input_width * input_height)
-        // to
-        // (input_channel * filter_height * filter_width)
-        // (output_width * output_height)
-        BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
+        BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(
+	  input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
