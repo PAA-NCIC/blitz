@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
   }
   set_filter_shape_kcrs(K, C, R, S);
   // set workspace shape
-  workspace_shape_cpu[0] = C * H * W * P * Q;
+  workspace_shape_cpu[0] = C * R * S * P * Q;
   // run convolution
   if (phase == "forward") {
     convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);

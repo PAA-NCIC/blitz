@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
   // set workspace shape
   workspace_shape_gpu[0] =
     input_shape.size() + output_shape.size() + filter_shape.size();
-  workspace_shape_cpu[0] = C * H * W * P * Q;
+  workspace_shape_cpu[0] = C * R * S * P * Q;
   // run convolution
   if (phase == "forward") {
     convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iterations);

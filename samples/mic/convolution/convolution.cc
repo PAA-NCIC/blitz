@@ -342,8 +342,8 @@ int main(int argc, char** argv) {
   set_filter_shape(K, C, R, S);
   set_output_shape(N, K, P, Q);
   // set workspace shape
-  //  workspace_shape_cpu[0] = BLITZ_NUM_THREADS * C * H * W * P * Q;
-  workspace_shape_cpu[0] = C * H * W * P * Q;
+  //  workspace_shape_cpu[0] = BLITZ_NUM_THREADS * C * R * S * P * Q;
+  workspace_shape_cpu[0] = C * R * S * P * Q;
   std::cout << phase << std::endl;
   // run convolution
   if (phase == "forward") 
