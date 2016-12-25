@@ -52,7 +52,8 @@ endif
 ifeq ($(BLITZ_USE_MIC), 1)
 	CXXFLAGS += -DBLITZ_USE_MIC
 	LDFLAGS += -lxsmm
-	XSMM_LIB ?= /home/scy/software/libxsmm/lib	
+	XSMM_LIB := $(LIBRARY_DIR)/xsmm
+	LIBRARY_DIR += -L$(XSMM_LIB)
 endif
 
 #dependency
@@ -100,10 +101,6 @@ endif
 
 ifdef BLAS_LIB
 	LIBRARY_DIR += -L$(BLAS_LIB)
-endif
-
-ifdef XSMM_LIB
-	LIBRARY_DIR += -L$(XSMM_LIB)
 endif
 
 #variables
