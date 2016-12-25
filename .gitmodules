@@ -1,4 +1,4 @@
-[submodule "third-party/yaml-cpp-0.5.3"]
+[submodule "third-party/yaml-cpp"]
 	path = third-party/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
 [submodule "third-party/libxsmm"]
