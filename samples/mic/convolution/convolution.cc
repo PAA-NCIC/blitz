@@ -375,7 +375,7 @@ void convolution_forward(
 void convolution_backward(
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w, naive_conv_t *naive_param) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -430,7 +430,7 @@ void convolution_backward(
 void convolution_update(
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w, naive_conv_t *naive_param) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -526,11 +526,11 @@ int main(int argc, char** argv) {
   std::cout << phase << std::endl;
   // run convolution
   if (phase == "forward") 
-    convolution_forward(BLITZ_CONVOLUTION_BLAS_GEMM, pad_h, pad_w, str_h, str_w);
+    convolution_forward(BLITZ_CONVOLUTION_BLAS_GEMM, pad_h, pad_w, str_h, str_w, &naive_param);
   else if (phase == "backward")
-    convolution_backward(BLITZ_CONVOLUTION_BLAS_GEMM, pad_h, pad_w, str_h, str_w);
+    convolution_backward(BLITZ_CONVOLUTION_BLAS_GEMM, pad_h, pad_w, str_h, str_w, &naive_param);
   else if (phase == "update")
-    convolution_update(BLITZ_CONVOLUTION_BLAS_GEMM, pad_h, pad_w, str_h, str_w);
+    convolution_update(BLITZ_CONVOLUTION_BLAS_GEMM, pad_h, pad_w, str_h, str_w, &naive_param);
   else
     std::cout << "wrong phase" << std::endl;
   return 0;
