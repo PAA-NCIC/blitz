@@ -65,87 +65,26 @@ void compare(float* algo1, float* algo2, size_t size) {
   }
 }
 void compare(double* algo1, double* algo2, size_t size) {
-    size_t i = 0;
-    cout.precision(2);
-	for (i = 0; i < size; ++i) {
-		if ((algo1[i] - algo2[i] > EPSILON )|| (algo1[i] - algo2[i] < -EPSILON)) {
-            cout << "Index: " << i << " " << scientific << algo1[i] - algo2[i] << endl;
-		}
-	}
-}
-
-void compareThree(float *algo1, double *benchmark, float *algo2, size_t size)
-{
-    size_t i = 0;
-    float diff1, diff2;
-    cout.precision(2);
-    for(i = 0; i < size; i++){
-       diff1 = algo1[i] - benchmark[i];
-       diff2 = algo2[i] - benchmark[i];
-       if((diff1 - diff2 > EPSILON) || (diff1 - diff2 < -EPSILON)){
-           cout << "Index: " << i << " " << scientific << diff1 << " " << scientific << diff2 << endl;
-       }
+  size_t i = 0;
+  cout.precision(2);
+  for (i = 0; i < size; ++i) {
+    if ((algo1[i] - algo2[i] > EPSILON )|| (algo1[i] - algo2[i] < -EPSILON)) {
+      cout << "Index: " << i << " " << scientific << algo1[i] - algo2[i] << endl;
     }
+  }
 }
 
-void cpy(float *desc, float *src, size_t size)
-{
-    size_t i = 0;
-    for(i = 0; i < size; ++i){
-        desc[i] = src[i];
-    }
+void cpy(float *desc, float *src, size_t size) {
+  size_t i = 0;
+  for (i = 0; i < size; ++i) {
+    desc[i] = src[i];
+  }
 }
-void cpy(double *desc, float *src, size_t size)
-{
-    size_t i = 0;
-    for(i = 0; i < size; ++i){
-        desc[i] = static_cast<double>(src[i]);
-    }
-}
-
-void set_input_shape(size_t N, size_t C, size_t H, size_t W) {
-  //set nchw
-  input_shape[0] = N;
-  input_shape[1] = C;
-  input_shape[2] = H;
-  input_shape[3] = W;
-  input_shape.set_data_layout(BLITZ_BUFFER_NCHW);
-  //set nhwc
-  input_shape_nhwc[0] = N;
-  input_shape_nhwc[1] = H;
-  input_shape_nhwc[2] = W;
-  input_shape_nhwc[3] = C;
-  input_shape_nhwc.set_data_layout(BLITZ_BUFFER_NHWC);
-}
-
-void set_filter_shape(size_t K, size_t C, size_t R, size_t S) {
-  //set kcrs
-  filter_shape[0] = K;
-  filter_shape[1] = C;
-  filter_shape[2] = R;
-  filter_shape[3] = S;
-  filter_shape.set_data_layout(BLITZ_FILTER_KCRS);
-  //set rsck
-  filter_shape_rsck[0] = R;
-  filter_shape_rsck[1] = S;
-  filter_shape_rsck[2] = C;
-  filter_shape_rsck[3] = K;
-  filter_shape_rsck.set_data_layout(BLITZ_FILTER_RSCK);
-}
-
-void set_output_shape(size_t N, size_t K, size_t P, size_t Q) {
-  //set nkpq
-  output_shape[0] = N;
-  output_shape[1] = K;
-  output_shape[2] = P;
-  output_shape[3] = Q;
-  output_shape.set_data_layout(BLITZ_BUFFER_NCHW);
-  //set npqk
-  output_shape_nhwc[0] = N;
-  output_shape_nhwc[1] = P;
-  output_shape_nhwc[2] = Q;
-  output_shape_nhwc[3] = K;
-  output_shape_nhwc.set_data_layout(BLITZ_BUFFER_NHWC);
+void cpy(double *desc, float *src, size_t size) {
+  size_t i = 0;
+  for (i = 0; i < size; ++i) {
+    desc[i] = static_cast<double>(src[i]);
+  }
 }
 
 void copy_NCHW_to_NHWC(const float* nchw, float* nhwc, int N, int H, int W, int C) {
@@ -164,9 +103,9 @@ void copy_NCHW_to_NHWC(const float* nchw, float* nhwc, int N, int H, int W, int 
 void copy_NHWC_to_NCHW(const float* nhwc, float* nchw, int N, int H, int W, int C) {
   int n, h, w, c;
   for(n = 0; n < N; n++) {
-    for(h = 0; h < H; h++){
-      for(w = 0; w < W; w++){
-        for(c = 0; c < C; c++){
+    for(h = 0; h < H; h++) {
+      for(w = 0; w < W; w++) {
+        for(c = 0; c < C; c++) {
           ACCESS(nchw, n, c, h, w, C, H, W) = ACCESS(nhwc, n, h, w, c, H, W, C);
         }
       }
@@ -200,6 +139,50 @@ void copy_RSCK_to_KCRS(const float *rsck, float *kcrs, int R, int S, int C, int 
   }
 }
 
+void set_input_shape(size_t N, size_t C, size_t H, size_t W) {
+  //set nchw
+  input_shape[0] = N;
+  input_shape[1] = C;
+  input_shape[2] = H;
+  input_shape[3] = W;
+  input_shape.set_data_layout(BLITZ_BUFFER_NCHW);
+  //set nhwc
+  input_shape_nhwc[0] = N;
+  input_shape_nhwc[1] = H;
+  input_shape_nhwc[2] = W;
+  input_shape_nhwc[3] = C;
+  input_shape_nhwc.set_data_layout(BLITZ_BUFFER_NHWC);
+}
+
+void set_filter_shape(size_t K, size_t C, size_t R, size_t S) {
+  //set kcrs
+  filter_shape[0] = K;
+  filter_shape[1] = C;
+  filter_shape[2] = R;
+  filter_shape[3] = S;
+  filter_shape.set_data_layout(BLITZ_FILTER_KCRS);
+  //set rsck
+  filter_shape_rsck[0] = R;
+  filter_shape_rsck[1] = S;
+  filter_shape_rsck[2] = C;
+  filter_shape_rsck[3] = K;
+  filter_shape_rsck.set_data_layout(BLITZ_FILTER_RSCK);
+
+void set_output_shape(size_t N, size_t K, size_t P, size_t Q) {
+  //set nkpq
+  output_shape[0] = N;
+  output_shape[1] = K;
+  output_shape[2] = P;
+  output_shape[3] = Q;
+  output_shape.set_data_layout(BLITZ_BUFFER_NCHW);
+  //set npqk
+  output_shape_nhwc[0] = N;
+  output_shape_nhwc[1] = P;
+  output_shape_nhwc[2] = Q;
+  output_shape_nhwc[3] = K;
+  output_shape_nhwc.set_data_layout(BLITZ_BUFFER_NHWC);
+}
+
 typedef struct {
   int nImg;
   int nIfm;
@@ -220,51 +203,7 @@ typedef struct {
   int stride_w;
 } naive_conv_t;
 
-void naive_conv_fp(naive_conv_t* param, const float* input, float* output, const float* filter)
-{
-  int nImg      = param->nImg;
-  int nIfm      = param->nIfm;
-  int nOfm      = param->nOfm;
-  int ifhp      = param->ifhp;
-  int ifwp      = param->ifwp;
-  int ofhp      = param->ofhp;
-  int ofwp      = param->ofwp;
-  int ofh       = param->ofh;
-  int ofw       = param->ofw;
-  int pad_h_out = param->pad_h_out;
-  int pad_w_out = param->pad_w_out;
-  int kh        = param->kh;
-  int kw        = param->kw;
-  int stride_h  = param->stride_h;
-  int stride_w  = param->stride_w;
-  /* loop counters */
-  int img, ofm, ifm, oj, oi, ij, ii, kj, ki;
-
-#if defined(_OPENMP)
-# pragma omp parallel for collapse(2) private(img, ofm, ifm, oj, oi, ij, ii, kj, ki)
-#endif
-  for (img = 0; img < nImg; ++img) {
-    for (ofm = 0; ofm < nOfm; ++ofm) {
-      for (ifm = 0; ifm < nIfm; ++ifm) {
-        for (oj = 0; oj < ofh; ++oj) {
-          ij = oj * stride_h;
-          for (oi = 0; oi < ofw; ++oi) {
-            ii = oi * stride_w;
-            for (kj = 0; kj < kh; ++kj) {
-              for (ki = 0; ki < kw; ++ki) {
-                ACCESS(output, img, ofm, oj, oi, nOfm, ofhp, ofwp) +=
-                  ACCESS(input, img, ifm, ij + kj, ii + ki, nIfm, ifhp, ifwp)
-                  * ACCESS(filter, ofm, ifm, kj, ki, nIfm, kh, kw);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-void naive_conv_fp(naive_conv_t* param, const double* input, double* output, const double* filter)
-{
+void naive_conv_fp(naive_conv_t* param, const float* input, float* output, const float* filter) {
   int nImg      = param->nImg;
   int nIfm      = param->nIfm;
   int nOfm      = param->nOfm;
@@ -392,8 +331,8 @@ void convolution_backward(
   MICTensor<float> workspace_mic(workspace_shape_cpu);
   copy_KCRS_to_RSCK(filter_cpu.data(), filter_mic.data(), filter_shape_rsck[0], filter_shape_rsck[1], filter_shape_rsck[2], filter_shape_rsck[3]);
   copy_NCHW_to_NHWC(output_cpu.data(), output_mic.data(),output_shape_nhwc[0], output_shape_nhwc[1], output_shape_nhwc[2], output_shape_nhwc[3] );
-//	memcpy(filter_mic.data(), filter_cpu.data(), sizeof(float) * filter_cpu.size());
-//  	memcpy(output_mic.data(), output_cpu.data(), sizeof(float) * output_cpu.size());
+//    memcpy(filter_mic.data(), filter_cpu.data(), sizeof(float) * filter_cpu.size());
+//      memcpy(output_mic.data(), output_cpu.data(), sizeof(float) * output_cpu.size());
 //    cout << "input and output difference" << endl;
 //    compare(filter_cpu.data(), filter_mic.data(), filter_mic.size());
 //    compare(output_cpu.data(), output_mic.data(), output_mic.size());

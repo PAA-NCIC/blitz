@@ -60,7 +60,6 @@ void Backend<MICTensor, DType>::Convolution2DForwardFunc(
   LOG(INFO) << "Forward convolution gemm: " << total_gemm_time;
   LOG(INFO) << "Forward convolution unpack: " << total_unpack_time;
   #endif  // BLITZ_PERFORMANCE
-}
 
 template<typename DType>
 void Backend<MICTensor, DType>::Convolution2DBackwardFunc(
