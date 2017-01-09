@@ -405,8 +405,11 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       break;
   }
   #ifdef BLITZ_PERFORMANCE
-  LOG(INFO) << "Backward convolution filter gemm: " << compute_time;
-  LOG(INFO) << "Backward convolution filter unpack: " << transform_time;
+  double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
+  LOG(INFO) << "Backward update convolution compute: " << compute_time;
+  LOG(INFO) << "Backward update convolution transform: " << transform_time;
+  LOG(INFO) << "Backward update convolution compute gflops: " << computations / (compute_time * 1e9);
+  LOG(INFO) << "Backward update convolution total gflops: " << computations / ((transform_time + compute_time) * 1e9);
   #endif  // BLITZ_PERFORMANCE
 }
 
