@@ -4,3 +4,6 @@
 [submodule "third-party/libxsmm"]
 	path = third-party/libxsmm
 	url = https://github.com/hfp/libxsmm.git
+[submodule "third-party/glog"]
+	path = third-party/glog
+	url = https://github.com/google/glog.git
