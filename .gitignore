@@ -30,12 +30,6 @@
 # hdf5 files
 *.h5
 
-# log
-log*
-
-# backup files
-src/backup*
-
 # result
 *.result
 
