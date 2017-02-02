@@ -16,7 +16,7 @@ before_script:
   - cd third-party/glog
   - ./configure --enable-shared --prefix=${HOME}/glog
   - touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
-  - make -j4
+  - make install -j4
   - cd ../..
   - export LD_LIBRARY_PATH=${HOME}/glog/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${HOME}/glog/lib:$LIBRARY_PATH
