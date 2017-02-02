@@ -104,21 +104,24 @@ void convolution_forward(
     pad_h, pad_w, 
     str_h, str_w);
   // different algorithm
-  Backend<CPUTensor, float>::Convolution2DForwardFunc(
-    &input_cpu,
-    &filter_cpu,
-    &output_cpu_algorithm,
-    &workspace_cpu_algorithm,
-    pad_h, pad_w, 
-    str_h, str_w,
-    algorithm);
+  for (size_t i = 0; i < iter; ++i) {
+    Backend<CPUTensor, float>::Convolution2DForwardFunc(
+      &input_cpu,
+      &filter_cpu,
+      &output_cpu_algorithm,
+      &workspace_cpu_algorithm,
+      pad_h, pad_w, 
+      str_h, str_w,
+      algorithm);
+  }
   compare(output_cpu.data(), output_cpu_algorithm.data(), output_cpu.size());
 }
 
 void convolution_backward(
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w,
+  size_t iter) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> input_cpu_algorithm(input_shape);
@@ -141,21 +144,24 @@ void convolution_backward(
     pad_h, pad_w, 
     str_h, str_w);
   // different algorithm
-  Backend<CPUTensor, float>::Convolution2DBackwardFunc(
-    &output_cpu,
-    &filter_cpu,
-    &input_cpu_algorithm,
-    &workspace_cpu_algorithm,
-    pad_h, pad_w, 
-    str_h, str_w,
-    algorithm);
+  for (size_t i = 0; i < iter; ++i) {
+    Backend<CPUTensor, float>::Convolution2DBackwardFunc(
+      &output_cpu,
+      &filter_cpu,
+      &input_cpu_algorithm,
+      &workspace_cpu_algorithm,
+      pad_h, pad_w, 
+      str_h, str_w,
+      algorithm);
+  }
   compare(input_cpu.data(), input_cpu_algorithm.data(), input_cpu.size());
 }
 
 void convolution_update(
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w) {
+  size_t str_h, size_t str_w,
+  size_t iter) {
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> filter_cpu(filter_shape);
@@ -178,15 +184,17 @@ void convolution_update(
     pad_h, pad_w, 
     str_h, str_w);
   // different algorithm
-  Backend<CPUTensor, float>::Convolution2DUpdateFunc(
-    &input_cpu,
-    &output_cpu,
-    &filter_cpu_algorithm,
-    &workspace_cpu_algorithm,
-    pad_h, pad_w, 
-    str_h, str_w,
-    algorithm);
-  compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size());
+  for (size_t i = 0; i < iter; ++i) {
+    Backend<CPUTensor, float>::Convolution2DUpdateFunc(
+      &input_cpu,
+      &output_cpu,
+      &filter_cpu_algorithm,
+      &workspace_cpu_algorithm,
+      pad_h, pad_w, 
+      str_h, str_w,
+      algorithm);
+  }
+  //compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size());
 }
 
 int main(int argc, char** argv) {
@@ -228,14 +236,16 @@ int main(int argc, char** argv) {
   }
   set_filter_shape_kcrs(K, C, R, S);
   // set workspace shape
-  workspace_shape_cpu[0] = C * R * S * P * Q;
   // run convolution
   if (phase == "forward") {
+    workspace_shape_cpu[0] = C * R * S * P * Q;
     convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   } else if (phase == "backward") {
-    convolution_backward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
+    workspace_shape_cpu[0] = C * R * S * P * Q;
+    convolution_backward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   } else if (phase == "update") {
-    convolution_update(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w);
+    workspace_shape_cpu[0] = C * R * S * P * Q + K * C * R * S;
+    convolution_update(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   }
   return 0;
 }

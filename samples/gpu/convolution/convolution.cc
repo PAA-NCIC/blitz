@@ -160,6 +160,16 @@ void convolution_backward(
     pad_h, pad_w, 
     str_h, str_w,
     algorithm);
+  for (size_t i = 1; i < iter; ++i) {
+    Backend<GPUTensor, float>::Convolution2DBackwardFunc(
+      &output_gpu,
+      &filter_gpu,
+      &input_gpu,
+      &workspace_gpu,
+      pad_h, pad_w, 
+      str_h, str_w,
+      algorithm);
+  }
   // copy from gpu to cpu
   cudaMemcpy(input_copy.data(), input_gpu.data(),
     input_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);

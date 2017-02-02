@@ -139,8 +139,11 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       break;
   }
   #ifdef BLITZ_PERFORMANCE
+  double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
   LOG(INFO) << "Forward convolution compute: " << total_gemm_time;
   LOG(INFO) << "Forward convolution transform: " << total_unpack_time;
+  LOG(INFO) << "Forward convolution compute gflops: " << computations / (total_gemm_time * 1e9);
+  LOG(INFO) << "Forward convolution total gflops: " << computations / ((total_gemm_time + total_unpack_time) * 1e9);
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -294,8 +297,11 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
       break;
   }
   #ifdef BLITZ_PERFORMANCE
+  double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
   LOG(INFO) << "Backward convolution compute: " << total_gemm_time;
   LOG(INFO) << "Backward convolution transform: " << total_pack_time;
+  LOG(INFO) << "Backward convolution compute gflops: " << computations / (total_gemm_time * 1e9);
+  LOG(INFO) << "Backward convolution total gflops: " << computations / ((total_pack_time + total_gemm_time) * 1e9);
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -455,8 +461,11 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
       break;
   }
   #ifdef BLITZ_PERFORMANCE
+  double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
   LOG(INFO) << "Backward convolution update compute: " << total_gemm_time;
   LOG(INFO) << "Backward convolution update transform: " << total_unpack_time;
+  LOG(INFO) << "Backward convolution update compute gflops: " << computations / (total_gemm_time * 1e9);
+  LOG(INFO) << "Backward convolution update total gflops: " << computations / ((total_unpack_time + total_gemm_time) * 1e9);
   #endif  // BLITZ_PERFORMANCE
 }
 

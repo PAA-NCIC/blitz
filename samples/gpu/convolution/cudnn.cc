@@ -194,6 +194,7 @@ void convolution_backward(const string& kernel, size_t iter) {
       input_gpu.data()));
   }
   BLITZ_GPU_TIMER_END(elapsed_time_gpu, event_start, event_stop);
+  std::cout << (iter - 1) * 2 * filter_shape.size() * output_shape[0] * output_shape[2] * output_shape[3] << std::endl;
   BLITZ_GPU_TIMER_INFO((iter - 1) * 2 * filter_shape.size() * output_shape[0] * output_shape[2] * output_shape[3], elapsed_time_gpu);
 }
 
