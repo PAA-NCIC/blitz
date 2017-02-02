@@ -3,6 +3,7 @@ compiler:
   - g++
 cache:
   directories:
+  - ${HOME}/openblas
   - ${HOME}/glog
 sudo: false
 os:
@@ -11,12 +12,14 @@ addons:
   apt:
     packages:
     - libboost-all-dev
-    - libopenblas-dev
 before_script:
-  - export LD_LIBRARY_PATH=/usr/local/opt/openblas/library:$LD_LIBRARY_PATH
-  - export LIBRARY_PATH=/usr/local/opt/openblas/libray:$LIBRARY_PATH
-  - export CPLUS_INCLUDE_PATH=/opt/OpenBLAS/include:$CPLUS_INCLUDE_PATH
-  - cd third-party/glog
+  - cd third-party/openblas
+  - make install PREFIX=${HOME}/openblas -j4
+  - export LD_LIBRARY_PATH=${HOME}/openblas/lib:$LD_LIBRARY_PATH
+  - export LIBRARY_PATH=${HOME}/openblas/lib:$LIBRARY_PATH
+  - export C_INCLUDE_PATH=${HOME}/openblas/include:$C_INCLUDE_PATH
+  - export CPLUS_INCLUDE_PATH=${HOME}/openblas/include:$CPLUS_INCLUDE_PATH
+  - cd ../glog
   - ./configure --enable-shared --prefix=${HOME}/glog
   - touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
   - make install -j4

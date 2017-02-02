@@ -7,3 +7,6 @@
 [submodule "third-party/glog"]
 	path = third-party/glog
 	url = https://github.com/google/glog
+[submodule "third-party/openblas"]
+	path = third-party/openblas
+	url = https://github.com/xianyi/OpenBLAS
