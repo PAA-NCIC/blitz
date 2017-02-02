@@ -29,7 +29,7 @@ before_script:
   - export LD_LIBRARY_PATH=${HOME}/glog/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${HOME}/glog/lib:$LIBRARY_PATH
   - export CPLUS_INCLUDE_PATH=${HOME}/glog/include:$CPLUS_INCLUDE_PATH
-  - export OMP_NUM_THREADS=16
+  - export OMP_NUM_THREADS=4
   - make -j4
   - cd samples/cpu/convolution
   - make

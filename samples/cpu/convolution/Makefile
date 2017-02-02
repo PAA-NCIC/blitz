@@ -17,9 +17,6 @@ LIBS := $(DIR)/lib/libblitz.a
 #flags
 LDFLAGS := -Wl,--no-as-needed -lglog -lboost_thread -lboost_system
 CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx -g
-CXXFLAGS += -DBLITZ_RELEASE
-CXXFLAGS += -DBLITZ_NUM_THREADS=16
-CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=64
 
 #mkl for compare
 LDFLAGS += -lopenblas
