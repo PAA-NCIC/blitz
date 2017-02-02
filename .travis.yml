@@ -31,4 +31,4 @@ before_script:
   - export OMP_NUM_THREADS=16
   - make -j4
 script:
-  - ./scripts/tests/cpu.sh
+  - bash ./scripts/tests/cpu.sh
