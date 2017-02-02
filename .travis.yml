@@ -14,7 +14,7 @@ addons:
     - libboost-all-dev
 before_script:
   - cd third-party/openblas
-  - make -j4
+  - make USE_OPENMP=1 -j4 &> /dev/null
   - make install PREFIX=${HOME}/openblas 
   - export LD_LIBRARY_PATH=${HOME}/openblas/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${HOME}/openblas/lib:$LIBRARY_PATH
@@ -23,7 +23,8 @@ before_script:
   - cd ../glog
   - ./configure --enable-shared --prefix=${HOME}/glog
   - touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
-  - make install -j4
+  - make -j4 &> /dev/null
+  - make install
   - cd ../..
   - export LD_LIBRARY_PATH=${HOME}/glog/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${HOME}/glog/lib:$LIBRARY_PATH
