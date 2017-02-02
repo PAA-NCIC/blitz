@@ -30,5 +30,8 @@ before_script:
   - export CPLUS_INCLUDE_PATH=${HOME}/glog/include:$CPLUS_INCLUDE_PATH
   - export OMP_NUM_THREADS=16
   - make -j4
+  - cd samples/cpu/convolution
+  - make
+  - cd -
 script:
   - bash ./scripts/tests/cpu.sh
