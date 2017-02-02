@@ -1,4 +1,3 @@
-#include <iostream>
 #include "backends/backends.h"
 #include "utils/blitz_algorithm_function.h"
 #include "utils/blitz_shape_function.h"
@@ -17,7 +16,7 @@ Shape workspace_shape_cpu(1);
 void compare(float* algo1, float* algo2, size_t size) {
   for (size_t i = 0; i < size; ++i) {
     if (algo1[i] > algo2[i] + 1e-3 || algo1[i] < algo2[i] - 1e-3) {
-      std::cout << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i] << std::endl;
+      LOG(FATAL) << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i];
     }
   }
 }
@@ -194,16 +193,17 @@ void convolution_update(
       str_h, str_w,
       algorithm);
   }
-  //compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size());
+  compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size());
 }
 
 int main(int argc, char** argv) {
   const size_t NUM_ARGS = 18;
   // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w iter
   if (argc != NUM_ARGS + 1) {
-    std::cerr << "Not enough args!" << std::endl;
-    exit(1);
+    LOG(FATAL) << "Not matchable args!";
   }
+  FLAGS_logtostderr = true;
+  google::InitGoogleLogging(argv[0]);
   // get args
   const std::string phase = std::string(argv[1]); 
   const std::string kernel = std::string(argv[2]); 

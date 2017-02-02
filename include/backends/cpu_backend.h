@@ -6,6 +6,8 @@
 
 #include "backends/backend.h"
 #include "backends/cpu_tensor.h"
+#include "utils/blitz_cpu_function.h"
+#include "utils/blitz_cpu_avx.h"
 
 namespace blitz {
 

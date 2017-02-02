@@ -1,0 +1,18 @@
+language: c++
+compiler:
+        - g++
+os:
+        - linux
+addons:
+        apt:
+        packages:
+        - libboost-system-dev
+        - libboost-datetime-dev
+        - libboost-chrono-dev
+        - libboost-thread-dev
+        - libgoogle-glog-dev
+before_script:
+        - source ./scripts/env/set_env.sh
+        - make -j4
+script:
+        -./scripts/tests/cpu.sh

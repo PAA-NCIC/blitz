@@ -24,8 +24,6 @@ void UnpackStrideMultiPadImpl(
           filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
           for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
             DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-            #pragma simd vectorlength(4)
-            #pragma vector aligned
             for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
               unpack_slice_slice[filter_width_index] = 0;
             }
@@ -36,18 +34,14 @@ void UnpackStrideMultiPadImpl(
             const DType* input_slice_slice = input_slice + output_width_index * stride_width;
             DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
             int filter_width_index = 0; 
-            #pragma unroll
             for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
               unpack_slice_slice[filter_width_index] = 0;
             }
             size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
             size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
-            #pragma simd vectorlength(4)
-            #pragma vector aligned
             for (; filter_width_index < output_end; ++filter_width_index) {
               unpack_slice_slice[filter_width_index] = input_slice_slice[filter_width_index - padding_width];
             }
-            #pragma unroll
             for (; filter_width_index < padding_end; ++filter_width_index) {
               unpack_slice_slice[filter_width_index] = 0;
             }
@@ -80,8 +74,6 @@ void UnpackStrideMultiPadHWCImpl(
         filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
         for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
           DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-          #pragma simd
-          #pragma vector aligned
           for (size_t filter_width_index = 0; filter_width_index < filter_width * channel; ++filter_width_index) {
             unpack_slice_slice[filter_width_index] = 0;
           }
@@ -92,28 +84,19 @@ void UnpackStrideMultiPadHWCImpl(
           const DType* input_slice_slice = input_slice + output_width_index * stride_width * channel;
           DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
           int filter_width_index = 0; 
-          #pragma unroll
           for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
-            #pragma simd
-            #pragma vector aligned
             for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
               unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
             }
           }
           size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
           size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
-          #pragma unroll
           for (; filter_width_index < output_end; ++filter_width_index) {
-            #pragma simd
-            #pragma vector aligned
             for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
               unpack_slice_slice[filter_width_index * channel + channel_index] = input_slice_slice[(filter_width_index - padding_width) * channel + channel_index];
             }
           }
-          #pragma unroll
           for (; filter_width_index < padding_end; ++filter_width_index) {
-            #pragma simd
-            #pragma vector aligned
             for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
               unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
             }
@@ -145,8 +128,6 @@ void UnpackStrideMultiImpl(
         const DType* input_slice = input + channel_index * input_height * input_width + (output_height_index * stride_height + filter_height_index) * input_width;
         DType* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + channel_index * filter_height * filter_width + filter_height_index * filter_width;
         for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-          #pragma simd vectorlength(4)
-          #pragma vector aligned
           for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
             unpack_slice[filter_width_index] = input_slice[filter_width_index];
           }
@@ -180,8 +161,6 @@ void UnpackStrideMultiHWCImpl(
       for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
         const DType* input_slice_slice = input_slice + output_width_index * stride_width * channel;
         DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-        #pragma simd
-        #pragma vector aligned
         for (size_t filter_width_index = 0; filter_width_index < filter_width * channel; ++filter_width_index) {
           unpack_slice_slice[filter_width_index] = input_slice_slice[filter_width_index];
         }
@@ -221,8 +200,6 @@ void UnpackStrideOneImpl(
         for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
           unpack = unpack_slice + filter_width_index * output_height * output_width;
           input = input_slice + filter_width_index;
-          #pragma simd
-          #pragma vector aligned
           for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
             unpack[output_width_index] = input[output_width_index];
           }
@@ -265,8 +242,6 @@ void UnpackStrideOnePadImpl(
         if (filter_height_index + output_height_index < padding_height ||
           filter_height_index + output_height_index >= padding_height + input_height) {
           for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
-            #pragma simd
-            #pragma vector aligned
             for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
               unpack[output_width_index] = 0;
             }
@@ -275,18 +250,14 @@ void UnpackStrideOnePadImpl(
         } else {
           for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
             size_t output_width_index = 0;
-            #pragma unroll
             for (; filter_width_index + output_width_index < padding_width; ++output_width_index) {
               unpack[output_width_index] = 0;
             }
             const size_t output_end = std::min(padding_width + input_width - filter_width_index, output_width);
             const size_t padding_end = std::min(input_width + 2 * padding_width - filter_width_index, output_width);
-            #pragma simd
-            #pragma vector aligned
             for (; output_width_index < output_end; ++output_width_index) {
               unpack[output_width_index] = input[output_width_index - padding_width];
             }
-            #pragma unroll
             for (; output_width_index < padding_end; ++output_width_index) {
               unpack[output_width_index] = 0;
             }
