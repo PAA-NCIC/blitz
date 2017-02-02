@@ -13,6 +13,7 @@ do
 for((k=0;k<${#INPUT_LAYOUT[@]};k++))
 do
 for((v=0;v<${#OUTPUT_LAYOUT[@]};v++))
+do
 if ./samples/cpu/convolution/convolution ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]} 128 3 224 224 11 11 64 55 55 3 3 4 4 1
 then
 	echo "Alexnet first layer pass!"
@@ -52,7 +53,6 @@ else
 	echo "Alexnet fifth layer fail!"
 	exit 1
 fi
-do
 done
 done
 done
