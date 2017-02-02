@@ -24,17 +24,14 @@
 #include <boost/make_shared.hpp>
 #include <boost/pointer_cast.hpp>
 // timer
-#include <boost/chrono/chrono.hpp>
-#include <boost/chrono/time_point.hpp>
-#include <boost/chrono/system_clocks.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/local_time_adjustor.hpp>
 #include <boost/date_time/c_local_time_adjustor.hpp>
 // algorithm
 #include <boost/algorithm/string/trim.hpp>
 // random
-#include "boost/random.hpp"
-#include "boost/generator_iterator.hpp"
+#include <boost/random.hpp>
+#include <boost/generator_iterator.hpp>
 
 // disable copy & assign
 #define DISABLE_COPY_AND_ASSIGN(classname) \
@@ -92,9 +89,6 @@ using boost::shared_ptr;
 using boost::scoped_ptr;
 using boost::make_shared;
 using boost::static_pointer_cast;
-using boost::chrono::time_point;
-using boost::chrono::duration;
-using boost::chrono::system_clock;
 using boost::posix_time::ptime;
 using boost::posix_time::second_clock;
 using boost::posix_time::to_simple_string;

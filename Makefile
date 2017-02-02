@@ -95,6 +95,8 @@ ifeq ($(BLAS), mkl)
 	MKL_DIR ?= /opt/intel/mkl
 	BLAS_INCLUDE ?= $(MKL_DIR)/include
 	BLAS_LIB ?= $(MKL_DIR)/lib/intel64
+else ifeq ($(BLAS), openblas)
+	LDFLAGS += -lopenblas
 else ifeq ($(BLAS), atlas)
 	#ATLAS
 	LDFLAGS += -lcblas -latlas
