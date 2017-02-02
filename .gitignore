@@ -30,11 +30,8 @@
 # hdf5 files
 *.h5
 
-# tags
-*tags
-
 # log
-*log
+log*
 
 # backup files
 src/backup*
