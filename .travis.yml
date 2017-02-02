@@ -1,18 +1,26 @@
 language: c++
 compiler:
   - g++
-sudo: true
+cache:
+  directories:
+  - ${HOME}/glog
+sudo: false
 os:
   - linux
-before_install:
-  - sudo apt-get -y update
-  - sudo apt-get install -y libboost-system-dev
-  - sudo apt-get install -y libboost-date-time-dev
-  - sudo apt-get install -y libboost-chrono-dev
-  - sudo apt-get install -y libboost-thread-dev
-  - sudo apt-get install -y libgoogle-glog-dev
-  - sudo apt-get install -y libopenblas-dev
+addons:
+  apt:
+    packages:
+    - libboost-all-dev
+    - libopenblas-dev
+    - libgoogle-glog-dev
 before_script:
+  - cd third-party/glog
+  - ./configure --enable-shared --prefix=${HOME}/glog
+  - make -j4
+  - cd ../..
+  - export LD_LIBRARY_PATH=${HOME}/glog/lib:$LD_LIBRARY_PATH
+  - export LIBRARY_PATH=${HOME}/glog/lib:$LIBRARY_PATH
+  - export CPLUS_INCLUDE_PATH=${HOME}/glog/include:$CPLUS_INCLUDE_PATH
   - export OMP_NUM_THREADS=16
   - make -j4
 script:
