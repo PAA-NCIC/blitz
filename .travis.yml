@@ -1,18 +1,18 @@
 language: c++
 compiler:
-        - g++
+  - g++
 os:
-        - linux
+  - linux
 addons:
-        apt:
-        packages:
-        - libboost-system-dev
-        - libboost-date-time-dev
-        - libboost-chrono-dev
-        - libboost-thread-dev
-        - libgoogle-glog-dev
+  apt:
+    packages:
+    - libboost-system-dev
+    - libboost-date-time-dev
+    - libboost-chrono-dev
+    - libboost-thread-dev
+    - libgoogle-glog-dev
 before_script:
-        - export OMP_NUM_THREADS=16
-        - make -j4
+  - export OMP_NUM_THREADS=16
+  - make -j4
 script:
-        -./scripts/tests/cpu.sh
+  - ./scripts/tests/cpu.sh
