@@ -13,9 +13,9 @@ Shape output_shape(4);
 // cpu workspace
 Shape workspace_shape_cpu(1);
 
-void compare(float* algo1, float* algo2, size_t size) {
+void compare(float* algo1, float* algo2, size_t size, float precision = 1e-3) {
   for (size_t i = 0; i < size; ++i) {
-    if (algo1[i] > algo2[i] + 1e-3 || algo1[i] < algo2[i] - 1e-3) {
+    if (algo1[i] > algo2[i] + precision || algo1[i] < algo2[i] - precision) {
       LOG(FATAL) << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i];
     }
   }
@@ -193,7 +193,7 @@ void convolution_update(
       str_h, str_w,
       algorithm);
   }
-  compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size());
+  compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size(), 1e-1);
 }
 
 int main(int argc, char** argv) {
