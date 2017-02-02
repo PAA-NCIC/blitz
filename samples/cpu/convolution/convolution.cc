@@ -193,7 +193,7 @@ void convolution_update(
       str_h, str_w,
       algorithm);
   }
-  compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size(), 1e-1);
+  compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size(), 1);
 }
 
 int main(int argc, char** argv) {
