@@ -12,7 +12,6 @@ addons:
     packages:
     - libboost-all-dev
     - libopenblas-dev
-    - libgoogle-glog-dev
 before_script:
   - cd third-party/glog
   - ./configure --enable-shared --prefix=${HOME}/glog
