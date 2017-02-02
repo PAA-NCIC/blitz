@@ -1,3 +1,4 @@
+#include <omp.h>
 #include "backends/backends.h"
 #include "utils/blitz_algorithm_function.h"
 #include "utils/blitz_shape_function.h"
@@ -87,7 +88,7 @@ void convolution_forward(
   CPUTensor<float> output_cpu(output_shape);
   CPUTensor<float> output_cpu_algorithm(output_shape);
   CPUTensor<float> workspace_cpu(workspace_shape_cpu);
-  size_t workspace_size = workspace_shape_cpu.size() * BLITZ_NUM_THREADS;
+  size_t workspace_size = workspace_shape_cpu.size() * omp_get_num_threads();
   Shape workspace_shape_algorithm(1);
   workspace_shape_algorithm[0] = workspace_size;
   CPUTensor<float> workspace_cpu_algorithm(workspace_shape_algorithm);
@@ -127,7 +128,7 @@ void convolution_backward(
   CPUTensor<float> filter_cpu(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   CPUTensor<float> workspace_cpu(workspace_shape_cpu);
-  size_t workspace_size = workspace_shape_cpu.size() * BLITZ_NUM_THREADS;
+  size_t workspace_size = workspace_shape_cpu.size() * omp_get_num_threads();
   Shape workspace_shape_algorithm(1);
   workspace_shape_algorithm[0] = workspace_size;
   CPUTensor<float> workspace_cpu_algorithm(workspace_shape_algorithm);
@@ -167,7 +168,7 @@ void convolution_update(
   CPUTensor<float> filter_cpu_algorithm(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   CPUTensor<float> workspace_cpu(workspace_shape_cpu);
-  size_t workspace_size = workspace_shape_cpu.size() * BLITZ_NUM_THREADS;
+  size_t workspace_size = workspace_shape_cpu.size() * omp_get_num_threads();
   Shape workspace_shape_algorithm(1);
   workspace_shape_algorithm[0] = workspace_size;
   CPUTensor<float> workspace_cpu_algorithm(workspace_shape_algorithm);
