@@ -14,7 +14,8 @@ addons:
     - libboost-all-dev
 before_script:
   - cd third-party/openblas
-  - make install PREFIX=${HOME}/openblas -j4
+  - make -j4
+  - make install PREFIX=${HOME}/openblas 
   - export LD_LIBRARY_PATH=${HOME}/openblas/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${HOME}/openblas/lib:$LIBRARY_PATH
   - export C_INCLUDE_PATH=${HOME}/openblas/include:$C_INCLUDE_PATH
