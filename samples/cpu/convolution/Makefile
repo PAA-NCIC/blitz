@@ -7,13 +7,6 @@ CC := g++
 
 bins: $(BINS)
 
-#dirs
-PREFIX ?= /home/zkr/github/blitz
-INC := -I$(PREFIX)/include
-
-#LIBS
-LIB := -L$(PREFIX)/lib
-
 #flags
 LDFLAGS := -Wl,--no-as-needed $(LIB) -lblitz
 CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx
