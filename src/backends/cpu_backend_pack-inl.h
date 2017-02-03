@@ -2,7 +2,7 @@
 #define SRC_BACKENDS_CPU_BACKEND_PACK_INL_H_
 
 template<typename DType>
-void UnpackStrideMultiPadImpl(
+void Backend<CPUTensor, DType>::UnpackStrideMultiPadCHWImpl(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -33,7 +33,7 @@ void UnpackStrideMultiPadImpl(
           for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
             const DType* input_slice_slice = input_slice + output_width_index * stride_width;
             DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-            int filter_width_index = 0; 
+            size_t filter_width_index = 0; 
             for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
               unpack_slice_slice[filter_width_index] = 0;
             }
@@ -53,7 +53,7 @@ void UnpackStrideMultiPadImpl(
 }
 
 template<typename DType>
-void UnpackStrideMultiPadHWCImpl(
+void Backend<CPUTensor, DType>::UnpackStrideMultiPadHWCImpl(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -83,7 +83,7 @@ void UnpackStrideMultiPadHWCImpl(
         for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
           const DType* input_slice_slice = input_slice + output_width_index * stride_width * channel;
           DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-          int filter_width_index = 0; 
+          size_t filter_width_index = 0; 
           for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
             for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
               unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
@@ -108,7 +108,7 @@ void UnpackStrideMultiPadHWCImpl(
 }
 
 template<typename DType>
-void UnpackStrideMultiImpl(
+void Backend<CPUTensor, DType>::UnpackStrideMultiCHWImpl(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -140,7 +140,7 @@ void UnpackStrideMultiImpl(
 }
 
 template<typename DType>
-void UnpackStrideMultiHWCImpl(
+void Backend<CPUTensor, DType>::UnpackStrideMultiHWCImpl(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -170,7 +170,7 @@ void UnpackStrideMultiHWCImpl(
 }
 
 template<typename DType>
-void UnpackStrideOneImpl(
+void Backend<CPUTensor, DType>::UnpackStrideOneCHWImpl(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -214,7 +214,7 @@ void UnpackStrideOneImpl(
 }
 
 template<typename DType>
-void UnpackStrideOnePadImpl(
+void Backend<CPUTensor, DType>::UnpackStrideOnePadCHWImpl(
   const DType* input,
   DType* unpack,
   size_t channel,
@@ -303,12 +303,12 @@ BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Unpack2DFunc(
   } else if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (str_h == 1 && str_w == 1) {
       if (pad_h == 0 && pad_w == 0) {
-        UnpackStrideOneImpl(
+        UnpackStrideOneCHWImpl(
           input, unpack,
           C, H, W, R, S, P, Q,
           pad_h, pad_w, str_h, str_w);
       } else {
-        UnpackStrideOnePadImpl(
+        UnpackStrideOnePadCHWImpl(
           input, unpack,
           C, H, W, R, S, P, Q,
           pad_h, pad_w, str_h, str_w);
@@ -316,12 +316,12 @@ BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Unpack2DFunc(
       return BLITZ_PACK_CRSPQ;
     } else {
       if (pad_h == 0 && pad_w == 0) {
-        UnpackStrideMultiImpl(
+        UnpackStrideMultiCHWImpl(
           input, unpack,
           C, H, W, R, S, P, Q,
           pad_h, pad_w, str_h, str_w);
       } else {
-        UnpackStrideMultiPadImpl(
+        UnpackStrideMultiPadCHWImpl(
           input, unpack,
           C, H, W, R, S, P, Q,
           pad_h, pad_w, str_h, str_w);

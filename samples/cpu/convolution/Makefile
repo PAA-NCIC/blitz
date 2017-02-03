@@ -11,12 +11,6 @@ bins: $(BINS)
 LDFLAGS := -Wl,--no-as-needed -lglog -lblitz
 CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx
 
-#mkl for compare
-BLAS ?= openblas
-ifeq ($(BLAS), mkl)
-	CXXFLAGS += -DUSE_MKL
-endif
-
 $(BINS): % : %.cc
 	$(CC) $(CXXFLAGS) $(INC) -o $@ $^ $(LDFLAGS) 
 

@@ -1,7 +1,5 @@
 #include <omp.h>
-#include "backends/backends.h"
-#include "utils/blitz_algorithm_function.h"
-#include "utils/blitz_shape_function.h"
+#include <blitz.h>
 
 using namespace blitz;
 

@@ -187,8 +187,7 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
   bool hwc = false;
   bool transform = false;
 
-  if (data_layout == BLITZ_PACK_CRSPQ) {
-  } else if (data_layout == BLITZ_PACK_PQRSC) {
+  if (data_layout == BLITZ_PACK_PQRSC) {
     transform = true;
     hwc = true;
   } else if (data_layout == BLITZ_PACK_PQCRS) {

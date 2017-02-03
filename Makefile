@@ -35,7 +35,7 @@ ifeq ($(BLITZ_ICC), icc)
 else
 	OPENMP_OPTIONS := -fopenmp
 endif
-CXXFLAGS := -Wall -Wno-unused-parameter -Wunknown-pragmas -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
+CXXFLAGS := -Wall -Wno-unused-parameter -Wunknown-pragmas -Wunused-but-set-variable -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
 
 #dynamic libraries

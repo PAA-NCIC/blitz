@@ -15,7 +15,7 @@
 #endif
 
 #include <cmath>
-#include "utils/common.h"
+#include <cstddef>
 
 #define BLITZ_CPU_TIMER_START(elapsed_time, t1) \
   do { \

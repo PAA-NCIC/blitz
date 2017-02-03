@@ -243,6 +243,96 @@ class Backend<CPUTensor, DType> {
     BLITZ_DATA_LAYOUT unpack_data_layout,
     BLITZ_DATA_LAYOUT output_data_layout,
     BLITZ_DATA_LAYOUT filter_data_layout);
+
+  static void UnpackStrideOneCHWImpl(
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+
+  static void UnpackStrideOnePadCHWImpl(
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+
+  static void UnpackStrideMultiCHWImpl(
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+
+  static void UnpackStrideMultiPadCHWImpl(
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+
+  static void UnpackStrideMultiHWCImpl(
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+
+  static void UnpackStrideMultiPadHWCImpl(
+    const DType* input,
+    DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
 };
 
 }  // namespace blitz
