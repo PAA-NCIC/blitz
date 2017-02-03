@@ -7,17 +7,6 @@
 #include "initializer/parser.h"
 #include "utils/common.h"
 
-void InitThreads() {
-#ifdef BLITZ_NUM_THREADS
-  omp_set_num_threads(BLITZ_NUM_THREADS);
-  LOG(INFO) << "Number of threads: " << BLITZ_NUM_THREADS;
-#else
-  omp_set_num_threads(1);
-  LOG(INFO) << "Number of threads: 1";
-#endif
-  // mkl_domain_set_num_threads(1, MKL_DOMAIN_BLAS);
-}
-
 void InitGlog(char** argv) {
   FLAGS_logtostderr = true;
   google::InitGoogleLogging(argv[0]);
@@ -26,8 +15,6 @@ void InitGlog(char** argv) {
 int main(int argc, char** argv) {
   // glog init
   InitGlog(argv);
-  // thread init
-  InitThreads();
 
   if (argc != 2) {
     LOG(INFO) << "blitz <model_path>";

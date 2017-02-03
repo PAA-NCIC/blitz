@@ -1,5 +1,7 @@
 #!/bin/bash
 #phase N C H W R S K P Q pad_h pad_w str_h str_w iterations
+LIB=`pwd`/lib
+export LD_LIBRARY_PATH=$LIB:$LD_LIBRARY_PATH
 
 PHASE=(forward backward update)
 ALG=(convolution_blas_gemm convolution_blas_gemm_batch)

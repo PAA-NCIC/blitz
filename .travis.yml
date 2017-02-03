@@ -29,10 +29,10 @@ before_script:
   - export LD_LIBRARY_PATH=${HOME}/glog/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${HOME}/glog/lib:$LIBRARY_PATH
   - export CPLUS_INCLUDE_PATH=${HOME}/glog/include:$CPLUS_INCLUDE_PATH
-  - export OMP_NUM_THREADS=4
   - make -j4
+  - export BLITZ_PREFIX=`pwd`
   - cd samples/cpu/convolution
-  - make
+  - make PREFIX=${BLITZ_PREFIX} -j4
   - cd -
 script:
   - bash ./scripts/tests/cpu.sh

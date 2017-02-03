@@ -14,8 +14,8 @@ BUILD_DIR := build
 SRC_ROOT := src
 LIB_DIR := lib
 
-#libs
-LIBS := $(LIB_DIR)/libblitz.a
+#lib
+LIB := $(LIB_DIR)/libblitz.so
 
 #compilers
 OPTIMIZE_OPTIONS := -O3
@@ -38,7 +38,7 @@ endif
 CXXFLAGS := -g -Wall -Wno-unused-parameter -Wunknown-pragmas -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
 
-#libraries
+#dynamic libraries
 ifeq ($(BLITZ_LIB_ONLY), 1)
 	LDFLAGS := -Wl,--no-as-needed -lglog -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
 else
@@ -53,11 +53,12 @@ ifeq ($(BLITZ_USE_GPU), 1)
 	CXXFLAGS += -DBLITZ_USE_GPU
 endif
 
+#only use static libray for libxsmm
 ifeq ($(BLITZ_USE_MIC), 1)
 	XSMM_LIB := ./third-party/libxsmm
-	INC += -I$(XSMM_LIB)/include
 	CXXFLAGS += -DBLITZ_USE_MIC
 	LDFLAGS += -lxsmm
+	INC += -I$(XSMM_LIB)/include
 	LIBRARY_DIR += -L$(XSMM_LIB)
 endif
 
@@ -71,7 +72,7 @@ ifeq ($(BLITZ_USE_GPU), 1)
 	LDFLAGS += -lcudart -lcuda -lcublas -lcudnn -lcurand
 endif
 
-#blitz
+#blitz different modes
 ifeq ($(BLITZ_MODE), release)
 	CXXFLAGS += -DBLITZ_RELEASE
 	NVCC_XCOMPILE += -DBLITZ_RELEASE
@@ -86,27 +87,20 @@ endif
 CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=$(BLITZ_ALIGNMENT_SIZE)
 
 #blas
-BLAS ?= atlas
 ifeq ($(BLAS), mkl)
 	#MKL
 	LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
 	CXXFLAGS += -DUSE_MKL
-	MKL_DIR ?= /opt/intel/mkl
-	BLAS_INCLUDE ?= $(MKL_DIR)/include
-	BLAS_LIB ?= $(MKL_DIR)/lib/intel64
+	MKL_DIR := /opt/intel/mkl
+	BLAS_INCLUDE := $(MKL_DIR)/include
+	BLAS_LIB := $(MKL_DIR)/lib/intel64
+	INC += -I$(BLAS_INCLUDE)
+	LIBRARY_DIR += -L$(BLAS_LIB)
 else ifeq ($(BLAS), openblas)
 	LDFLAGS += -lopenblas
 else ifeq ($(BLAS), atlas)
 	#ATLAS
 	LDFLAGS += -lcblas -latlas
-endif
-
-ifdef BLAS_INCLUDE
-	INC += -I$(BLAS_INCLUDE)
-endif
-
-ifdef BLAS_LIB
-	LIBRARY_DIR += -L$(BLAS_LIB)
 endif
 
 #variables
@@ -138,7 +132,6 @@ ifeq ($(BLITZ_USE_GPU), 1)
 	AUTODEPS:= $(AUTODEPS) $(patsubst %.o, %.d, $(NVCC_OBJECTS))
 endif
 
-#rules
 #dirs
 ifeq ($(BLITZ_USE_GPU), 1)
 	ALL_OBJECTS_DIR := $(sort $(OBJECTS_DIR) $(NVCC_OBJECTS_DIR))
@@ -146,15 +139,14 @@ else
 	ALL_OBJECTS_DIR := $(OBJECTS_DIR)
 endif
 
+#rules
 #mkdir first
 ifeq ($(BLITZ_LIB_ONLY), 0)
 all: dirs bins objects libs
 
-ALL_BINS_DIR := $(BIN_DIR)
+dirs: $(BIN_DIR) $(ALL_OBJECTS_DIR) $(LIB_DIR)
 
-dirs: $(ALL_BINS_DIR) $(ALL_OBJECTS_DIR) $(LIB_DIR)
-
-$(ALL_BINS_DIR):
+$(BIN_DIR):
 	mkdir -p $@
 
 bins: $(BINS)
@@ -170,25 +162,23 @@ $(ALL_OBJECTS_DIR):
 $(LIB_DIR):
 	mkdir -p $@
 
-libs: $(LIBS)
+libs: $(LIB)
 
 ifeq ($(BLITZ_LIB_ONLY), 0)
-$(BINS): $(BIN_DIR)/% : $(LIBS) $(SRC_ROOT)/%.cc 
-	$(BLITZ_CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $^ $(LIBS) $(LDFLAGS) -o $@
+$(BINS): $(BIN_DIR)/% : $(LIB) $(SRC_ROOT)/%.cc 
+	$(BLITZ_CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $^ $(LIB) -o $@
 endif
 
 ifeq ($(BLITZ_USE_GPU), 1)
-  $(LIBS): $(OBJECTS) $(NVCC_OBJECTS)
-	ar rcs $@ $^
-else
-  $(LIBS): $(OBJECTS)
-	ar rcs $@ $^
-endif
+$(LIB): $(OBJECTS) $(NVCC_OBJECTS)
+	$(BLITZ_CC) -shared $(LDFLAGS) $^ -o $@ 
 
-ifeq ($(BLITZ_USE_GPU), 1)
-  objects: $(OBJECTS) $(NVCC_OBJECTS)
+objects: $(OBJECTS) $(NVCC_OBJECTS)
 else
-  objects: $(OBJECTS)
+$(LIB): $(OBJECTS)
+	$(BLITZ_CC) -shared $(LDFLAGS) $^ -o $@
+
+objects: $(OBJECTS)
 endif
 
 $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 

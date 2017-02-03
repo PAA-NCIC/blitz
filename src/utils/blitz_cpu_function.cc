@@ -1,5 +1,4 @@
 #include "utils/blitz_cpu_function.h"
-#include "utils/common.h"
 
 namespace blitz {
 

@@ -1,5 +1,6 @@
 #include "layers/conv.h"
 
+#include <omp.h>
 #include "backends/backends.h"
 #ifdef BLITZ_USE_GPU
 #include "utils/blitz_gpu_function.h"
@@ -61,9 +62,9 @@ void Conv<TensorType, DType>::InitImpl(const Shape& input_shape) {
       filter_height * filter_width * output_height * output_width;
   } else if (this->algorithm_ == BLITZ_CONVOLUTION_BLAS_GEMM_BATCH ||
     this->algorithm_ == BLITZ_CONVOLUTION_XSMM_DIRECT) {  //xsmm kernel fallback to blas_batch in backward phase
-    size_t workspace_unpack_size = BLITZ_NUM_THREADS * input_channel *
+    size_t workspace_unpack_size = omp_get_max_threads() * input_channel *
       filter_height * filter_width * output_height * output_width;
-    size_t workspace_update_size = BLITZ_NUM_THREADS * output_channel *
+    size_t workspace_update_size = omp_get_max_threads() * output_channel *
       input_channel * filter_height * filter_width;
     workspace_shape[0] = workspace_unpack_size + workspace_update_size;
   } else if (this->algorithm_ == BLITZ_CONVOLUTION_SASS_DIRECT) {

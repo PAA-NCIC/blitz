@@ -8,26 +8,23 @@ CC := g++
 bins: $(BINS)
 
 #dirs
-DIR := ../../..
-INC := -I$(DIR)/include
+PREFIX ?= /home/zkr/github/blitz
+INC := -I$(PREFIX)/include
 
 #LIBS
-LIBS := $(DIR)/lib/libblitz.a
+LIB := -L$(PREFIX)/lib
 
 #flags
-LDFLAGS := -Wl,--no-as-needed -lglog -lboost_thread -lboost_system
+LDFLAGS := -Wl,--no-as-needed $(LIB) -lblitz
 CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx
 
 #mkl for compare
 BLAS ?= openblas
 ifeq ($(BLAS), mkl)
-	LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
 	CXXFLAGS += -DUSE_MKL
-else
-	LDFLAGS += -l$(BLAS)
 endif
 
-$(BINS): % : %.cc $(OBJECTS) $(LIBS)
+$(BINS): % : %.cc $(OBJECTS)
 	$(CC) $(CXXFLAGS) $(INC) $(LDFLAGS) -o $@ $^
 
 clean:
