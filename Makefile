@@ -40,9 +40,9 @@ INC := -Iinclude/
 
 #dynamic libraries
 ifeq ($(BLITZ_LIB_ONLY), 1)
-	LDFLAGS := -Wl,--no-as-needed -lglog -lboost_thread -lboost_date_time -lboost_system
+	LDFLAGS := -Wl,--start-group -lglog -lboost_thread -lboost_date_time -lboost_system -Wl,--end-group
 else
-	LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_thread -lboost_date_time -lboost_system
+	LDFLAGS := -Wl,--start-group -lyaml-cpp -lhdf5 -lglog -lboost_thread -lboost_date_time -lboost_system -Wl,--end-group
 endif
 
 ifeq ($(BLITZ_USE_GPU), 1)
