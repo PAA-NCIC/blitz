@@ -24,8 +24,8 @@ ifeq ($(BLAS), mkl)
 	CXXFLAGS += -DUSE_MKL
 endif
 
-$(BINS): % : %.cc $(OBJECTS)
-	$(CC) $(CXXFLAGS) $(INC) $(LDFLAGS) -o $@ $^
+$(BINS): % : %.cc
+	$(CC) $(CXXFLAGS) $(INC) -o $@ $^ $(LDFLAGS) 
 
 clean:
 	-rm -rf $(BINS)

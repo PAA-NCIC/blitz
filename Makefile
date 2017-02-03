@@ -182,7 +182,7 @@ objects: $(OBJECTS)
 endif
 
 $(OBJECTS): $(BUILD_DIR)/%.o : $(SRC_ROOT)/%.cc $(BUILD_DIR)/%.d 
-	$(BLITZ_CC) $(DEPFLAGS) $(CXXFLAGS) $(INC) -o $@ -c $<
+	$(BLITZ_CC) $(CXXFLAGS) $(INC) -o $@ -c $< $(DEPFLAGS)
 	$(POSTCOMPILE)
 
 ifeq ($(BLITZ_USE_GPU), 1)
