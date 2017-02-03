@@ -29,13 +29,14 @@ before_script:
   - export LIBRARY_PATH=${HOME}/glog/lib:$LIBRARY_PATH
   - export CPLUS_INCLUDE_PATH=${HOME}/glog/include:$CPLUS_INCLUDE_PATH
   - cd ../..
-  - make -j4
+  - make
+  - ldd lib/libblitz.so
   - export BLITZ_PREFIX=`pwd`
   - export LD_LIBRARY_PATH=${BLITZ_PREFIX}/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=${BLITZ_PREFIX}/lib:$LIBRARY_PATH
   - export CPLUS_INCLUDE_PATH=${BLITZ_PREFIX}/include:$CPLUS_INCLUDE_PATH
   - cd samples/cpu/convolution
-  - make -j4
+  - make
   - cd -
 script:
   - bash ./scripts/tests/cpu.sh
