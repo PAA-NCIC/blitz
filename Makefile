@@ -40,9 +40,9 @@ INC := -Iinclude/
 
 #dynamic libraries
 ifeq ($(BLITZ_LIB_ONLY), 1)
-	LDFLAGS := -Wl,--start-group -lglog -lboost_thread -lboost_date_time -lboost_system -Wl,--end-group
+	LDFLAGS := -Wl,--no-as-needed -lglog -lboost_thread -lboost_date_time -lboost_system
 else
-	LDFLAGS := -Wl,--start-group -lyaml-cpp -lhdf5 -lglog -lboost_thread -lboost_date_time -lboost_system -Wl,--end-group
+	LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_thread -lboost_date_time -lboost_system
 endif
 
 ifeq ($(BLITZ_USE_GPU), 1)
@@ -166,17 +166,17 @@ libs: $(LIB)
 
 ifeq ($(BLITZ_LIB_ONLY), 0)
 $(BINS): $(BIN_DIR)/% : $(LIB) $(SRC_ROOT)/%.cc 
-	$(BLITZ_CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $^ $(LIB) -o $@
+	$(BLITZ_CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $^ -o $@ $(LIB) 
 endif
 
 ifeq ($(BLITZ_USE_GPU), 1)
 $(LIB): $(OBJECTS) $(NVCC_OBJECTS)
-	$(BLITZ_CC) -shared $(LDFLAGS) $^ -o $@ 
+	$(BLITZ_CC) -shared $^ -o $@ $(LDFLAGS) 
 
 objects: $(OBJECTS) $(NVCC_OBJECTS)
 else
 $(LIB): $(OBJECTS)
-	$(BLITZ_CC) -shared $(LDFLAGS) $^ -o $@
+	$(BLITZ_CC) -shared $^ -o $@ $(LDFLAGS) 
 
 objects: $(OBJECTS)
 endif
