@@ -37,5 +37,7 @@ before_script:
   - cd samples/cpu/convolution
   - make
   - cd -
+  - export OMP_NUM_THREADS=4
+  - export OMP_DYNAMIC="FALSE" 
 script:
   - bash ./scripts/tests/cpu.sh
