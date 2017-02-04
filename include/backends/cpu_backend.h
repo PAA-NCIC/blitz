@@ -244,7 +244,7 @@ class Backend<CPUTensor, DType> {
     BLITZ_DATA_LAYOUT output_data_layout,
     BLITZ_DATA_LAYOUT filter_data_layout);
 
-  static void UnpackStrideOneCHWImpl(
+  static void UnpackCHWImpl(
     const DType* input,
     DType* unpack,
     size_t channel,
@@ -259,67 +259,7 @@ class Backend<CPUTensor, DType> {
     size_t stride_height,
     size_t stride_width);
 
-  static void UnpackStrideOnePadCHWImpl(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void UnpackStrideMultiCHWImpl(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void UnpackStrideMultiPadCHWImpl(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void UnpackStrideMultiHWCImpl(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void UnpackStrideMultiPadHWCImpl(
+  static void UnpackHWCImpl(
     const DType* input,
     DType* unpack,
     size_t channel,

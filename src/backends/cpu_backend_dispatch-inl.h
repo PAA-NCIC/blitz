@@ -10,46 +10,23 @@ void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
   BLITZ_DATA_LAYOUT unpack_data_layout,
   BLITZ_DATA_LAYOUT output_data_layout,
   BLITZ_DATA_LAYOUT filter_data_layout) {
-  if (unpack_data_layout == BLITZ_PACK_PQCRS || unpack_data_layout == BLITZ_PACK_PQRSC) {
-    if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(filter,
-        unpack,
-        output,
-        false, true,
-        static_cast<DType>(1), static_cast<DType>(0),
-        K, PQ, CRS);
-    } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(unpack,
-        filter,
-        output,
-        false, true,
-        static_cast<DType>(1), static_cast<DType>(0),
-        PQ, K, CRS);
-    } else {
-      LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-        " and " << output_data_layout;
-    }
-  } else if (unpack_data_layout == BLITZ_PACK_CRSPQ || unpack_data_layout == BLITZ_PACK_RSCPQ) {
-    if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(filter,
-        unpack,
-        output,
-        false, false,
-        static_cast<DType>(1), static_cast<DType>(0),
-        K, PQ, CRS);
-    } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(unpack,
-        filter,
-        output,
-        true, true,
-        static_cast<DType>(1), static_cast<DType>(0),
-        PQ, K, CRS);
-    } else {
-      LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-        " and " << output_data_layout;
-    }
+  if (output_data_layout == BLITZ_BUFFER_NCHW) {
+    BlitzCPUGemm(filter,
+      unpack,
+      output,
+      false, true,
+      static_cast<DType>(1), static_cast<DType>(0),
+      K, PQ, CRS);
+  } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
+    BlitzCPUGemm(unpack,
+      filter,
+      output,
+      false, true,
+      static_cast<DType>(1), static_cast<DType>(0),
+      PQ, K, CRS);
   } else {
-    LOG(FATAL) << "Unsupported layout type: " << unpack_data_layout;
+    LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
+      " and " << output_data_layout;
   }
 }
 
@@ -62,46 +39,23 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateGEMMDispatch(
   BLITZ_DATA_LAYOUT unpack_data_layout,
   BLITZ_DATA_LAYOUT output_data_layout,
   BLITZ_DATA_LAYOUT update_data_layout) {
-  if (unpack_data_layout == BLITZ_PACK_PQCRS || unpack_data_layout == BLITZ_PACK_PQRSC) {
-    if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(output,
-        unpack,
-        update,
-        false, false,
-        static_cast<DType>(1), static_cast<DType>(1),
-        K, CRS, PQ);
-    } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(output,
-        unpack,
-        update,
-        true, false,
-        static_cast<DType>(1), static_cast<DType>(1),
-        K, CRS, PQ);
-    } else {
-      LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-        " and " << output_data_layout;
-    }
-  } else if (unpack_data_layout == BLITZ_PACK_CRSPQ || unpack_data_layout == BLITZ_PACK_RSCPQ) {
-    if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(output,
-        unpack,
-        update,
-        false, true,
-        static_cast<DType>(1), static_cast<DType>(1),
-        K, CRS, PQ);
-    } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(output,
-        unpack,
-        update,
-        true, true,
-        static_cast<DType>(1), static_cast<DType>(1),
-        K, CRS, PQ);
-    } else {
-      LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
-        " and " << output_data_layout;
-    }
+  if (output_data_layout == BLITZ_BUFFER_NCHW) {
+    BlitzCPUGemm(output,
+      unpack,
+      update,
+      false, false,
+      static_cast<DType>(1), static_cast<DType>(1),
+      K, CRS, PQ);
+  } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
+    BlitzCPUGemm(output,
+      unpack,
+      update,
+      true, false,
+      static_cast<DType>(1), static_cast<DType>(1),
+      K, CRS, PQ);
   } else {
-    LOG(FATAL) << "Unsupported layout type: " << unpack_data_layout;
+    LOG(FATAL) << "Unsupported layout combination: " << unpack_data_layout <<
+      " and " << output_data_layout;
   }
 }
 
