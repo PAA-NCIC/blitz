@@ -30,11 +30,7 @@ else
 	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx
 endif
 
-ifeq ($(BLITZ_ICC), icc)
-	OPENMP_OPTIONS := -qopenmp
-else
-	OPENMP_OPTIONS := -fopenmp
-endif
+OPENMP_OPTIONS := -fopenmp
 CXXFLAGS := -Wall -Wno-unused-parameter -Wunknown-pragmas -Wunused-but-set-variable -fPIC $(OPENMP_OPTIONS) $(OPTIMIZE_OPTIONS) 
 INC := -Iinclude/
 

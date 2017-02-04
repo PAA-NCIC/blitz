@@ -16,7 +16,7 @@ void MaxPoolingForwardNCHWImpl(
   const size_t CHW = C * HW;
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
-  #pragma omp parallel for
+  #pragma omp parallel for collapse(2)
   for (size_t n = 0; n < N; ++n) {
     for (size_t c = 0; c < C; ++c) {
       const DType* input_slice = I + n * CHW + c * HW;
@@ -57,7 +57,7 @@ void MaxPoolingForwardNHWCImpl(
   size_t str_h, size_t str_w) {
   const size_t HWC = H * W * C;
   const size_t PQK = P * Q * K;
-  #pragma omp parallel for
+  #pragma omp parallel for collapse(2)
   for (size_t n = 0; n < N; ++n) {
     const DType* input_slice = I + n * HWC;
     DType* output_slice = O + n * PQK;
@@ -149,7 +149,7 @@ void MaxPoolingBackwardNCHWImpl(
   const size_t CHW = C * HW;
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
-  #pragma omp parallel for
+  #pragma omp parallel for collapse(2)
   for (size_t n = 0; n < N; ++n) {
     for (size_t c = 0; c < C; ++c) {
       DType* input_slice = I + n * CHW + c * HW;
@@ -174,7 +174,7 @@ void MaxPoolingBackwardNHWCImpl(
   size_t K, size_t P, size_t Q) {
   const size_t CHW = C * H * W;
   const size_t KPQ = K * P * Q;
-  #pragma omp parallel for
+  #pragma omp parallel for collapse(2)
   for (size_t n = 0; n < N; ++n) {
     DType* input_slice = I + n * CHW;
     const DType* output_slice = O + n * KPQ;

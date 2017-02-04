@@ -2,6 +2,95 @@
 #define SRC_BACKENDS_CPU_BACKEND_POOL_INL_H_
 
 template<typename DType>
+void Backend<CPUTensor, DType>::MaxPoolingForwardNCHWImpl(
+  const DType* I,
+  DType* O,
+  size_t* max_index,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t K, size_t P, size_t Q,
+  size_t R, size_t S,
+  size_t str_h, size_t str_w) {
+  // offset
+  const size_t HW = H * W;
+  const size_t CHW = C * HW;
+  const size_t PQ = P * Q;
+  const size_t KPQ = K * PQ;
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t c = 0; c < C; ++c) {
+      const DType* input_slice = I + n * CHW + c * HW;
+      DType* output_slice = O + n * KPQ + c * PQ;
+      size_t* max_index_slice = max_index + n * KPQ + c * PQ;
+      for (size_t oh = 0; oh < P; ++oh) {
+        for (size_t ow = 0; ow < Q; ++ow) {
+          size_t hs = oh * str_h;
+          size_t ws = ow * str_w;
+          size_t he = hs + R;
+          size_t we = ws + S;
+          size_t pool_index = oh * Q + ow;
+          max_index_slice[pool_index] = hs * W + ws;
+          for (size_t h = hs; h < he; ++h) {
+            for (size_t w = ws; w < we; ++w) {
+              size_t index = h * W + w;
+              if (input_slice[index] > input_slice[max_index_slice[pool_index]]) {
+                max_index_slice[pool_index] = index;
+              }
+            }
+          }
+          output_slice[pool_index] = input_slice[max_index_slice[pool_index]];
+        }
+      }
+    }
+  }
+}
+
+template<typename DType>
+void Backend<CPUTensor, DType>::MaxPoolingForwardNHWCImpl(
+  const DType* I,
+  DType* O,
+  size_t* max_index,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t K, size_t P, size_t Q,
+  size_t R, size_t S,
+  size_t str_h, size_t str_w) {
+  const size_t HWC = H * W * C;
+  const size_t PQK = P * Q * K;
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    const DType* input_slice = I + n * HWC;
+    DType* output_slice = O + n * PQK;
+    size_t* max_index_slice = max_index + n * PQK;
+    for (size_t oh = 0; oh < P; ++oh) {
+      for (size_t ow = 0; ow < Q; ++ow) {
+        const size_t hs = oh * str_h;
+        const size_t ws = ow * str_w;
+        const size_t he = hs + R;
+        const size_t we = ws + S;
+        const size_t pool_index = (oh * Q + ow) * C;
+        for (size_t c = 0; c < C; ++c) {
+          max_index_slice[pool_index + c] = (hs * W + ws) * C + c;
+        }
+        for (size_t h = hs; h < he; ++h) {
+          for (size_t w = ws; w < we; ++w) {
+            for (size_t c = 0; c < C; ++c) {
+              size_t index = (h * W + w) * C + c;
+              if (input_slice[index] > input_slice[max_index_slice[pool_index + c]]) {
+                max_index_slice[pool_index + c] = index;
+              }
+            }
+          }
+        }
+        for (size_t c = 0; c < C; ++c) {
+          output_slice[pool_index + c] = input_slice[max_index_slice[pool_index + c]];
+        }
+      }
+    }
+  }
+}
+
+template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   const CPUTensor<DType>* input,
   CPUTensor<DType>* output,
@@ -10,64 +99,90 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   size_t filter_width,
   size_t stride_width,
   size_t stride_height) {
+  // shape init
+  size_t IN, C, H, W;
+  size_t ON, K, P, Q;
   // shape decode
-  // input
-  const Shape& input_shape = input->shape();
-  const size_t batch_size = input_shape[0];
-  const size_t input_channel = input_shape[1];
-  const size_t input_height = input_shape[2];
-  const size_t input_width = input_shape[3];
-  // output
-  const Shape& output_shape = output->shape();
-  const size_t output_channel = output_shape[1];
-  const size_t output_height = output_shape[2];
-  const size_t output_width = output_shape[3];
-  // offset
-  const size_t input_single_size = input_channel * input_height * input_width;
-  const size_t input_channel_size = input_height * input_width;
-  const size_t output_single_size = output_channel * output_height * output_width;
-  const size_t output_channel_size = output_height * output_width;
-  size_t input_channel_offset;
-  size_t output_channel_offset;
-  size_t input_batch_offset;
-  size_t output_batch_offset;
-  CHECK_EQ(input_channel, output_channel);
-  // no padding
-  #pragma omp parallel for private(input_batch_offset, output_batch_offset, \
-    input_channel_offset, output_channel_offset)
-  for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-    input_batch_offset = batch_index * input_single_size;
-    output_batch_offset = batch_index * output_single_size;
-    for (size_t channel_index = 0; channel_index < input_channel; ++channel_index) {
-      input_channel_offset = channel_index * input_channel_size;
-      output_channel_offset = channel_index * output_channel_size;
-      const DType* input_slice = input->Slice(input_batch_offset +
-        input_channel_offset);
-      DType* output_slice = output->Slice(output_batch_offset +
-        output_channel_offset);
-      size_t* max_index_slice = max_index->Slice(output_batch_offset +
-        output_channel_offset);
-      for (size_t output_height_index = 0; output_height_index < output_height;
-        ++output_height_index) {
-        for (size_t output_width_index = 0; output_width_index < output_width;
-          ++output_width_index) {
-          size_t height_start = output_height_index * stride_height;
-          size_t width_start = output_width_index * stride_width;
-          size_t height_end = height_start + filter_height;
-          size_t width_end = width_start + filter_width;
-          size_t pool_index = output_height_index * output_width +
-            output_width_index;
-          size_t max_index_tmp = height_start * input_width + width_start;
-          for (size_t h = height_start; h < height_end; ++h) {
-            for (size_t w = width_start; w < width_end; ++w) {
-              size_t index = h * input_width + w;
-              if (input_slice[index] > input_slice[max_index_tmp]) {
-                max_index_tmp = index;
-              }
-            }
-          }
-          output_slice[pool_index] = input_slice[max_index_tmp];
-          max_index_slice[pool_index] = max_index_tmp;
+  CHECK_EQ(input->data_layout(), output->data_layout());
+  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
+  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
+  CHECK_EQ(IN, ON);
+  CHECK_EQ(C, K);
+  switch (input->data_layout()) {
+    case BLITZ_BUFFER_NCHW:
+      MaxPoolingForwardNCHWImpl(
+        input->data(),
+        output->data(),
+        max_index->data(),
+        IN,
+        C, H, W,
+        K, P, Q,
+        filter_height, filter_width,
+        stride_height, stride_width);
+      break;
+    case BLITZ_BUFFER_NHWC:
+      MaxPoolingForwardNHWCImpl(
+        input->data(),
+        output->data(),
+        max_index->data(),
+        IN,
+        C, H, W,
+        K, P, Q,
+        filter_height, filter_width,
+        stride_height, stride_width);
+      break;
+    default:
+      LOG(FATAL) << "Blitz not support pooling format: " << input->data_layout(); 
+      break;
+  }  
+}
+
+template<typename DType>
+void Backend<CPUTensor, DType>::MaxPoolingBackwardNCHWImpl(
+  const DType* O,
+  DType* I,
+  const size_t* max_index,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t K, size_t P, size_t Q) {
+  const size_t HW = H * W;
+  const size_t CHW = C * HW;
+  const size_t PQ = P * Q;
+  const size_t KPQ = K * PQ;
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t c = 0; c < C; ++c) {
+      DType* input_slice = I + n * CHW + c * HW;
+      const DType* output_slice = O + n * KPQ + c * PQ;
+      const size_t* max_index_slice = max_index + n * KPQ + c * PQ;
+      for (size_t oh = 0; oh < P; ++oh) {
+        for (size_t ow = 0; ow < Q; ++ow) {
+          input_slice[max_index_slice[oh * Q + ow]] = output_slice[oh * Q + ow];
+        }
+      }
+    }
+  }
+}
+
+template<typename DType>
+void Backend<CPUTensor, DType>::MaxPoolingBackwardNHWCImpl(
+  const DType* O,
+  DType* I,
+  const size_t* max_index,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t K, size_t P, size_t Q) {
+  const size_t CHW = C * H * W;
+  const size_t KPQ = K * P * Q;
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    DType* input_slice = I + n * CHW;
+    const DType* output_slice = O + n * KPQ;
+    const size_t* max_index_slice = max_index + n * KPQ;
+    for (size_t oh = 0; oh < P; ++oh) {
+      for (size_t ow = 0; ow < Q; ++ow) {
+        for (size_t c = 0; c < C; ++c) {
+          input_slice[max_index_slice[(oh * Q + ow) * C + c]] = output_slice[(oh * Q + ow) * C + c];
         }
       }
     }
@@ -83,53 +198,40 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   size_t filter_width,
   size_t stride_height,
   size_t stride_width) {
+  // shape init
+  size_t IN, C, H, W;
+  size_t ON, K, P, Q;
   // shape decode
-  // input
-  const Shape& input_shape = input->shape();
-  const size_t batch_size = input_shape[0];
-  const size_t channel = input_shape[1];
-  const size_t input_height = input_shape[2];
-  const size_t input_width = input_shape[3];
-  // output
-  const Shape& output_shape = output->shape();
-  const size_t output_height = output_shape[2];
-  const size_t output_width = output_shape[3];
-  // offset
-  const size_t input_single_size = channel * input_height * input_width;
-  const size_t input_channel_size = input_height * input_width;
-  const size_t output_single_size = channel * output_height * output_width;
-  const size_t output_channel_size = output_height * output_width;
-  size_t input_batch_offset;
-  size_t output_batch_offset;
-  size_t input_channel_offset;
-  size_t output_channel_offset;
+  CHECK_EQ(input->data_layout(), output->data_layout());
+  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
+  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
+  CHECK_EQ(IN, ON);
+  CHECK_EQ(C, K);
   // set zero
   input->Fill(0);
   // no padding
-  #pragma omp parallel for private(input_batch_offset, output_batch_offset, \
-    input_channel_offset, output_channel_offset)
-  for (size_t batch_index = 0; batch_index < batch_size; ++batch_index) {
-    input_batch_offset = batch_index * input_single_size;
-    output_batch_offset = batch_index * output_single_size;
-    for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-      input_channel_offset = channel_index * input_channel_size;
-      output_channel_offset = channel_index * output_channel_size;
-      DType* input_slice = input->Slice(input_batch_offset +
-        input_channel_offset);
-      const DType* output_slice = output->Slice(output_batch_offset +
-        output_channel_offset);
-      const size_t* max_index_slice = max_index->Slice(output_batch_offset +
-        output_channel_offset);
-      for (size_t output_height_index = 0; output_height_index < output_height;
-        ++output_height_index) {
-        for (size_t output_width_index = 0; output_width_index < output_width;
-          ++output_width_index) {
-          size_t index = output_height_index * output_width +
-            output_width_index;
-          input_slice[max_index_slice[index]] = output_slice[index];
-        }
-      }
-    }
+  switch (input->data_layout()) {
+    case BLITZ_BUFFER_NCHW:
+      MaxPoolingBackwardNCHWImpl(
+        output->data(),
+        input->data(),
+        max_index->data(),
+        IN,
+        C, H, W,
+        K, P, Q);
+      break;
+    case BLITZ_BUFFER_NHWC:
+      MaxPoolingBackwardNHWCImpl(
+        output->data(),
+        input->data(),
+        max_index->data(),
+        IN,
+        C, H, W,
+        K, P, Q);
+      break;
+    default:
+      LOG(FATAL) << "Blitz not support pooling format: " << input->data_layout();
+      break;
   }
 }
 

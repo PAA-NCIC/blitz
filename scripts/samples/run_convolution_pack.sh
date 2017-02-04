@@ -8,11 +8,10 @@
 
 #Alexnet
 ##forward:
-./samples/cpu/convolution/pack unpack nchw nchw kcrs 3 224 224 11 11 64 55 55 3 3 4 4 8
-./samples/cpu/convolution/pack unpack nchw nchw kcrs 64 27 27 5 5 192 27 27 2 2 1 1 8
-./samples/cpu/convolution/pack unpack nchw nchw kcrs 192 13 13 3 3 384 13 13 1 1 1 1 8 
-./samples/cpu/convolution/pack unpack nchw nchw kcrs 384 13 13 3 3 256 13 13 1 1 1 1 8
-./samples/cpu/convolution/pack unpack nchw nchw kcrs 256 13 13 3 3 256 13 13 1 1 1 1 8
+./samples/cpu/convolution/pack unpack nhwc nchw kcrs 64 27 27 5 5 192 27 27 2 2 1 1 8
+./samples/cpu/convolution/pack unpack nhwc nchw kcrs 192 13 13 3 3 384 13 13 1 1 1 1 8 
+./samples/cpu/convolution/pack unpack nhwc nchw kcrs 384 13 13 3 3 256 13 13 1 1 1 1 8
+./samples/cpu/convolution/pack unpack nhwc nchw kcrs 256 13 13 3 3 256 13 13 1 1 1 1 8
 
 #./samples/cpu/convolution/pack unpack nhwc nchw kcrs 3 224 224 11 11 64 55 55 3 3 4 4 8
 #./samples/cpu/convolution/pack unpack nhwc nchw kcrs 64 27 27 5 5 192 27 27 2 2 1 1 8

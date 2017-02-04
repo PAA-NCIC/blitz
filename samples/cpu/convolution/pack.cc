@@ -1,6 +1,5 @@
-#include <iostream>
-#include "backends/backends.h"
-#include "utils/blitz_shape_function.h"
+#include <omp.h>
+#include <blitz.h>
 
 using namespace blitz;
 
@@ -48,7 +47,7 @@ void set_output_shape_nkpq(size_t N, size_t K, size_t P, size_t Q, BLITZ_DATA_LA
 void compare(const float* algo1, const float* algo2, size_t size) {
   for (size_t i = 0; i < size; ++i) {
     if (algo1[i] >= algo2[i] + 1e-5 || algo1[i] <= algo2[i] - 1e-5) {
-      std::cout << "index: " << i << " value1: " << algo1[i] << " value2: " << algo2[i] << std::endl;
+      LOG(FATAL) << "index: " << i << " value1: " << algo1[i] << " value2: " << algo2[i];
     }
   }
 }
@@ -151,27 +150,24 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
   BLITZ_DATA_LAYOUT data_layout;
 
   timeval t1, t2; 
-  double elapsed_time = 0.0f;
+  double elapsed_time;
 
   if (input_shape.data_layout() == BLITZ_BUFFER_NHWC) {
     input_hwc2chw(input_cpu.data(), input_cpu_transform.data(), C, H, W);
   } else {
     memcpy(input_cpu_transform.data(), input_cpu.data(), sizeof(float) * input_cpu.size());  
   }
-  gettimeofday(&t1, NULL);
+  BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
     unpack_stride_multi(
       input_cpu_transform.data(), workspace_cpu.data(),
       C, H, W, R, S, P, Q,
       pad_h, pad_w, str_h, str_w);
   }
-  gettimeofday(&t2, NULL);
-  elapsed_time += (t2.tv_sec - t1.tv_sec) * 1000.0; 
-  elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
-  elapsed_time /= 1000.0;
-  std::cout << "general pack time: " << elapsed_time << std::endl;
+  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
+  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
 
-  gettimeofday(&t1, NULL);
+  BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
     data_layout = Backend<CPUTensor, float>::Unpack2DFunc(
       input_cpu.data(), workspace_cpu_optimize.data(),
@@ -179,6 +175,9 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
       pad_h, pad_w, str_h, str_w,
       input_shape.data_layout());
   }
+  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
+  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
+
   gettimeofday(&t2, NULL);
   elapsed_time += (t2.tv_sec - t1.tv_sec) * 1000.0; 
   elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
@@ -192,6 +191,8 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
     hwc = true;
   } else if (data_layout == BLITZ_PACK_PQCRS) {
     transform = true;
+  } else if (data_layout == BLITZ_PACK_RSCPQ) {
+    hwc = true;
   }
 
   if (hwc == true) {

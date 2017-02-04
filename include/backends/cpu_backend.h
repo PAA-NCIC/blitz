@@ -333,6 +333,42 @@ class Backend<CPUTensor, DType> {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width);
+
+  static void MaxPoolingForwardNCHWImpl(
+    const DType* I,
+    DType* O,
+    size_t* max_index,
+    size_t N,
+    size_t C, size_t H, size_t W,
+    size_t K, size_t P, size_t Q,
+    size_t R, size_t S,
+    size_t str_h, size_t str_w);
+
+  static void MaxPoolingForwardNHWCImpl(
+    const DType* I,
+    DType* O,
+    size_t* max_index,
+    size_t N,
+    size_t C, size_t H, size_t W,
+    size_t K, size_t P, size_t Q,
+    size_t R, size_t S,
+    size_t str_h, size_t str_w);
+
+  static void MaxPoolingBackwardNCHWImpl(
+    const DType* O,
+    DType* I,
+    const size_t* max_index,
+    size_t N,
+    size_t C, size_t H, size_t W,
+    size_t K, size_t P, size_t Q);
+
+  static void MaxPoolingBackwardNHWCImpl(
+    const DType* O,
+    DType* I,
+    const size_t* max_index,
+    size_t N,
+    size_t C, size_t H, size_t W,
+    size_t K, size_t P, size_t Q);
 };
 
 }  // namespace blitz
