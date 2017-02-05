@@ -193,7 +193,7 @@ class Backend<CPUTensor, DType> {
   static float EvaluateRegressFunc(
     const CPUTensor<DType>* output, const CPUTensor<DType>* target);
 
-  static BLITZ_DATA_LAYOUT Unpack2DFunc(
+  static void Unpack2DFunc(
     const DType* input,
     DType* unpack,
     size_t channel,
@@ -207,9 +207,9 @@ class Backend<CPUTensor, DType> {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
+    BLITZ_DATA_LAYOUT input_data_layout);
 
-  static BLITZ_DATA_LAYOUT Pack2DFunc(
+  static void Pack2DFunc(
     const DType* pack,
     DType* input,
     size_t channel,
@@ -223,7 +223,7 @@ class Backend<CPUTensor, DType> {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width,
-    BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
+    BLITZ_DATA_LAYOUT input_data_layout);
 
  private:
   static void Convolution2DForwardGEMMDispatch(
@@ -231,18 +231,24 @@ class Backend<CPUTensor, DType> {
     DType* output,
     DType* filter,
     size_t K, size_t PQ, size_t CRS,
-    BLITZ_DATA_LAYOUT unpack_data_layout,
-    BLITZ_DATA_LAYOUT output_data_layout,
-    BLITZ_DATA_LAYOUT filter_data_layout);
+    BLITZ_DATA_LAYOUT input_data_layout,
+    BLITZ_DATA_LAYOUT output_data_layout);
+
+  static void Convolution2DBackwardGEMMDispatch(
+    DType* filter,
+    DType* output,
+    DType* unpack,
+    size_t K, size_t PQ, size_t CRS,
+    BLITZ_DATA_LAYOUT input_data_layout,
+    BLITZ_DATA_LAYOUT output_data_layout);
 
   static void Convolution2DUpdateGEMMDispatch(
     DType* unpack,
     DType* output,
     DType* update,
     size_t K, size_t CRS, size_t PQ,
-    BLITZ_DATA_LAYOUT unpack_data_layout,
-    BLITZ_DATA_LAYOUT output_data_layout,
-    BLITZ_DATA_LAYOUT filter_data_layout);
+    BLITZ_DATA_LAYOUT input_data_layout,
+    BLITZ_DATA_LAYOUT output_data_layout);
 
   static void UnpackCHWImpl(
     const DType* input,
@@ -262,6 +268,36 @@ class Backend<CPUTensor, DType> {
   static void UnpackHWCImpl(
     const DType* input,
     DType* unpack,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+  
+  static void PackCHWImpl(
+    const DType* unpack,
+    DType* input,
+    size_t channel,
+    size_t input_height,
+    size_t input_width,
+    size_t filter_height,
+    size_t filter_width,
+    size_t output_height,
+    size_t output_width,
+    size_t padding_height,
+    size_t padding_width,
+    size_t stride_height,
+    size_t stride_width);
+
+  static void PackHWCImpl(
+    const DType* unpack,
+    DType* input,
     size_t channel,
     size_t input_height,
     size_t input_width,

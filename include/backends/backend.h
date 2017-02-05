@@ -192,7 +192,7 @@ class Backend {
   static float EvaluateRegressFunc(
     const TensorType<DType>* output, const TensorType<DType>* target);
 
-  static BLITZ_DATA_LAYOUT Unpack2DFunc(
+  static void Unpack2DFunc(
     const DType* input,
     DType* unpack,
     size_t channel,
@@ -206,10 +206,10 @@ class Backend {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
+    BLITZ_DATA_LAYOUT input_data_layout);
 
-  static BLITZ_DATA_LAYOUT Pack2DFunc(
-    const DType* pack,
+  static void Pack2DFunc(
+    const DType* unpack,
     DType* input,
     size_t channel,
     size_t input_height,
@@ -222,7 +222,7 @@ class Backend {
     size_t padding_width,
     size_t stride_height,
     size_t stride_width,
-    BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
+    BLITZ_DATA_LAYOUT input_data_layout);
 
   DISABLE_COPY_AND_ASSIGN(Backend);
 };

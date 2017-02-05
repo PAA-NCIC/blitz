@@ -47,7 +47,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(
+          Unpack2DFunc(
             input->Slice(nCHW),
             workspace_unpack_slice,
             C, H, W,
@@ -60,9 +60,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
             output->Slice(nKPQ),
             const_cast<CPUTensor<DType>*>(filter)->data(),
             K, PQ, CRS,
-            unpack_data_layout,
-            output->data_layout(),
-            filter->data_layout());
+	    input->data_layout(),
+            output->data_layout());
         }
       }
       break;
@@ -71,7 +70,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(
+        Unpack2DFunc(
 	  input->Slice(nCHW),
           workspace->data(),
           C, H, W,
@@ -84,9 +83,8 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
           output->Slice(nKPQ),
           const_cast<CPUTensor<DType>*>(filter)->data(),
           K, PQ, CRS,
-          unpack_data_layout,
-          output->data_layout(),
-          filter->data_layout());
+	  input->data_layout(),
+          output->data_layout());
       }
       break;
     }
@@ -143,35 +141,25 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
       {
         const size_t tid = omp_get_thread_num();
         const size_t workspace_unpack_offset = tid * CRS * PQ;
-        #ifdef BLITZ_PERFORMANCE
-          #pragma omp for private(start, end)
-        #else
-          #pragma omp for
-        #endif
+        #pragma omp for
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          #ifdef BLITZ_PERFORMANCE
-          start = system_clock::now();
-          #endif  // BLITZ_PERFORMANCE
-          BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
+          Convolution2DBackwardGEMMDispatch(
+	    const_cast<CPUTensor<DType>*>(filter)->data(),
             const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->Slice(workspace_unpack_offset),
-            true, false,
-            static_cast<DType>(1), static_cast<DType>(0),
-            CRS, PQ, K);
-          #ifdef BLITZ_PERFORMANCE
-          end = system_clock::now();
-          gemm_time[tid] += end - start;
-          start = system_clock::now();
-          #endif  // BLITZ_PERFORMANCE
+            K, PQ, CRS,
+	    input->data_layout(),
+	    output->data_layout());
           Pack2DFunc(workspace->Slice(workspace_unpack_offset),
             input->Slice(nCHW),
             C, H, W,
             R, S,
             P, Q,
             padding_height, padding_width,
-            stride_height, stride_width);
+            stride_height, stride_width,
+	    input->data_layout());
         }
       }
       break;
@@ -180,19 +168,21 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        BlitzCPUGemm(const_cast<CPUTensor<DType>*>(filter)->data(),
+        Convolution2DBackwardGEMMDispatch(
+	  const_cast<CPUTensor<DType>*>(filter)->data(),
           const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
           workspace->data(),
-          true, false,
-          static_cast<DType>(1), static_cast<DType>(0),
-          CRS, PQ, K);
+          K, PQ, CRS,
+	  input->data_layout(),
+	  output->data_layout());
         Pack2DFunc(workspace->data(),
           input->Slice(nCHW),
           C, H, W,
           R, S,
           P, Q,
           padding_height, padding_width,
-          stride_height, stride_width);
+          stride_height, stride_width,
+	  input->data_layout());
       }
       break;
     }
@@ -256,7 +246,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
+          Unpack2DFunc(input->Slice(nCHW),
             workspace->Slice(workspace_unpack_offset),
             C, H, W,
             R, S,
@@ -269,9 +259,8 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
             const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->Slice(workspace_update_offset),
             K, CRS, PQ,
-            unpack_data_layout,
-            output->data_layout(),
-            update->data_layout());
+	    input->data_layout(),
+            output->data_layout());
         }
         for (size_t i = 0; i < update->size(); ++i) {
           #pragma omp atomic
@@ -284,7 +273,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        BLITZ_DATA_LAYOUT unpack_data_layout = Unpack2DFunc(input->Slice(nCHW),
+        Unpack2DFunc(input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
@@ -297,9 +286,8 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
           const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
           update->data(),
           K, CRS, PQ,
-          unpack_data_layout,
-          output->data_layout(),
-          update->data_layout());
+	  input->data_layout(),
+          output->data_layout());
       }
       break;
     }

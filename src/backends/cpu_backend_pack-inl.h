@@ -3,49 +3,37 @@
 
 template<typename DType>
 void Backend<CPUTensor, DType>::UnpackCHWImpl(
-  const DType* input,
+  const DType* I,
   DType* unpack,
-  size_t channel,
-  size_t input_height,
-  size_t input_width,
-  size_t filter_height,
-  size_t filter_width,
-  size_t output_height,
-  size_t output_width,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width) {
-  for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-    for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
-      for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
-        DType* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + channel_index * filter_height * filter_width + filter_height_index * filter_width;
-        if (filter_height_index + output_height_index * stride_height < padding_height ||
-          filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
-          for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-            DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-            for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
-              unpack_slice_slice[filter_width_index] = 0;
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  size_t unpack_index = 0;
+  for (size_t c = 0; c < C; ++c) {
+    const size_t cHW = c * H * W;
+    const DType* I_slice = I + cHW;
+    for (size_t r = 0; r < R; ++r) {
+      for (size_t s = 0; s < S; ++s) {
+        int R_offset = -pad_h + r;
+        for (size_t p = 0; p < P; ++p) {
+          if (R_offset < 0 || R_offset >= static_cast<int>(H)) {
+            for (size_t q = 0; q < Q; ++q) {
+              unpack[unpack_index++] = 0;
+            }
+          } else {
+            int S_offset = -pad_w + s;
+            for (size_t q = 0; q < Q; ++q) {
+              if (S_offset < 0 || S_offset >= static_cast<int>(W)) {
+                unpack[unpack_index++] = 0;
+              } else {
+                unpack[unpack_index++] = I_slice[R_offset * W + S_offset];
+              }
+              S_offset += str_w;
             }
           }
-        } else {
-          const DType* input_slice = input + channel_index * input_height * input_width + (output_height_index * stride_height + filter_height_index - padding_height) * input_width;
-          for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-            const DType* input_slice_slice = input_slice + output_width_index * stride_width;
-            DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-            size_t filter_width_index = 0; 
-            for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
-              unpack_slice_slice[filter_width_index] = 0;
-            }
-            size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
-            size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
-            for (; filter_width_index < output_end; ++filter_width_index) {
-              unpack_slice_slice[filter_width_index] = input_slice_slice[filter_width_index - padding_width];
-            }
-            for (; filter_width_index < padding_end; ++filter_width_index) {
-              unpack_slice_slice[filter_width_index] = 0;
-            }
-          }
+          R_offset += str_h;
         }
       }
     }
@@ -54,62 +42,39 @@ void Backend<CPUTensor, DType>::UnpackCHWImpl(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::UnpackHWCImpl(
-  const DType* input,
+  const DType* I,
   DType* unpack,
-  size_t channel,
-  size_t input_height,
-  size_t input_width,
-  size_t filter_height,
-  size_t filter_width,
-  size_t output_height,
-  size_t output_width,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width) {
-  for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
-    for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
-      DType* unpack_slice = unpack + output_height_index * output_width * filter_height * filter_width * channel + filter_height_index * filter_width * channel;
-      if (filter_height_index + output_height_index * stride_height < padding_height ||
-        filter_height_index + output_height_index * stride_height >= padding_height + input_height) {
-        for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-          DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-          for (size_t filter_width_index = 0; filter_width_index < filter_width * channel; ++filter_width_index) {
-            unpack_slice_slice[filter_width_index] = 0;
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  // borrow from caffe2
+  int R_offset = -pad_h;
+  for (size_t p = 0; p < P; ++p) {
+    int S_offset = -pad_w;
+    for (size_t q = 0; q < Q; ++q) {
+      for (int h = R_offset; h < static_cast<int>(R) + R_offset; ++h) {
+        for (int w = S_offset; w < static_cast<int>(S) + S_offset; ++w) {
+          if (h >= 0 && h < static_cast<int>(H) && w >= 0 && w < static_cast<int>(W)) {
+            for(size_t c = 0; c < C; ++c) {
+	      unpack[c] = I[(h * W + w) * C + c];
+	    }
+          } else {
+            memset(unpack, 0, sizeof(DType) * C);
           }
-        }
-      } else {
-        const DType* input_slice = input + (output_height_index * stride_height + filter_height_index - padding_height) * input_width * channel;
-        for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-          const DType* input_slice_slice = input_slice + output_width_index * stride_width * channel;
-          DType* unpack_slice_slice = unpack_slice + output_width_index * filter_height * filter_width * channel;
-          size_t filter_width_index = 0; 
-          for (; filter_width_index + output_width_index * stride_width < padding_width; ++filter_width_index) {
-            for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-              unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
-            }
-          }
-          size_t output_end = std::min(input_width + padding_width - output_width_index * stride_width, filter_width);
-          size_t padding_end = std::min(input_width + 2 * padding_width, filter_width);
-          for (; filter_width_index < output_end; ++filter_width_index) {
-            for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-              unpack_slice_slice[filter_width_index * channel + channel_index] = input_slice_slice[(filter_width_index - padding_width) * channel + channel_index];
-            }
-          }
-          for (; filter_width_index < padding_end; ++filter_width_index) {
-            for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-              unpack_slice_slice[filter_width_index * channel + channel_index] = 0;
-            }
-          }
+          unpack += C;
         }
       }
+      S_offset += str_w;
     }
+    R_offset += str_h;
   }
 }
 
 template<typename DType>
-BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Unpack2DFunc(
-  const DType* input,
+void Backend<CPUTensor, DType>::Unpack2DFunc(
+  const DType* I,
   DType* unpack,
   size_t C, size_t H, size_t W,
   size_t R, size_t S,
@@ -119,66 +84,109 @@ BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Unpack2DFunc(
   BLITZ_DATA_LAYOUT input_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NHWC) {
     UnpackHWCImpl(
-      input, unpack,
+      I, unpack,
       C, H, W, R, S, P, Q,
       pad_h, pad_w, str_h, str_w);
-    return BLITZ_PACK_PQRSC;
   } else if (input_data_layout == BLITZ_BUFFER_NCHW) {
     UnpackCHWImpl(
-      input, unpack,
+      I, unpack,
       C, H, W, R, S, P, Q,
       pad_h, pad_w, str_h, str_w);
-    return BLITZ_PACK_PQCRS;
   } else {
     LOG(FATAL) << "Unsupported input data layout: " << input_data_layout;
-    return BLITZ_SHAPE_UNDEFINED;
   }
 }
 
 template<typename DType>
-BLITZ_DATA_LAYOUT Backend<CPUTensor, DType>::Pack2DFunc(
-  const DType* pack,
-  DType* input,
-  size_t channel,
-  size_t input_height,
-  size_t input_width,
-  size_t filter_height,
-  size_t filter_width,
-  size_t output_height,
-  size_t output_width,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_DATA_LAYOUT input_data_layout) {
-  // (input_channel * filter_height * filter_width) *
-  // (output_width * output_height)
-  size_t pack_index = 0;
-  for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-    const size_t channel_offset = channel_index * input_height * input_width;
-    DType* input_slice = input + channel_offset;
-    for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
-      for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
-        int filter_height_offset = -padding_height + filter_height_index;
-        for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
-          if (filter_height_offset < 0 || filter_height_offset >= static_cast<int>(input_height)) {
-            pack_index += output_width;
+void Backend<CPUTensor, DType>::PackCHWImpl(
+  const DType* unpack,
+  DType* I,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  size_t unpack_index = 0;
+  for (size_t c = 0; c < C; ++c) {
+    const size_t cHW = c * H * W;
+    DType* I_slice = I + cHW;
+    for (size_t r = 0; r < R; ++r) {
+      for (size_t s = 0; s < S; ++s) {
+        int R_offset = -pad_h + r;
+        for (size_t p = 0; p < P; ++p) {
+          if (R_offset < 0 || R_offset >= static_cast<int>(H)) {
+            unpack_index += Q;
           } else {
-            int filter_width_offset = -padding_width + filter_width_index;
-            for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-              if (filter_width_offset >= 0 && filter_width_offset < static_cast<int>(input_width)) {
-                input_slice[filter_height_offset * input_width + filter_width_offset] += pack[pack_index];
+            int S_offset = -pad_w + s;
+            for (size_t q = 0; q < Q; ++q) {
+              if (S_offset >= 0 && S_offset < static_cast<int>(W)) {
+                I_slice[R_offset * W + S_offset] += unpack[unpack_index];
               }
-              pack_index++;
-              filter_width_offset += stride_width;
+              unpack_index++;
+              S_offset += str_w;
             }
           }
-          filter_height_offset += stride_height;
+          R_offset += str_h;
         }
       }
     }
   }
-  return BLITZ_BUFFER_NCHW;
+}
+
+template<typename DType>
+void Backend<CPUTensor, DType>::PackHWCImpl(
+  const DType* unpack,
+  DType* I,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  size_t unpack_index = 0;
+  int R_offset = -pad_h;
+  for (size_t p = 0; p < P; ++p) {
+    int S_offset = -pad_w;
+    for (size_t q = 0; q < Q; ++q) {
+      for (int h = R_offset; h < static_cast<int>(R) + R_offset; ++h) {
+        for (int w = S_offset; w < static_cast<int>(S) + S_offset; ++w) {
+          if (h >= 0 && h < static_cast<int>(H) && w >= 0 && w < static_cast<int>(W)) {
+            DType* I_slice = I + (h * W + w) * C;
+            for (size_t c = 0; c < C; ++c) {
+              I_slice[c] += unpack[unpack_index + c];
+            }
+          }
+          unpack_index += C;
+        }
+      }
+      S_offset += str_w;
+    }
+    R_offset += str_h;
+  }
+}
+
+template<typename DType>
+void Backend<CPUTensor, DType>::Pack2DFunc(
+  const DType* unpack,
+  DType* I,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w,
+  BLITZ_DATA_LAYOUT input_data_layout) {
+  if (input_data_layout == BLITZ_BUFFER_NHWC) {
+    PackHWCImpl(
+      unpack, I,
+      C, H, W, R, S, P, Q,
+      pad_h, pad_w, str_h, str_w);
+  } else if (input_data_layout == BLITZ_BUFFER_NCHW) {
+    PackCHWImpl(
+      unpack, I,
+      C, H, W, R, S, P, Q,
+      pad_h, pad_w, str_h, str_w);
+  } else {
+    LOG(FATAL) << "Unsupported unpack data layout: " << input_data_layout;
+  }
 }
 
 #endif  // SRC_BACKENDS_CPU_BACKEND_PACK_INL_H_
