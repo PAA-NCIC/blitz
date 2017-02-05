@@ -52,7 +52,7 @@ void compare(const float* algo1, const float* algo2, size_t size) {
   }
 }
 
-void unpack_stride_multi(
+void unpack_base(
   const float* input,
   float* unpack,
   size_t channel,
@@ -66,32 +66,55 @@ void unpack_stride_multi(
   size_t padding_width,
   size_t stride_height,
   size_t stride_width) {
-  // (input_channel * filter_height * filter_width) *
-  // (output_width * output_height)
-  size_t unpack_index = 0;
-  for (size_t channel_index = 0; channel_index < channel; ++channel_index) {
-    const size_t channel_offset = channel_index * input_height * input_width;
-    const float* input_slice = input + channel_offset;
-    for (size_t filter_height_index = 0; filter_height_index < filter_height; ++filter_height_index) {
-      for (size_t filter_width_index = 0; filter_width_index < filter_width; ++filter_width_index) {
-        int filter_height_offset = -padding_height + filter_height_index;
-        for (size_t output_height_index = 0; output_height_index < output_height; ++output_height_index) {
-          if (filter_height_offset < 0 || filter_height_offset >= static_cast<int>(input_height)) {
-            for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-              unpack[unpack_index++] = 0;
-            }
-          } else {
-            int filter_width_offset = -padding_width + filter_width_index;
-            for (size_t output_width_index = 0; output_width_index < output_width; ++output_width_index) {
-              if (filter_width_offset < 0 || filter_width_offset >= static_cast<int>(input_width)) {
-                unpack[unpack_index++] = 0;
-              } else {
-                unpack[unpack_index++] = input_slice[filter_height_offset * input_width + filter_width_offset];
-              }
-              filter_width_offset += stride_width;
-            }
-          }
-          filter_height_offset += stride_height;
+  // base line impl borrow from caffe2
+  size_t channels = channel * filter_height * filter_width;
+  for (size_t c = 0; c < channels; ++c) {
+    size_t w_offset = c % filter_width;
+    size_t h_offset = (c / filter_width) % filter_height;
+    size_t c_im = c / filter_height / filter_width;
+    for (size_t h = 0; h < output_height; ++h) {
+      for (size_t w = 0; w < output_width; ++w) {
+        int h_pad = h * stride_height - padding_height + h_offset;
+        int w_pad = w * stride_width - padding_width + w_offset;
+        if (h_pad >= 0 && h_pad < static_cast<int>(input_height) &&
+          w_pad >= 0 && w_pad < static_cast<int>(input_width))
+          unpack[(c * output_height + h) * output_width + w] =
+            input[(c_im * input_height + h_pad) * input_width + w_pad];
+        else
+          unpack[(c * output_height + h) * output_width + w] = 0;
+      }
+    }
+  }
+}
+
+void pack_base(
+  const float* unpack,
+  float* input,
+  size_t channel,
+  size_t input_height,
+  size_t input_width,
+  size_t filter_height,
+  size_t filter_width,
+  size_t output_height,
+  size_t output_width,
+  size_t padding_height,
+  size_t padding_width,
+  size_t stride_height,
+  size_t stride_width) {
+  // base line impl borrow from caffe2
+  size_t channels = channel * filter_height * filter_width;
+  for (size_t c = 0; c < channels; ++c) {
+    size_t w_offset = c % filter_width;
+    size_t h_offset = (c / filter_width) % filter_height;
+    size_t c_im = c / filter_height / filter_width;
+    for (size_t h = 0; h < output_height; ++h) {
+      for (size_t w = 0; w < output_width; ++w) {
+        int h_pad = h * stride_height - padding_height + h_offset;
+        int w_pad = w * stride_width - padding_width + w_offset;
+        if (h_pad >= 0 && h_pad < static_cast<int>(input_height) &&
+	  w_pad >= 0 && w_pad < static_cast<int>(input_width)) {
+          input[(c_im * input_height + h_pad) * input_width + w_pad] +=
+            unpack[(c * output_height + h) * output_width + w];
         }
       }
     }
@@ -141,8 +164,6 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> input_cpu_transform(input_shape);
-  CPUTensor<float> filter_cpu(filter_shape);
-  CPUTensor<float> output_cpu(output_shape);
   CPUTensor<float> workspace_cpu(workspace_shape_cpu);
   CPUTensor<float> workspace_cpu_optimize(workspace_shape_cpu);
   CPUTensor<float> workspace_cpu_transform(workspace_shape_cpu);
@@ -158,7 +179,7 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
   }
   BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
-    unpack_stride_multi(
+    unpack_base(
       input_cpu_transform.data(), workspace_cpu.data(),
       C, H, W, R, S, P, Q,
       pad_h, pad_w, str_h, str_w);
@@ -206,13 +227,82 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 }
 
 void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations) {
+  // shape decode
+  size_t N, H, W, C, R, S, K, P, Q;
+  Blitz2DBuffer(input_shape.data_layout(), &input_shape, &N, &C, &H, &W);
+  Blitz2DFilter(filter_shape.data_layout(), &filter_shape, &K, &C, &R, &S);
+  Blitz2DBuffer(output_shape.data_layout(), &output_shape, &N, &K, &P, &Q);
+  // set up cpu
+  CPUTensor<float> input_cpu(input_shape);
+  CPUTensor<float> input_cpu_transform(input_shape);
+  CPUTensor<float> input_cpu_optimize(input_shape);
+  CPUTensor<float> workspace_cpu(workspace_shape_cpu);
+  CPUTensor<float> workspace_cpu_optimize(workspace_shape_cpu);
+  CPUTensor<float> workspace_cpu_transform(workspace_shape_cpu);
+  Backend<CPUTensor, float>::UniformDistributionFunc(&workspace_cpu_optimize, 0.0, 1.0);
+  memcpy(workspace_cpu.data(), workspace_cpu_optimize.data(), sizeof(float) * workspace_cpu.size());  
+
+  timeval t1, t2; 
+  double elapsed_time;
+  bool hwc = false;
+  bool transform = false;
+
+  if (input_shape.data_layout() == BLITZ_BUFFER_NHWC) { // PQRSC to CRSPQ
+    hwc = true;
+    transform = true;
+  }
+
+  if (hwc == true) { // PQRSC to PQCRS
+    workspace_hwc2chw(workspace_cpu_optimize.data(), workspace_cpu_transform.data(), P, Q, C, R, S);
+    memcpy(workspace_cpu.data(), workspace_cpu_transform.data(), sizeof(float) * workspace_cpu.size());  
+  }
+
+  if (transform == true) { // CRSPQ
+    Shape shape(2);
+    shape[0] = P * Q;
+    shape[1] = workspace_shape_cpu[0] / (P * Q);
+    workspace_cpu.set_shape(shape); // PQCRS
+    shape[0] = workspace_shape_cpu[0] / (P * Q);
+    shape[1] = P * Q;
+    workspace_cpu_transform.set_shape(shape); // CRSPQ
+    Backend<CPUTensor, float>::Transpose2DFunc(&workspace_cpu, &workspace_cpu_transform);
+    memcpy(workspace_cpu.data(), workspace_cpu_transform.data(), sizeof(float) * workspace_cpu.size());  
+  }  
+
+  BLITZ_CPU_TIMER_START(elapsed_time, t1);
+  for (size_t i = 0; i < iterations; ++i) {
+    pack_base(
+      workspace_cpu.data(), input_cpu.data(),
+      C, H, W, R, S, P, Q,
+      pad_h, pad_w, str_h, str_w);
+  }
+  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
+  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
+
+  BLITZ_CPU_TIMER_START(elapsed_time, t1);
+  for (size_t i = 0; i < iterations; ++i) {
+    Backend<CPUTensor, float>::Pack2DFunc(
+      workspace_cpu_optimize.data(), input_cpu_optimize.data(),
+      C, H, W, R, S, P, Q,
+      pad_h, pad_w, str_h, str_w,
+      input_shape.data_layout());
+  }
+  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
+  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
+
+  if (input_shape.data_layout() == BLITZ_BUFFER_NHWC) {
+    input_hwc2chw(input_cpu_optimize.data(), input_cpu_transform.data(), C, H, W);
+    memcpy(input_cpu_optimize.data(), input_cpu_transform.data(), sizeof(float) * input_cpu.size());  
+  }
+
+  compare(input_cpu.data(), input_cpu_optimize.data(), input_cpu.size());
 }
 
 int main(int argc, char** argv) {
   const size_t NUM_ARGS = 17;
   // phase C H W R S K P Q pad_h pad_w str_h str_w iterations
   if (argc != NUM_ARGS + 1) {
-    std::cerr << "Not enough args!" << std::endl;
+    std::cerr << "Not matchable args!" << std::endl;
     exit(1);
   }
   // get args

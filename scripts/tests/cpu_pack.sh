@@ -1,7 +1,7 @@
 #!/bin/bash
 #phase N C H W R S K P Q pad_h pad_w str_h str_w iterations
 
-PHASE=(unpack)
+PHASE=(unpack pack)
 INPUT_LAYOUT=(nchw nhwc)
 FILTER_LAYOUT=(kcrs)
 
