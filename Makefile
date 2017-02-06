@@ -26,8 +26,10 @@ else ifeq ($(BLITZ_AVX), 3)
 	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=64 -xCORE-AVX512
 else ifeq ($(BLITZ_AVX), 2)
 	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -march=core-avx2
-else
+else ifeq ($(BLITZ_AVX), 1)
 	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -mavx
+else ifeq ($(BLITZ_AVX), 0)
+	OPTIMIZE_OPTIONS += -DBLITZ_AVX_WIDTH=32 -msse
 endif
 
 OPENMP_OPTIONS := -fopenmp
