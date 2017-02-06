@@ -1,5 +1,5 @@
 #include <iostream>
-#include "backends/backends.h"
+#include <blitz.h>
 
 using namespace blitz;
 // M N
@@ -21,8 +21,10 @@ void transpose(size_t m, size_t n) {
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> output_cpu(output_shape);
   // init values
+  std::cout << "Init:" << std::endl;
   Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
   output_matrix(m, n, input_cpu.data());
+  std::cout << "Transposed:" << std::endl;
   // transpose
   Backend<CPUTensor, float>::Transpose2DFunc(&input_cpu, &output_cpu);
   output_matrix(n, m, output_cpu.data());
@@ -32,7 +34,7 @@ int main(int argc, char** argv) {
   const size_t NUM_ARGS = 2;
   // M N
   if (argc != NUM_ARGS + 1) {
-    std::cerr << "Not enough args!" << std::endl;
+    std::cerr << "Not matchable args!" << std::endl;
     exit(1);
   }
   const size_t M = atoi(argv[1]);

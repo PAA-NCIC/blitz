@@ -1,31 +1,18 @@
+#variables
+.PHONY: clean bins
+
 #project
-PROJECT := blitz
 BINS := matrix_transpose
-NVCC := nvcc
 CC := g++
 
-#dirs
-DIR := ../../..
-INC := -I$(DIR)/include
-
-#libs
-LIBS := $(DIR)/lib/libblitz.a
+bins: $(BINS)
 
 #flags
-LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
-  -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
-CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp
-CXXFLAGS += -DBLITZ_RELEASE
-CXXFLAGS += -DBLITZ_NUM_THREADS=16
-CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=64
+LDFLAGS := -Wl,--no-as-needed -lblitz
+CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx
 
-#mkl for compare
-LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
-CXXFLAGS += -DUSE_MKL
-INC += -I/opt/intel/mkl/include
-
-$(BINS): % : %.cc $(LIBS)
-	$(CC) $(CXXFLAGS) $(INC) $(LDFLAGS) -o $@ $^
+$(BINS): % : %.cc
+	$(CC) $(CXXFLAGS) $(INC) -o $@ $^ $(LDFLAGS) 
 
 clean:
 	-rm -rf $(BINS)
