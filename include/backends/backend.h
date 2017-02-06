@@ -7,6 +7,7 @@
 #include "utils/common.h"
 #include "utils/blitz_algorithm_function.h"
 #include "utils/blitz_shape_function.h"
+#include "utils/blitz_impl_function.h"
 
 namespace blitz {
 

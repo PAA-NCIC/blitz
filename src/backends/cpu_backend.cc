@@ -4,7 +4,7 @@
 
 namespace blitz {
 
-#include "cpu_backend_common-inl.h"
+#include "cpu_backend_math-inl.h"
 #include "cpu_backend_conv-inl.h"
 #include "cpu_backend_pack-inl.h"
 #include "cpu_backend_pool-inl.h"
