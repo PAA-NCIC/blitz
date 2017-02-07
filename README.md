@@ -1,3 +1,4 @@
+
 [![Build Status](https://travis-ci.org/PAA-NCIC/blitz.svg?branch=master)](https://travis-ci.org/PAA-NCIC/blitz)
 
 # blitz
@@ -21,7 +22,7 @@
 ###GPU backend (not stable)
 
 - NVIDIA GPUs
-- *CUBLAS*
+- CUBLAS
 
 ###MIC backend (not stable)
 
@@ -38,12 +39,17 @@
 
 For convolution networks, we support *NCHW* and *NHWC* data layouts for the convolution and pooling computations in forward, backward and update phases. Besides, we devise a feature for automatic data transformation. It is designed for tunning the performance on the network level. For instance, if some layers performs well on *NCHW* layouts while others are best for *NHWC* layouts, we could specify the output formats of the convolution layer. The internal transformation does not require extra copies. 
 
-Besides, we are developing different algorithms for the convolution computations.
+We are developing different algorithms for the convolution computations. It supports:
+
+- BLITZ_CONVOLUTION_BLAS_GEMM (explicit GEMM)
+- BLITZ_CONVOLUTION_BLAS_GEMM_BATCH (batch GEMM)
 
 ###GPU backend (not stable)
+
 Our GPU backend supports *NCHW*, *NHWC*, and *CHWN* data layouts. Currently we use *CUBLAS* for the first two layouts, and the *CHWN* layouts is fir for our assembly implementations on Kepler GPU, which outperforms *CUDNN*'s GEMM algorithm in several configurations.
 
 ###MIC backend (not stable)
+
 We mainly utilize *libxsmm* library for MIC accelerations. And we are adding *AVX* primitives into these computations.
 
 # Interfaces
@@ -54,22 +60,22 @@ A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. 
 
 ###CPU backend
 
-'''
-BLITZ_AVX=according to processor support
 
-BLAS=openblas/atlas/mkl
-'''
+    BLITZ_AVX=according to processor support
+
+    BLAS=openblas/atlas/mkl
+
 
 ###GPU backend
-'''
-BLITZ_USE_GPU=1
 
-CUDA_ARCH=according to GPU generation
-'''
+    BLITZ_USE_GPU=1
+
+    CUDA_ARCH=according to GPU generation
+
 
 ###MIC backend
-'''
-BLITZ_USE_MIC=1
 
-BLITZ_AVX=512
-'''
+    BLITZ_USE_MIC=1
+
+    BLITZ_AVX=512
+
