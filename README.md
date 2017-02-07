@@ -4,7 +4,7 @@
 
 *blitz* is a cross platform library for deep learning computations. It aims to provide simple, portable, and efficient interfaces for neural network developers. Unlike deep learning frameworks such as *Caffe*, *Torch*, and *Tensorflow*, it could be quickly deployed on different platforms separately. And thus users could fast instanitiate and extend neural network computations with high performance.
 
-### Requirements
+## Requirements
 
 ####Common
 
@@ -32,7 +32,7 @@
 
 - yaml-cpp
 
-### Features
+## Features
 
 ####CPU backend
 
@@ -51,11 +51,11 @@ Our GPU backend supports *NCHW*, *NHWC*, and *CHWN* data layouts. Currently we u
 
 We mainly utilize *libxsmm* library for MIC accelerations. And we are adding *AVX* primitives into these computations.
 
-### Interfaces
+## Interfaces
 
 A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. We use a contiguous tensor to manage data on different devices, and a template to instanitiate algorithms. A more compherensive guide will be presented here.
 
-### Build
+## Build
 
 ####CPU backend
 
