@@ -95,7 +95,7 @@ void convolution_forward(
       &output_cpu_algorithm,
       &context_algorithm);
   }
-  if (output_cpu_algorithm.data_layout() == BLITZ_BUFFER_NHWC) {
+  if (output_cpu_algorithm.data_layout() != input_cpu_algorithm.data_layout()) {
     CPUTensor<float> output_cpu_transform(output_shape);
     Backend<CPUTensor, float>::TransformCopyFunc(&output_cpu_algorithm, &output_cpu_transform);
     compare(output_cpu.data(), output_cpu_transform.data(), output_cpu.size(), 1e-2);
@@ -146,7 +146,7 @@ void convolution_backward(
       &input_cpu_algorithm,
       &context_algorithm);
   }
-  if (input_cpu_algorithm.data_layout() == BLITZ_BUFFER_NHWC) {
+  if (input_cpu_algorithm.data_layout() != output_cpu_algorithm.data_layout()) {
     CPUTensor<float> input_cpu_transform(input_shape);
     Backend<CPUTensor, float>::TransformCopyFunc(&input_cpu_algorithm, &input_cpu_transform);
     compare(input_cpu.data(), input_cpu_transform.data(), input_cpu.size(), 1e-2);
@@ -197,7 +197,7 @@ void convolution_update(
       &filter_cpu_algorithm,
       &context_algorithm);
   }
-  if (input_cpu_algorithm.data_layout() == BLITZ_BUFFER_NHWC) {
+  if (input_cpu_algorithm.data_layout() != output_cpu_algorithm.data_layout()) {
     CPUTensor<float> filter_cpu_transform(filter_shape);
     Backend<CPUTensor, float>::TransformCopyFunc(&filter_cpu_algorithm, &filter_cpu_transform);
     memcpy(filter_cpu.data(), filter_cpu_transform.data(), sizeof(float) * filter_cpu.size());
@@ -234,13 +234,16 @@ int main(int argc, char** argv) {
   const size_t str_w = atoi(argv[17]);
   const size_t iter = atoi(argv[18]);
   // set shapes
-  set_shape_nchw(input_shape, N, C, H, W);
-  set_shape_kcrs(filter_shape, K, C, R, S);
-  set_shape_nchw(output_shape, N, K, P, Q);
   if (input_layout == "nchw") {
+    set_shape_nchw(input_shape, N, C, H, W);
+    set_shape_kcrs(filter_shape, K, C, R, S);
+    set_shape_nchw(output_shape, N, K, P, Q);
     set_shape_nchw(input_shape_algorithm, N, C, H, W);
     set_shape_kcrs(filter_shape_algorithm, K, C, R, S);
   } else {
+    set_shape_nhwc(input_shape, N, C, H, W);
+    set_shape_krsc(filter_shape, K, C, R, S);
+    set_shape_nhwc(output_shape, N, K, P, Q);
     set_shape_nhwc(input_shape_algorithm, N, C, H, W);
     set_shape_krsc(filter_shape_algorithm, K, C, R, S);
   }

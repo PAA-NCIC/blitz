@@ -110,7 +110,17 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
             str_h, str_w);
           break;
         case BLITZ_BUFFER_NHWC:
-          LOG(FATAL) << "Wait to be supported data layout!" << input->data_layout();
+          ConvolutionForwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+            input->data(),
+            filter->data(),
+            output->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
         default:
           LOG(FATAL) << "Not supported data layout!" << input->data_layout();
       }
@@ -234,7 +244,17 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
             str_h, str_w);
           break;
         case BLITZ_BUFFER_NHWC:
-          LOG(FATAL) << "Wait to be supported data layout!" << input->data_layout();
+          ConvolutionBackwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+            output->data(),
+            filter->data(),
+            input->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
         default:
           LOG(FATAL) << "Not supported data layout!" << input->data_layout();
       }
@@ -366,7 +386,17 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
             str_h, str_w);
           break;
         case BLITZ_BUFFER_NHWC:
-          LOG(FATAL) << "Wait to be supported data layout!" << input->data_layout();
+          ConvolutionUpdateNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+            input->data(),
+            output->data(),
+            update->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
         default:
           LOG(FATAL) << "Not supported data layout!" << input->data_layout();
       }

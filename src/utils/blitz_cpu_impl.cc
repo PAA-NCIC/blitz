@@ -3,9 +3,13 @@
 
 namespace blitz {
 
-#define ACCESS_INPUT(i, j, k, v) *(I + ((i * C + j) * H + k) * W + v)
-#define ACCESS_OUTPUT(i, j, k, v) *(O + ((i * K + j) * P + k) * Q + v)
-#define ACCESS_FILTER(i, j, k, v) *(F + ((i * C + j) * R + k) * S + v)
+#define ACCESS_INPUT_NCHW(i, j, k, v) *(I + ((i * C + j) * H + k) * W + v)
+#define ACCESS_OUTPUT_NKPQ(i, j, k, v) *(O + ((i * K + j) * P + k) * Q + v)
+#define ACCESS_FILTER_KCRS(i, j, k, v) *(F + ((i * C + j) * R + k) * S + v)
+
+#define ACCESS_INPUT_NHWC(i, j, k, v) *(I + ((i * H + j) * W + k) * C + v)
+#define ACCESS_OUTPUT_NPQK(i, j, k, v) *(O + ((i * P + j) * Q + k) * K + v)
+#define ACCESS_FILTER_KRSC(i, j, k, v) *(F + ((i * R + j) * S + k) * C + v)
 
 template<>
 void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
@@ -18,6 +22,28 @@ void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
+  if (pad_h == 0 && pad_w == 0) { //fast path
+    #pragma omp parallel for
+    for (size_t n = 0; n < N; ++n) {
+      for (size_t k = 0; k < K; ++k) {
+        for (size_t c = 0; c < C; ++c) {
+          for (size_t p = 0; p < P; ++p) {
+            int ih = p * str_h;
+            for (size_t q = 0; q < Q; ++q) {
+              int iw = q * str_w;
+              for (size_t r = 0; r < R; ++r) {
+                for (size_t s = 0; s < S; ++s) {
+                  ACCESS_OUTPUT_NKPQ(n, k, p, q) += ACCESS_INPUT_NCHW(n, c, (ih + r), (iw + s)) *
+                    ACCESS_FILTER_KCRS(k, c, r, s); 
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return;
+  }
   #pragma omp parallel for
   for (size_t n = 0; n < N; ++n) {
     for (size_t k = 0; k < K; ++k) {
@@ -26,14 +52,50 @@ void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
           int ih = p * str_h - pad_h;
           for (size_t q = 0; q < Q; ++q) {
             int iw = q * str_w - pad_w;
-            for (size_t r = 0; r < R; ++r) {
-              if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
-                for (size_t s = 0; s < S; ++s) {
-                  if (iw + static_cast<int>(s) >= 0 && iw + static_cast<int>(s) < static_cast<int>(W)) {
-                    ACCESS_OUTPUT(n, k, p, q) += ACCESS_INPUT(n, c, (ih + r), (iw + s)) *
-                      ACCESS_FILTER(k, c, r, s); 
-                  }
-                }
+            size_t r_end = ih + R < H ? R : H - ih;
+            size_t s_end = iw + S < W ? S : W - iw;
+            size_t r = ih < 0 ? -ih : 0;
+            for (; r < r_end; ++r) {
+              size_t s = iw < 0 ? -iw : 0;
+              for (; s < s_end; ++s) {
+                ACCESS_OUTPUT_NKPQ(n, k, p, q) += ACCESS_INPUT_NCHW(n, c, (ih + r), (iw + s)) *
+                  ACCESS_FILTER_KCRS(k, c, r, s); 
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+template<>
+void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
+  const float* I,
+  const float* F,
+  float* O,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t p = 0; p < P; ++p) {
+      int ih = p * str_h - pad_h;
+      for (size_t q = 0; q < Q; ++q) {
+        int iw = q * str_w - pad_w;
+        size_t r_end = ih + R < H ? R : H - ih;
+        size_t s_end = iw + S < W ? S : W - iw;
+        size_t r = ih < 0 ? -ih : 0;
+        for (; r < r_end; ++r) {
+          size_t s = iw < 0 ? -iw : 0;
+          for (; s < s_end; ++s) {
+            for (size_t k = 0; k < K; ++k) {
+              for (size_t c = 0; c < C; ++c) {
+                ACCESS_OUTPUT_NPQK(n, p, q, k) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
+                  ACCESS_FILTER_KRSC(k, r, s, c); 
               }
             }
           }
@@ -54,6 +116,27 @@ void ConvolutionBackwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
+  if (pad_h == 0 && pad_w == 0) {
+    #pragma omp parallel for
+    for (size_t n = 0; n < N; ++n) {
+      for (size_t c = 0; c < C; ++c) {
+        for (size_t k = 0; k < K; ++k) {
+          for (size_t p = 0; p < P; ++p) {
+            int ih = p * str_h;
+            for (size_t q = 0; q < Q; ++q) {
+              int iw = q * str_w;
+              for (size_t r = 0; r < R; ++r) {
+                for (size_t s = 0; s < S; ++s) {
+                  ACCESS_INPUT_NCHW(n, c, (ih + r), (iw + s)) += ACCESS_OUTPUT_NKPQ(n, k, p, q) *
+                    ACCESS_FILTER_KCRS(k, c, r, s); 
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   #pragma omp parallel for
   for (size_t n = 0; n < N; ++n) {
     for (size_t c = 0; c < C; ++c) {
@@ -62,14 +145,50 @@ void ConvolutionBackwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
           int ih = p * str_h - pad_h;
           for (size_t q = 0; q < Q; ++q) {
             int iw = q * str_w - pad_w;
-            for (size_t r = 0; r < R; ++r) {
-              if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
-                for (size_t s = 0; s < S; ++s) {
-                  if (iw + static_cast<int>(s) >= 0 && iw + static_cast<int>(s) < static_cast<int>(W)) {
-                    ACCESS_INPUT(n, c, (ih + r), (iw + s)) += ACCESS_OUTPUT(n, k, p, q) *
-                      ACCESS_FILTER(k, c, r, s); 
-                  }
-                }
+            size_t r_end = ih + R < H ? R : H - ih;
+            size_t s_end = iw + S < W ? S : W - iw;
+            size_t r = ih < 0 ? -ih : 0;
+            for (; r < r_end; ++r) {
+              size_t s = iw < 0 ? -iw : 0;
+              for (; s < s_end; ++s) {
+                ACCESS_INPUT_NCHW(n, c, (ih + r), (iw + s)) += ACCESS_OUTPUT_NKPQ(n, k, p, q) *
+                  ACCESS_FILTER_KCRS(k, c, r, s); 
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+template<>
+void ConvolutionBackwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
+  const float* O,
+  const float* F,
+  float* I,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t p = 0; p < P; ++p) {
+      int ih = p * str_h - pad_h;
+      for (size_t q = 0; q < Q; ++q) {
+        int iw = q * str_w - pad_w;
+        size_t r_end = ih + R < H ? R : H - ih;
+        size_t s_end = iw + S < W ? S : W - iw;
+        size_t r = ih < 0 ? -ih : 0;
+        for (; r < r_end; ++r) {
+          size_t s = iw < 0 ? -iw : 0;
+          for (; s < s_end; ++s) {
+            for (size_t k = 0; k < K; ++k) {
+              for (size_t c = 0; c < C; ++c) {
+                ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) += ACCESS_OUTPUT_NPQK(n, p, q, k) *
+                  ACCESS_FILTER_KRSC(k, r, s, c); 
               }
             }
           }
@@ -90,22 +209,79 @@ void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
-  #pragma omp parallel for
-  for (size_t c = 0; c < C; ++c) {
+  if (pad_h == 0 && pad_w == 0) {
+    #pragma omp parallel for
     for (size_t k = 0; k < K; ++k) {
+      for (size_t c = 0; c < C; ++c) {
+        for (size_t n = 0; n < N; ++n) {
+          for (size_t p = 0; p < P; ++p) {
+            int ih = p * str_h;
+            for (size_t q = 0; q < Q; ++q) {
+              int iw = q * str_w;
+              for (size_t r = 0; r < R; ++r) {
+                for (size_t s = 0; s < S; ++s) {
+                  ACCESS_FILTER_KCRS(k, c, r, s) += ACCESS_INPUT_NCHW(n, c, (ih + r), (iw + s)) *
+                    ACCESS_OUTPUT_NKPQ(n, k, p, q); 
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  #pragma omp parallel for
+  for (size_t k = 0; k < K; ++k) {
+    for (size_t c = 0; c < C; ++c) {
       for (size_t n = 0; n < N; ++n) {
         for (size_t p = 0; p < P; ++p) {
           int ih = p * str_h - pad_h;
           for (size_t q = 0; q < Q; ++q) {
             int iw = q * str_w - pad_w;
-            for (size_t r = 0; r < R; ++r) {
-              if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
-                for (size_t s = 0; s < S; ++s) {
-                  if (iw + static_cast<int>(s) >= 0 && iw + static_cast<int>(s) < static_cast<int>(W)) {
-                    ACCESS_FILTER(k, c, r, s) += ACCESS_INPUT(n, c, (ih + r), (iw + s)) *
-                      ACCESS_OUTPUT(n, k, p, q); 
-                  }
-                }
+            size_t r_end = ih + R < H ? R : H - ih;
+            size_t s_end = iw + S < W ? S : W - iw;
+            size_t r = ih < 0 ? -ih : 0;
+            for (; r < r_end; ++r) {
+              size_t s = iw < 0 ? -iw : 0;
+              for (; s < s_end; ++s) {
+                ACCESS_FILTER_KCRS(k, c, r, s) += ACCESS_INPUT_NCHW(n, c, (ih + r), (iw + s)) *
+                  ACCESS_OUTPUT_NKPQ(n, k, p, q); 
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+template<>
+void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
+  const float* I,
+  const float* O,
+  float* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t k = 0; k < K; ++k) {
+    for (size_t n = 0; n < N; ++n) {
+      for (size_t p = 0; p < P; ++p) {
+        int ih = p * str_h - pad_h;
+        for (size_t q = 0; q < Q; ++q) {
+          int iw = q * str_w - pad_w;
+          size_t r_end = ih + R < H ? R : H - ih;
+          size_t s_end = iw + S < W ? S : W - iw;
+          size_t r = ih < 0 ? -ih : 0;
+          for (; r < r_end; ++r) {
+            size_t s = iw < 0 ? -iw : 0;
+            for (; s < s_end; ++s) {
+              for (size_t c = 0; c < C; ++c) {
+                ACCESS_FILTER_KRSC(k, r, s, c) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
+                  ACCESS_OUTPUT_NPQK(n, p, q, k); 
               }
             }
           }
