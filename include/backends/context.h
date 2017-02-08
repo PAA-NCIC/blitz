@@ -11,7 +11,7 @@ namespace blitz {
 template<template <typename> class TensorType, typename DType>
 class ConvolutionContext {
  public:
-  ConvolutionContext(const Shape* input_shape, const Shape* filter_shape,
+  ConvolutionContext(const Shape& input_shape, const Shape& filter_shape,
     size_t pad_h, size_t pad_w, size_t str_h, size_t str_w) :
     pad_h_(pad_h), pad_w_(pad_w), str_h_(str_h), str_w_(str_w),
     conv_algorithm_(BLITZ_CONVOLUTION_NAIVE_DIRECT) {

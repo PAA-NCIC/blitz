@@ -63,7 +63,7 @@ void convolution_forward(
   CPUTensor<float> filter_cpu_algorithm(filter_shape_algorithm);
   CPUTensor<float> output_cpu_algorithm(output_shape_algorithm);
   ConvolutionContext<CPUTensor, float> context_algorithm(
-    &input_shape_algorithm, &filter_shape_algorithm,
+    input_shape_algorithm, filter_shape_algorithm,
     pad_h, pad_w, str_h, str_w);
   context_algorithm.InitAlgorithmForUser(algorithm);
   // initial tensors
@@ -71,7 +71,7 @@ void convolution_forward(
   CPUTensor<float> filter_cpu(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   ConvolutionContext<CPUTensor, float> context(
-    &input_shape, &filter_shape,
+    input_shape, filter_shape,
     pad_h, pad_w, str_h, str_w);
   context.InitAlgorithmForUser(BLITZ_CONVOLUTION_NAIVE_DIRECT);
   // init values
@@ -114,7 +114,7 @@ void convolution_backward(
   CPUTensor<float> filter_cpu_algorithm(filter_shape_algorithm);
   CPUTensor<float> output_cpu_algorithm(output_shape_algorithm);
   ConvolutionContext<CPUTensor, float> context_algorithm(
-    &input_shape_algorithm, &filter_shape_algorithm,
+    input_shape_algorithm, filter_shape_algorithm,
     pad_h, pad_w, str_h, str_w);
   context_algorithm.InitAlgorithmForUser(algorithm);
   // initial tensors
@@ -122,7 +122,7 @@ void convolution_backward(
   CPUTensor<float> filter_cpu(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   ConvolutionContext<CPUTensor, float> context(
-    &input_shape, &filter_shape,
+    input_shape, filter_shape,
     pad_h, pad_w, str_h, str_w);
   context.InitAlgorithmForUser(BLITZ_CONVOLUTION_NAIVE_DIRECT);
   // init values
@@ -165,7 +165,7 @@ void convolution_update(
   CPUTensor<float> filter_cpu_algorithm(filter_shape_algorithm);
   CPUTensor<float> output_cpu_algorithm(output_shape_algorithm);
   ConvolutionContext<CPUTensor, float> context_algorithm(
-    &input_shape_algorithm, &filter_shape_algorithm,
+    input_shape_algorithm, filter_shape_algorithm,
     pad_h, pad_w, str_h, str_w);
   context_algorithm.InitAlgorithmForUser(algorithm);
   // initial tensors
@@ -173,7 +173,7 @@ void convolution_update(
   CPUTensor<float> filter_cpu(filter_shape);
   CPUTensor<float> output_cpu(output_shape);
   ConvolutionContext<CPUTensor, float> context(
-    &input_shape, &filter_shape,
+    input_shape, filter_shape,
     pad_h, pad_w, str_h, str_w);
   context.InitAlgorithmForUser(BLITZ_CONVOLUTION_NAIVE_DIRECT);
   // init values

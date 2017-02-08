@@ -13,9 +13,9 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   size_t NOUT, K, P, Q;
   size_t pad_h, pad_w;
   size_t str_h, str_w;
-  Blitz2DBuffer(input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(filter->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->shape_ptr(), &NOUT, &K, &P, &Q);
+  Blitz2DBuffer(input->shape(), &NIN, &C, &H, &W);
+  Blitz2DFilter(filter->shape(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape(), &NOUT, &K, &P, &Q);
   context->CheckInputDataLayout(NIN, C, H, W);
   context->CheckFilterDataLayout(KF, CF, R, S);
   context->CheckOutputDataLayout(NOUT, K, P, Q);
@@ -138,9 +138,9 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   size_t NOUT, K, P, Q;
   size_t pad_h, pad_w;
   size_t str_h, str_w;
-  Blitz2DBuffer(input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(filter->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->shape_ptr(), &NOUT, &K, &P, &Q);
+  Blitz2DBuffer(input->shape(), &NIN, &C, &H, &W);
+  Blitz2DFilter(filter->shape(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape(), &NOUT, &K, &P, &Q);
   context->CheckInputDataLayout(NIN, C, H, W);
   context->CheckFilterDataLayout(KF, CF, R, S);
   context->CheckOutputDataLayout(NOUT, K, P, Q);
@@ -262,9 +262,9 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   size_t NOUT, K, P, Q;
   size_t pad_h, pad_w;
   size_t str_h, str_w;
-  Blitz2DBuffer(input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(update->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->shape_ptr(), &NOUT, &K, &P, &Q);
+  Blitz2DBuffer(input->shape(), &NIN, &C, &H, &W);
+  Blitz2DFilter(update->shape(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape(), &NOUT, &K, &P, &Q);
   context->CheckInputDataLayout(NIN, C, H, W);
   context->CheckFilterDataLayout(KF, CF, R, S);
   context->CheckOutputDataLayout(NOUT, K, P, Q);
