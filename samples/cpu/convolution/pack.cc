@@ -112,7 +112,7 @@ void pack_base(
         int h_pad = h * stride_height - padding_height + h_offset;
         int w_pad = w * stride_width - padding_width + w_offset;
         if (h_pad >= 0 && h_pad < static_cast<int>(input_height) &&
-	  w_pad >= 0 && w_pad < static_cast<int>(input_width)) {
+          w_pad >= 0 && w_pad < static_cast<int>(input_width)) {
           input[(c_im * input_height + h_pad) * input_width + w_pad] +=
             unpack[(c * output_height + h) * output_width + w];
         }
@@ -158,9 +158,9 @@ void workspace_hwc2chw(const float* hwc, float* chw, size_t output_height, size_
 void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations) {
   // shape decode
   size_t N, H, W, C, R, S, K, P, Q;
-  Blitz2DBuffer(input_shape.data_layout(), &input_shape, &N, &C, &H, &W);
-  Blitz2DFilter(filter_shape.data_layout(), &filter_shape, &K, &C, &R, &S);
-  Blitz2DBuffer(output_shape.data_layout(), &output_shape, &N, &K, &P, &Q);
+  Blitz2DBuffer(&input_shape, &N, &C, &H, &W);
+  Blitz2DFilter(&filter_shape, &K, &C, &R, &S);
+  Blitz2DBuffer(&output_shape, &N, &K, &P, &Q);
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> input_cpu_transform(input_shape);
@@ -229,9 +229,9 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
 void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterations) {
   // shape decode
   size_t N, H, W, C, R, S, K, P, Q;
-  Blitz2DBuffer(input_shape.data_layout(), &input_shape, &N, &C, &H, &W);
-  Blitz2DFilter(filter_shape.data_layout(), &filter_shape, &K, &C, &R, &S);
-  Blitz2DBuffer(output_shape.data_layout(), &output_shape, &N, &K, &P, &Q);
+  Blitz2DBuffer(&input_shape, &N, &C, &H, &W);
+  Blitz2DFilter(&filter_shape, &K, &C, &R, &S);
+  Blitz2DBuffer(&output_shape, &N, &K, &P, &Q);
   // set up cpu
   CPUTensor<float> input_cpu(input_shape);
   CPUTensor<float> input_cpu_transform(input_shape);

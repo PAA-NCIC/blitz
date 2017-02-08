@@ -1,13 +1,11 @@
 #ifndef INCLUDE_BACKENDS_BACKEND_H_
 #define INCLUDE_BACKENDS_BACKEND_H_
 
-#include <vector>
-#include <string>
-
 #include "utils/common.h"
 #include "utils/blitz_algorithm_function.h"
 #include "utils/blitz_shape_function.h"
 #include "utils/blitz_impl_function.h"
+#include "backends/context.h"
 
 namespace blitz {
 
@@ -136,28 +134,19 @@ class Backend {
     const TensorType<DType>* input,
     const TensorType<DType>* filter,
     TensorType<DType>* output,
-    TensorType<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<TensorType, DType>* context);
 
   static void Convolution2DBackwardFunc(
     const TensorType<DType>* output,
     const TensorType<DType>* filter,
     TensorType<DType>* input,
-    TensorType<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<TensorType, DType>* context);
 
   static void Convolution2DUpdateFunc(
     const TensorType<DType>* input,
     const TensorType<DType>* output,
     TensorType<DType>* update,
-    TensorType<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<TensorType, DType>* context);
 
   static void MaxPooling2DForwardFunc(
     const TensorType<DType>* input,

@@ -60,21 +60,15 @@ A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. 
 ####CPU backend
 
 
-    BLITZ_AVX=according to processor support
-
-    BLAS=openblas/atlas/mkl
+    make BLITZ_AVX=0/1/2/3 BLAS=openblas/atlas/mkl
 
 
 ####GPU backend
 
-    BLITZ_USE_GPU=1
-
-    CUDA_ARCH=according to GPU generation
+    make BLITZ_USE_GPU=1 CUDA_ARCH=<according to specific GPU generation>
 
 
 ####MIC backend
 
-    BLITZ_USE_MIC=1
-
-    BLITZ_AVX=512
+    make BLITZ_USE_MIC=1 BLITZ_AVX=512
 

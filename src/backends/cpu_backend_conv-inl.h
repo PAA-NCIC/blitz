@@ -6,22 +6,24 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const CPUTensor<DType>* input,
   const CPUTensor<DType>* filter,
   CPUTensor<DType>* output,
-  CPUTensor<DType>* workspace,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_ALGORITHM algorithm) {
+  ConvolutionContext<CPUTensor, DType>* context) {
   // shape decode
   size_t NIN, C, H, W;
   size_t KF, CF, R, S;
   size_t NOUT, K, P, Q;
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
-  CHECK_EQ(NIN, NOUT);
-  CHECK_EQ(KF, K);
-  CHECK_EQ(CF, C);
+  size_t pad_h, pad_w;
+  size_t str_h, str_w;
+  Blitz2DBuffer(input->shape_ptr(), &NIN, &C, &H, &W);
+  Blitz2DFilter(filter->shape_ptr(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape_ptr(), &NOUT, &K, &P, &Q);
+  context->CheckInputDataLayout(NIN, C, H, W);
+  context->CheckFilterDataLayout(KF, CF, R, S);
+  context->CheckOutputDataLayout(NOUT, K, P, Q);
+  pad_h = context->pad_h();
+  pad_w = context->pad_w();
+  str_h = context->str_h();
+  str_w = context->str_w();
+  CPUTensor<DType>* workspace = context->workspace();
   // offset
   size_t nCHW = 0;
   size_t nKPQ = 0;
@@ -36,7 +38,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   double elapsed_time;
   BLITZ_CPU_TIMER_START(elapsed_time, start);
   #endif  // BLITZ_PERFORMANCE
-  switch (algorithm) { // NCHW & NHWC
+  switch (context->algorithm()) { // NCHW & NHWC
     case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
       #pragma omp parallel private(nCHW, nKPQ)
       {
@@ -53,14 +55,14 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
             C, H, W,
             R, S,
             P, Q,
-            padding_height, padding_width,
-            stride_height, stride_width,
+            pad_h, pad_w,
+            str_h, str_w,
             input->data_layout());
           Convolution2DForwardGEMMDispatch(workspace_unpack_slice,
             output->Slice(nKPQ),
             const_cast<CPUTensor<DType>*>(filter)->data(),
             K, PQ, CRS,
-	    input->data_layout(),
+            input->data_layout(),
             output->data_layout());
         }
       }
@@ -71,25 +73,50 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         nCHW = n * CHW;
         nKPQ = n * KPQ;
         Unpack2DFunc(
-	  input->Slice(nCHW),
+          input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
           P, Q,
-          padding_height, padding_width,
-          stride_height, stride_width,
+          pad_h, pad_w,
+          str_h, str_w,
           input->data_layout());
         Convolution2DForwardGEMMDispatch(workspace->data(),
           output->Slice(nKPQ),
           const_cast<CPUTensor<DType>*>(filter)->data(),
           K, PQ, CRS,
-	  input->data_layout(),
+          input->data_layout(),
           output->data_layout());
       }
       break;
     }
+    case BLITZ_CONVOLUTION_NAIVE_DIRECT: {
+      if (input->data_layout() != output->data_layout()) {
+        LOG(FATAL) << "Not supported data layout transformation from " <<
+          input->data_layout() << " to " << output->data_layout() << " for direct convolution!";
+      }
+      switch (input->data_layout()) {
+        case BLITZ_BUFFER_NCHW:
+          ConvolutionForwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+            input->data(),
+            filter->data(),
+            output->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
+        case BLITZ_BUFFER_NHWC:
+          LOG(FATAL) << "Wait to be supported data layout!" << input->data_layout();
+        default:
+          LOG(FATAL) << "Not supported data layout!" << input->data_layout();
+      }
+      break;
+    }
     default:
-      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;
   }
   #ifdef BLITZ_PERFORMANCE
@@ -104,22 +131,24 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   const CPUTensor<DType>* output,
   const CPUTensor<DType>* filter,
   CPUTensor<DType>* input,
-  CPUTensor<DType>* workspace,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_ALGORITHM algorithm) {
+  ConvolutionContext<CPUTensor, DType>* context) {
   // shape decode
   size_t NIN, C, H, W;
   size_t KF, CF, R, S;
   size_t NOUT, K, P, Q;
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
-  CHECK_EQ(NIN, NOUT);
-  CHECK_EQ(KF, K);
-  CHECK_EQ(CF, C);
+  size_t pad_h, pad_w;
+  size_t str_h, str_w;
+  Blitz2DBuffer(input->shape_ptr(), &NIN, &C, &H, &W);
+  Blitz2DFilter(filter->shape_ptr(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape_ptr(), &NOUT, &K, &P, &Q);
+  context->CheckInputDataLayout(NIN, C, H, W);
+  context->CheckFilterDataLayout(KF, CF, R, S);
+  context->CheckOutputDataLayout(NOUT, K, P, Q);
+  pad_h = context->pad_h();
+  pad_w = context->pad_w();
+  str_h = context->str_h();
+  str_w = context->str_w();
+  CPUTensor<DType>* workspace = context->workspace();
   // dims
   const size_t CHW = C * H * W;
   const size_t PQ = P * Q;
@@ -135,7 +164,7 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   double elapsed_time;
   BLITZ_CPU_TIMER_START(elapsed_time, start);
   #endif  // BLITZ_PERFORMANCE
-  switch (algorithm) {
+  switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
       #pragma omp parallel private(nCHW, nKPQ) 
       {
@@ -146,20 +175,20 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
           nCHW = n * CHW;
           nKPQ = n * KPQ;
           Convolution2DBackwardGEMMDispatch(
-	    const_cast<CPUTensor<DType>*>(filter)->data(),
+            const_cast<CPUTensor<DType>*>(filter)->data(),
             const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->Slice(workspace_unpack_offset),
             K, PQ, CRS,
-	    input->data_layout(),
-	    output->data_layout());
+            input->data_layout(),
+            output->data_layout());
           Pack2DFunc(workspace->Slice(workspace_unpack_offset),
             input->Slice(nCHW),
             C, H, W,
             R, S,
             P, Q,
-            padding_height, padding_width,
-            stride_height, stride_width,
-	    input->data_layout());
+            pad_h, pad_w,
+            str_h, str_w,
+            input->data_layout());
         }
       }
       break;
@@ -169,25 +198,49 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
         nCHW = n * CHW;
         nKPQ = n * KPQ;
         Convolution2DBackwardGEMMDispatch(
-	  const_cast<CPUTensor<DType>*>(filter)->data(),
+          const_cast<CPUTensor<DType>*>(filter)->data(),
           const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
           workspace->data(),
           K, PQ, CRS,
-	  input->data_layout(),
-	  output->data_layout());
+          input->data_layout(),
+          output->data_layout());
         Pack2DFunc(workspace->data(),
           input->Slice(nCHW),
           C, H, W,
           R, S,
           P, Q,
-          padding_height, padding_width,
-          stride_height, stride_width,
-	  input->data_layout());
+          pad_h, pad_w,
+          str_h, str_w,
+          input->data_layout());
+      }
+      break;
+    }
+    case BLITZ_CONVOLUTION_NAIVE_DIRECT: {
+      if (input->data_layout() != output->data_layout()) {
+        LOG(FATAL) << "Not supported data layout transformation for direct convolution!";
+      }
+      switch (input->data_layout()) {
+        case BLITZ_BUFFER_NCHW:
+          ConvolutionBackwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+            output->data(),
+            filter->data(),
+            input->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
+        case BLITZ_BUFFER_NHWC:
+          LOG(FATAL) << "Wait to be supported data layout!" << input->data_layout();
+        default:
+          LOG(FATAL) << "Not supported data layout!" << input->data_layout();
       }
       break;
     }
     default:
-      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;
   }
   #ifdef BLITZ_PERFORMANCE
@@ -202,22 +255,24 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   const CPUTensor<DType>* input,
   const CPUTensor<DType>* output,
   CPUTensor<DType>* update,
-  CPUTensor<DType>* workspace,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_ALGORITHM algorithm) {
+  ConvolutionContext<CPUTensor, DType>* context) {
   // shape decode
   size_t NIN, C, H, W;
   size_t KF, CF, R, S;
   size_t NOUT, K, P, Q;
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(update->data_layout(), update->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
-  CHECK_EQ(NIN, NOUT);
-  CHECK_EQ(KF, K);
-  CHECK_EQ(CF, C);
+  size_t pad_h, pad_w;
+  size_t str_h, str_w;
+  Blitz2DBuffer(input->shape_ptr(), &NIN, &C, &H, &W);
+  Blitz2DFilter(update->shape_ptr(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape_ptr(), &NOUT, &K, &P, &Q);
+  context->CheckInputDataLayout(NIN, C, H, W);
+  context->CheckFilterDataLayout(KF, CF, R, S);
+  context->CheckOutputDataLayout(NOUT, K, P, Q);
+  pad_h = context->pad_h();
+  pad_w = context->pad_w();
+  str_h = context->str_h();
+  str_w = context->str_w();
+  CPUTensor<DType>* workspace = context->workspace();
   // dims
   const size_t CHW = C * H * W;
   const size_t PQ = P * Q;
@@ -233,7 +288,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   double elapsed_time;
   BLITZ_CPU_TIMER_START(elapsed_time, start);
   #endif  // BLITZ_PERFORMANCE
-  switch (algorithm) {
+  switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
       #pragma omp parallel private(nCHW, nKPQ)
       {
@@ -251,15 +306,15 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
             C, H, W,
             R, S,
             P, Q,
-            padding_height, padding_width,
-            stride_height, stride_width,
+            pad_h, pad_w,
+            str_h, str_w,
             input->data_layout());
           Convolution2DUpdateGEMMDispatch(
             workspace->Slice(workspace_unpack_offset),
             const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->Slice(workspace_update_offset),
             K, CRS, PQ,
-	    input->data_layout(),
+            input->data_layout(),
             output->data_layout());
         }
         for (size_t i = 0; i < update->size(); ++i) {
@@ -278,21 +333,45 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
           C, H, W,
           R, S,
           P, Q,
-          padding_height, padding_width,
-          stride_height, stride_width,
+          pad_h, pad_w,
+          str_h, str_w,
           input->data_layout());
         Convolution2DUpdateGEMMDispatch(
           workspace->data(),
           const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
           update->data(),
           K, CRS, PQ,
-	  input->data_layout(),
+          input->data_layout(),
           output->data_layout());
       }
       break;
     }
+    case BLITZ_CONVOLUTION_NAIVE_DIRECT: {
+      if (input->data_layout() != output->data_layout()) {
+        LOG(FATAL) << "Not supported data layout transformation for direct convolution!";
+      }
+      switch (input->data_layout()) {
+        case BLITZ_BUFFER_NCHW:
+          ConvolutionUpdateNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+            input->data(),
+            output->data(),
+            update->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
+        case BLITZ_BUFFER_NHWC:
+          LOG(FATAL) << "Wait to be supported data layout!" << input->data_layout();
+        default:
+          LOG(FATAL) << "Not supported data layout!" << input->data_layout();
+      }
+      break;
+    }
     default:
-      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;
   }
   #ifdef BLITZ_PERFORMANCE

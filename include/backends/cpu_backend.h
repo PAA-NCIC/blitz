@@ -136,28 +136,19 @@ class Backend<CPUTensor, DType> {
     const CPUTensor<DType>* input,
     const CPUTensor<DType>* filter,
     CPUTensor<DType>* output,
-    CPUTensor<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<CPUTensor, DType>* context);
 
   static void Convolution2DBackwardFunc(
     const CPUTensor<DType>* output,
     const CPUTensor<DType>* filter,
     CPUTensor<DType>* input,
-    CPUTensor<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<CPUTensor, DType>* context);
 
   static void Convolution2DUpdateFunc(
     const CPUTensor<DType>* input,
     const CPUTensor<DType>* output,
     CPUTensor<DType>* update,
-    CPUTensor<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<CPUTensor, DType>* context);
 
   static void MaxPooling2DForwardFunc(
     const CPUTensor<DType>* input,

@@ -15,8 +15,8 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   size_t ON, K, P, Q;
   // shape decode
   CHECK_EQ(input->data_layout(), output->data_layout());
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
+  Blitz2DBuffer(input->shape_ptr(), &IN, &C, &H, &W);
+  Blitz2DBuffer(output->shape_ptr(), &ON, &K, &P, &Q);
   CHECK_EQ(IN, ON);
   CHECK_EQ(C, K);
   switch (input->data_layout()) {
@@ -62,8 +62,8 @@ void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   size_t ON, K, P, Q;
   // shape decode
   CHECK_EQ(input->data_layout(), output->data_layout());
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &IN, &C, &H, &W);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &ON, &K, &P, &Q);
+  Blitz2DBuffer(input->shape_ptr(), &IN, &C, &H, &W);
+  Blitz2DBuffer(output->shape_ptr(), &ON, &K, &P, &Q);
   CHECK_EQ(IN, ON);
   CHECK_EQ(C, K);
   // set zero

@@ -3,6 +3,118 @@
 
 namespace blitz {
 
+#define ACCESS_INPUT(i, j, k, v) *(I + ((i * C + j) * H + k) * W + v)
+#define ACCESS_OUTPUT(i, j, k, v) *(O + ((i * K + j) * P + k) * Q + v)
+#define ACCESS_FILTER(i, j, k, v) *(F + ((i * C + j) * R + k) * S + v)
+
+template<>
+void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
+  const float* I,
+  const float* F,
+  float* O,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t k = 0; k < K; ++k) {
+      for (size_t c = 0; c < C; ++c) {
+        for (size_t p = 0; p < P; ++p) {
+          int ih = p * str_h - pad_h;
+          for (size_t q = 0; q < Q; ++q) {
+            int iw = q * str_w - pad_w;
+            for (size_t r = 0; r < R; ++r) {
+              if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
+                for (size_t s = 0; s < S; ++s) {
+                  if (iw + static_cast<int>(s) >= 0 && iw + static_cast<int>(s) < static_cast<int>(W)) {
+                    ACCESS_OUTPUT(n, k, p, q) += ACCESS_INPUT(n, c, (ih + r), (iw + s)) *
+                      ACCESS_FILTER(k, c, r, s); 
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+template<>
+void ConvolutionBackwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
+  const float* O,
+  const float* F,
+  float* I,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t c = 0; c < C; ++c) {
+      for (size_t k = 0; k < K; ++k) {
+        for (size_t p = 0; p < P; ++p) {
+          int ih = p * str_h - pad_h;
+          for (size_t q = 0; q < Q; ++q) {
+            int iw = q * str_w - pad_w;
+            for (size_t r = 0; r < R; ++r) {
+              if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
+                for (size_t s = 0; s < S; ++s) {
+                  if (iw + static_cast<int>(s) >= 0 && iw + static_cast<int>(s) < static_cast<int>(W)) {
+                    ACCESS_INPUT(n, c, (ih + r), (iw + s)) += ACCESS_OUTPUT(n, k, p, q) *
+                      ACCESS_FILTER(k, c, r, s); 
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+template<>
+void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
+  const float* I,
+  const float* O,
+  float* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t c = 0; c < C; ++c) {
+    for (size_t k = 0; k < K; ++k) {
+      for (size_t n = 0; n < N; ++n) {
+        for (size_t p = 0; p < P; ++p) {
+          int ih = p * str_h - pad_h;
+          for (size_t q = 0; q < Q; ++q) {
+            int iw = q * str_w - pad_w;
+            for (size_t r = 0; r < R; ++r) {
+              if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
+                for (size_t s = 0; s < S; ++s) {
+                  if (iw + static_cast<int>(s) >= 0 && iw + static_cast<int>(s) < static_cast<int>(W)) {
+                    ACCESS_FILTER(k, c, r, s) += ACCESS_INPUT(n, c, (ih + r), (iw + s)) *
+                      ACCESS_OUTPUT(n, k, p, q); 
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 template<>
 void UnpackImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
   const float* I,
@@ -60,8 +172,8 @@ void UnpackImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
         for (int w = S_offset; w < static_cast<int>(S) + S_offset; ++w) {
           if (h >= 0 && h < static_cast<int>(H) && w >= 0 && w < static_cast<int>(W)) {
             for(size_t c = 0; c < C; ++c) {
-	      unpack[c] = I[(h * W + w) * C + c];
-	    }
+              unpack[c] = I[(h * W + w) * C + c];
+            }
           } else {
             memset(unpack, 0, sizeof(float) * C);
           }

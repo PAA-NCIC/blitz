@@ -19,10 +19,9 @@ inline BLITZ_DATA_LAYOUT BlitzParseShape(const string& data_layout) {
   }
 }
 
-inline void Blitz2DBuffer(BLITZ_DATA_LAYOUT data_layout,
-  const Shape* shape, size_t* N, size_t* C, size_t* H, size_t* W) {
+inline void Blitz2DBuffer(const Shape* shape, size_t* N, size_t* C, size_t* H, size_t* W) {
   CHECK_EQ(shape->dimension(), 4);
-  switch (data_layout) {
+  switch (shape->data_layout()) {
     case BLITZ_BUFFER_NCHW:
       *N = (*shape)[0];
       *C = (*shape)[1];
@@ -36,15 +35,14 @@ inline void Blitz2DBuffer(BLITZ_DATA_LAYOUT data_layout,
       *C = (*shape)[3];
       break;
     default:
-      LOG(FATAL) << "Blitz unsupport convolution data layout: " << data_layout;
+      LOG(FATAL) << "Blitz unsupport convolution data layout: " << shape->data_layout();
       break;
   }
 }
 
-inline void Blitz2DFilter(BLITZ_DATA_LAYOUT data_layout,
-  const Shape* shape, size_t* K, size_t* C, size_t* R, size_t* S) {
+inline void Blitz2DFilter(const Shape* shape, size_t* K, size_t* C, size_t* R, size_t* S) {
   CHECK_EQ(shape->dimension(), 4);
-  switch (data_layout) {
+  switch (shape->data_layout()) {
     case BLITZ_FILTER_KCRS:
       *K = (*shape)[0];
       *C = (*shape)[1];
@@ -58,7 +56,7 @@ inline void Blitz2DFilter(BLITZ_DATA_LAYOUT data_layout,
       *K = (*shape)[3];
       break;
     default:
-      LOG(FATAL) << "Blitz unsupport convolution data layout: " << data_layout;
+      LOG(FATAL) << "Blitz unsupport convolution data layout: " << shape->data_layout();
       break;
   }
 }
