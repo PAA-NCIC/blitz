@@ -174,13 +174,13 @@ class Backend {
 
   static void UniformDistributionFunc(TensorType<DType>* output, DType low, DType high);
 
-  static void HostCopyToFunc(const DType* source, DType* target, size_t size);
-
   static float EvaluateClassifyFunc(
-    const TensorType<DType>* output, const TensorType<DType>* target);
+    const TensorType<DType>* output, const TensorType<DType>* dest);
 
   static float EvaluateRegressFunc(
     const TensorType<DType>* output, const TensorType<DType>* target);
+
+  static void TransformCopyFunc(const TensorType<DType>* source, TensorType<DType>* target);
 
   static void Unpack2DFunc(
     const DType* input,

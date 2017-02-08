@@ -116,6 +116,82 @@ void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
 }
 
 template<>
+void TransformBufferImpl<CPUTensor, float, BLITZ_BUFFER_NCHW, BLITZ_BUFFER_NHWC>(
+  const float* nchw,
+  float* nhwc,
+  size_t N,
+  size_t C, size_t H, size_t W) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    const float *chw = nchw + n * C * H * W;
+    float *hwc = nhwc + n * C * H * W;
+    for (size_t c = 0; c < C; ++c) {
+      for (size_t h = 0; h < H; ++h) {
+        for (size_t w = 0; w < W; ++w) {
+          hwc[h * W * C + w * C + c] = chw[c * H * W + h * W + w];
+        }
+      }
+    }
+  }
+}
+
+template<>
+void TransformBufferImpl<CPUTensor, float, BLITZ_BUFFER_NHWC, BLITZ_BUFFER_NCHW>(
+  const float* nhwc,
+  float* nchw,
+  size_t N,
+  size_t C, size_t H, size_t W) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    const float *hwc = nhwc + n * C * H * W;
+    float *chw = nchw + n * C * H * W;
+    for (size_t c = 0; c < C; ++c) {
+      for (size_t h = 0; h < H; ++h) {
+        for (size_t w = 0; w < W; ++w) {
+          chw[c * H * W + h * W + w] = hwc[h * W * C + w * C + c];
+        }
+      }
+    }
+  }
+}
+
+template<>
+void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KCRS, BLITZ_FILTER_KRSC>(
+  const float* kcrs,
+  float* krsc,
+  size_t K,
+  size_t C, size_t R, size_t S) {
+  #pragma omp parallel for
+  for (size_t k = 0; k < K; ++k) {
+    for (size_t c = 0; c < C; ++c) {
+      for (size_t r = 0; r < R; ++r) {
+        for (size_t s = 0; s < S; ++s) {
+          krsc[((k * R + r) * S + s) * C + c] = kcrs[((k * C + c) * R + r) * S + s];
+        }
+      }
+    }
+  }
+}
+
+template<>
+void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KRSC, BLITZ_FILTER_KCRS>(
+  const float* krsc,
+  float* kcrs,
+  size_t K,
+  size_t C, size_t R, size_t S) {
+  #pragma omp parallel for
+  for (size_t k = 0; k < K; ++k) {
+    for (size_t s = 0; s < S; ++s) {
+      for (size_t r = 0; r < R; ++r) {
+        for (size_t c = 0; c < C; ++c) {
+          kcrs[((k * C + c) * R + r) * S + s] = krsc[((k * R + r) * S + s) * C + c];
+        }
+      }
+    }
+  }
+}
+
+template<>
 void UnpackImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
   const float* I,
   float* unpack,

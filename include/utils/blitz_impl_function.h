@@ -41,6 +41,22 @@ void ConvolutionUpdateNaiveImpl(
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w);
 
+template<template <typename> class TensorType, typename DType,
+  BLITZ_DATA_LAYOUT SourceDataLayout, BLITZ_DATA_LAYOUT DestDataLayout>
+void TransformBufferImpl(
+  const DType* source,
+  DType* dest,
+  size_t N,
+  size_t C, size_t H, size_t W);
+
+template<template <typename> class TensorType, typename DType,
+  BLITZ_DATA_LAYOUT SourceDataLayout, BLITZ_DATA_LAYOUT DestDataLayout>
+void TransformFilterImpl(
+  const DType* source,
+  DType* dest,
+  size_t K,
+  size_t C, size_t R, size_t S);
+
 template<template <typename> class TensorType, typename DType, BLITZ_DATA_LAYOUT DataLayout>
 void PackImpl(
   const DType* I,

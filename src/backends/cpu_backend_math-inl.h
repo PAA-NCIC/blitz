@@ -495,12 +495,6 @@ void Backend<CPUTensor, DType>::UniformDistributionFunc(
 }
 
 template<typename DType>
-void Backend<CPUTensor, DType>::HostCopyToFunc(
-  const DType* source, DType* target, size_t size) {
-  BlitzCPUCopy(source, target, size);
-}
-
-template<typename DType>
 float Backend<CPUTensor, DType>::EvaluateClassifyFunc(
   const CPUTensor<DType>* output, const CPUTensor<DType>* target) {
   size_t batch_size = output->shape()[0];

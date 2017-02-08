@@ -176,13 +176,13 @@ class Backend<CPUTensor, DType> {
 
   static void UniformDistributionFunc(CPUTensor<DType>* output, DType low, DType high);
 
-  static void HostCopyToFunc(const DType* source, DType* target, size_t size);
-
   static float EvaluateClassifyFunc(
     const CPUTensor<DType>* output, const CPUTensor<DType>* target);
 
   static float EvaluateRegressFunc(
     const CPUTensor<DType>* output, const CPUTensor<DType>* target);
+
+  static void TransformCopyFunc(const CPUTensor<DType>* source, CPUTensor<DType>* dest);
 
   static void Unpack2DFunc(
     const DType* input,
@@ -240,102 +240,6 @@ class Backend<CPUTensor, DType> {
     size_t K, size_t CRS, size_t PQ,
     BLITZ_DATA_LAYOUT input_data_layout,
     BLITZ_DATA_LAYOUT output_data_layout);
-
-  static void UnpackCHWImpl(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void UnpackHWCImpl(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-  
-  static void PackCHWImpl(
-    const DType* unpack,
-    DType* input,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void PackHWCImpl(
-    const DType* unpack,
-    DType* input,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width);
-
-  static void MaxPoolingForwardNCHWImpl(
-    const DType* I,
-    DType* O,
-    size_t* max_index,
-    size_t N,
-    size_t C, size_t H, size_t W,
-    size_t K, size_t P, size_t Q,
-    size_t R, size_t S,
-    size_t str_h, size_t str_w);
-
-  static void MaxPoolingForwardNHWCImpl(
-    const DType* I,
-    DType* O,
-    size_t* max_index,
-    size_t N,
-    size_t C, size_t H, size_t W,
-    size_t K, size_t P, size_t Q,
-    size_t R, size_t S,
-    size_t str_h, size_t str_w);
-
-  static void MaxPoolingBackwardNCHWImpl(
-    const DType* O,
-    DType* I,
-    const size_t* max_index,
-    size_t N,
-    size_t C, size_t H, size_t W,
-    size_t K, size_t P, size_t Q);
-
-  static void MaxPoolingBackwardNHWCImpl(
-    const DType* O,
-    DType* I,
-    const size_t* max_index,
-    size_t N,
-    size_t C, size_t H, size_t W,
-    size_t K, size_t P, size_t Q);
 };
 
 }  // namespace blitz
