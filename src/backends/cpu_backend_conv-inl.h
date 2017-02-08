@@ -32,6 +32,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
+  output->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   timeval start, end;
@@ -149,14 +150,14 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
   str_h = context->str_h();
   str_w = context->str_w();
   CPUTensor<DType>* workspace = context->workspace();
+  // offset
+  size_t nCHW = 0;
+  size_t nKPQ = 0;
   // dims
   const size_t CHW = C * H * W;
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
-  // offset
-  size_t nCHW = 0;
-  size_t nKPQ = 0;
   input->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
@@ -282,6 +283,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   size_t nCHW = 0;
   size_t nKPQ = 0;
   workspace->Fill(0);
+  update->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   timeval start, end;
