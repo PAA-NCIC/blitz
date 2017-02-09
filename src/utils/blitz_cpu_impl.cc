@@ -9,7 +9,7 @@ namespace blitz {
 
 #define ACCESS_INPUT_NHWC(i, j, k, v) *(I + ((i * H + j) * W + k) * C + v)
 #define ACCESS_OUTPUT_NPQK(i, j, k, v) *(O + ((i * P + j) * Q + k) * K + v)
-#define ACCESS_FILTER_KRSC(i, j, k, v) *(F + ((i * R + j) * S + k) * C + v)
+#define ACCESS_FILTER_RSCK(i, j, k, v) *(F + ((i * S + j) * C + k) * K + v)
 
 template<>
 void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
@@ -95,7 +95,7 @@ void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
             for (size_t k = 0; k < K; ++k) {
               for (size_t c = 0; c < C; ++c) {
                 ACCESS_OUTPUT_NPQK(n, p, q, k) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
-                  ACCESS_FILTER_KRSC(k, r, s, c); 
+                  ACCESS_FILTER_RSCK(r, s, c, k); 
               }
             }
           }
@@ -188,7 +188,7 @@ void ConvolutionBackwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
             for (size_t k = 0; k < K; ++k) {
               for (size_t c = 0; c < C; ++c) {
                 ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) += ACCESS_OUTPUT_NPQK(n, p, q, k) *
-                  ACCESS_FILTER_KRSC(k, r, s, c); 
+                  ACCESS_FILTER_RSCK(r, s, c, k);
               }
             }
           }
@@ -280,7 +280,7 @@ void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
             size_t s = iw < 0 ? -iw : 0;
             for (; s < s_end; ++s) {
               for (size_t c = 0; c < C; ++c) {
-                ACCESS_FILTER_KRSC(k, r, s, c) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
+                ACCESS_FILTER_RSCK(r, s, c, k) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
                   ACCESS_OUTPUT_NPQK(n, p, q, k); 
               }
             }
@@ -290,6 +290,43 @@ void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
     }
   }
 }
+
+template<>
+void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
+  const float* I,
+  const float* F,
+  float* O,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  #pragma omp parallel for
+  for (size_t n = 0; n < N; ++n) {
+    for (size_t p = 0; p < P; ++p) {
+      int ih = p * str_h - pad_h;
+      for (size_t q = 0; q < Q; ++q) {
+        int iw = q * str_w - pad_w;
+        size_t r_end = ih + R < H ? R : H - ih;
+        size_t s_end = iw + S < W ? S : W - iw;
+        size_t r = ih < 0 ? -ih : 0;
+        for (; r < r_end; ++r) {
+          size_t s = iw < 0 ? -iw : 0;
+          for (; s < s_end; ++s) {
+            for (size_t k = 0; k < K; ++k) {
+              for (size_t c = 0; c < C; ++c) {
+                ACCESS_OUTPUT_NPQK(n, p, q, k) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
+                  ACCESS_FILTER_RSCK(r, s, c, k); 
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 
 template<>
 void TransformBufferImpl<CPUTensor, float, BLITZ_BUFFER_NCHW, BLITZ_BUFFER_NHWC>(
@@ -332,9 +369,9 @@ void TransformBufferImpl<CPUTensor, float, BLITZ_BUFFER_NHWC, BLITZ_BUFFER_NCHW>
 }
 
 template<>
-void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KCRS, BLITZ_FILTER_KRSC>(
+void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KCRS, BLITZ_FILTER_RSCK>(
   const float* kcrs,
-  float* krsc,
+  float* rsck,
   size_t K,
   size_t C, size_t R, size_t S) {
   #pragma omp parallel for
@@ -342,7 +379,7 @@ void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KCRS, BLITZ_FILTER_KRSC>
     for (size_t c = 0; c < C; ++c) {
       for (size_t r = 0; r < R; ++r) {
         for (size_t s = 0; s < S; ++s) {
-          krsc[((k * R + r) * S + s) * C + c] = kcrs[((k * C + c) * R + r) * S + s];
+          rsck[((r * S + s) * C + c) * K + k] = kcrs[((k * C + c) * R + r) * S + s];
         }
       }
     }
@@ -350,17 +387,17 @@ void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KCRS, BLITZ_FILTER_KRSC>
 }
 
 template<>
-void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_KRSC, BLITZ_FILTER_KCRS>(
-  const float* krsc,
+void TransformFilterImpl<CPUTensor, float, BLITZ_FILTER_RSCK, BLITZ_FILTER_KCRS>(
+  const float* rsck,
   float* kcrs,
   size_t K,
   size_t C, size_t R, size_t S) {
   #pragma omp parallel for
   for (size_t k = 0; k < K; ++k) {
-    for (size_t s = 0; s < S; ++s) {
+    for (size_t c = 0; c < C; ++c) {
       for (size_t r = 0; r < R; ++r) {
-        for (size_t c = 0; c < C; ++c) {
-          kcrs[((k * C + c) * R + r) * S + s] = krsc[((k * R + r) * S + s) * C + c];
+        for (size_t s = 0; s < S; ++s) {
+          kcrs[((k * C + c) * R + r) * S + s] = rsck[((r * S + s) * C + c) * K + k];
         }
       }
     }

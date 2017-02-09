@@ -126,6 +126,31 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       }
       break;
     }
+    case BLITZ_CONVOLUTION_VECTOR_DIRECT: {
+      if (input->data_layout() != output->data_layout()) {
+        LOG(FATAL) << "Not supported data layout transformation from " <<
+          input->data_layout() << " to " << output->data_layout() << " for direct convolution!";
+      }
+      switch (input->data_layout()) {
+        case BLITZ_BUFFER_NCHW:
+          LOG(FATAL) << "Not supported data layout!" << input->data_layout();
+        case BLITZ_BUFFER_NHWC:
+          ConvolutionForwardVectorImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+            input->data(),
+            filter->data(),
+            output->data(),
+            NIN,
+            C, H, W,
+            R, S,
+            K, P, Q,
+            pad_h, pad_w,
+            str_h, str_w);
+          break;
+        default:
+          LOG(FATAL) << "Not supported data layout!" << input->data_layout();
+      }
+      break;
+    }
     default:
       LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;

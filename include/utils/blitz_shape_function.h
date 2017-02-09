@@ -49,12 +49,6 @@ inline void Blitz2DFilter(const Shape& shape, size_t* K, size_t* C, size_t* R, s
       *R = shape[2];
       *S = shape[3];
       break;
-    case BLITZ_FILTER_KRSC:
-      *K = shape[0];
-      *R = shape[1];
-      *S = shape[2];
-      *C = shape[3];
-      break;
     case BLITZ_FILTER_RSCK:
       *R = shape[0];
       *S = shape[1];

@@ -41,6 +41,42 @@ void ConvolutionUpdateNaiveImpl(
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w);
 
+template<template <typename> class TensorType, typename DType, BLITZ_DATA_LAYOUT DataLayout>
+void ConvolutionForwardVectorImpl(
+  const DType* I,
+  const DType* F,
+  DType* O,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w);
+
+template<template <typename> class TensorType, typename DType, BLITZ_DATA_LAYOUT DataLayout>
+void ConvolutionBackwardVectorImpl(
+  const DType* O,
+  const DType* F,
+  DType* I,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w);
+
+template<template <typename> class TensorType, typename DType, BLITZ_DATA_LAYOUT DataLayout>
+void ConvolutionUpdateVectorImpl(
+  const DType* I,
+  const DType* O,
+  DType* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w);
+
 template<template <typename> class TensorType, typename DType,
   BLITZ_DATA_LAYOUT SourceDataLayout, BLITZ_DATA_LAYOUT DestDataLayout>
 void TransformBufferImpl(

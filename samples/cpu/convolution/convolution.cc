@@ -45,12 +45,12 @@ void set_shape_kcrs(Shape& shape, size_t K, size_t C, size_t R, size_t S) {
   shape.set_data_layout(BLITZ_FILTER_KCRS);
 }
 
-void set_shape_krsc(Shape& shape, size_t K, size_t C, size_t R, size_t S) {
-  shape[0] = K;
-  shape[1] = R;
-  shape[2] = S;
-  shape[3] = C;
-  shape.set_data_layout(BLITZ_FILTER_KRSC);
+void set_shape_rsck(Shape& shape, size_t K, size_t C, size_t R, size_t S) {
+  shape[0] = R;
+  shape[1] = S;
+  shape[2] = C;
+  shape[3] = K;
+  shape.set_data_layout(BLITZ_FILTER_RSCK);
 }
 
 void convolution_forward(
@@ -242,10 +242,10 @@ int main(int argc, char** argv) {
     set_shape_kcrs(filter_shape_algorithm, K, C, R, S);
   } else {
     set_shape_nhwc(input_shape, N, C, H, W);
-    set_shape_krsc(filter_shape, K, C, R, S);
+    set_shape_rsck(filter_shape, K, C, R, S);
     set_shape_nhwc(output_shape, N, K, P, Q);
     set_shape_nhwc(input_shape_algorithm, N, C, H, W);
-    set_shape_krsc(filter_shape_algorithm, K, C, R, S);
+    set_shape_rsck(filter_shape_algorithm, K, C, R, S);
   }
   if (output_layout == "nchw") {
     set_shape_nchw(output_shape_algorithm, N, K, P, Q);

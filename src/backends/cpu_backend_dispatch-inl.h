@@ -29,17 +29,17 @@ void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(filter, // KRSC
+      BlitzCPUGemm(filter, // RSCK
         unpack, // PQRSC
         output, // KPQ
-        false, true,
+        true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         K, PQ, CRS);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
       BlitzCPUGemm(unpack, // PQRSC
-        filter, // KRSC
+        filter, // RSCK
         output, // PQK
-        false, true,
+        false, false,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, K, CRS);
     } else {
@@ -77,16 +77,16 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardGEMMDispatch(
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
       BlitzCPUGemm(output, // KPQ
-        filter, // KRSC
+        filter, // RSCK
         unpack, // PQRSC
-        true, false,
+        true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, CRS, K);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
       BlitzCPUGemm(output, // PQK
-        filter, // KRSC
+        filter, // RSCK
         unpack, // PQRSC
-        false, false,
+        false, true,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, CRS, K);
     } else {
@@ -123,19 +123,19 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(output, // KPQ
-        unpack, // PQRSC
-        update, // KRSC
-        false, false,
+      BlitzCPUGemm(unpack, // PQRSC
+        output, // KPQ
+        update, // RSCK
+        true, true,
         static_cast<DType>(1), static_cast<DType>(1),
-        K, CRS, PQ);
+        CRS, K, PQ);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(output, // PQK
-        unpack, // PQRSC
-        update, // KRSC
+      BlitzCPUGemm(unpack, // PQRSC
+        output, // PQK
+        update, // RSCK
         true, false,
         static_cast<DType>(1), static_cast<DType>(1),
-        K, CRS, PQ);
+        CRS, K, PQ);
     } else {
       LOG(FATAL) << "Unsupported output data layout: " << output_data_layout;
     }

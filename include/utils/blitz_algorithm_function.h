@@ -11,9 +11,10 @@ enum BLITZ_ALGORITHM {
   BLITZ_CONVOLUTION_BLAS_GEMM_BATCH = 4,
   BLITZ_CONVOLUTION_XSMM_DIRECT = 5,
   BLITZ_CONVOLUTION_NAIVE_DIRECT = 6,
-  BLITZ_BLAS_GEMM = 7,
-  BLITZ_SASS_GEMM = 8,
-  BLITZ_ALGORITHM_UNDEFINED = 9
+  BLITZ_CONVOLUTION_VECTOR_DIRECT = 7,
+  BLITZ_BLAS_GEMM = 8,
+  BLITZ_SASS_GEMM = 9,
+  BLITZ_ALGORITHM_UNDEFINED = 10
 };
 
 inline BLITZ_ALGORITHM BlitzParseAlgorithm(const string& algorithm) {
@@ -29,6 +30,10 @@ inline BLITZ_ALGORITHM BlitzParseAlgorithm(const string& algorithm) {
     return BLITZ_CONVOLUTION_BLAS_GEMM_BATCH;
   } else if (algorithm == "convolution_xsmm_direct") {
     return BLITZ_CONVOLUTION_XSMM_DIRECT;
+  } else if (algorithm == "convolution_naive_direct") {
+    return BLITZ_CONVOLUTION_NAIVE_DIRECT;
+  } else if (algorithm == "convolution_vector_direct") {
+    return BLITZ_CONVOLUTION_VECTOR_DIRECT;
   } else if (algorithm == "blas_gemm") {
     return BLITZ_BLAS_GEMM;
   } else if (algorithm == "sass_gemm") {

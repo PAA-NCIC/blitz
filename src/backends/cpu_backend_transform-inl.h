@@ -78,15 +78,15 @@ void Backend<CPUTensor, DType>::TransformCopyFunc(
       return;
     }
   } else if (source->data_layout() == BLITZ_FILTER_KCRS) {
-    if (dest->data_layout() == BLITZ_FILTER_KRSC) {
-      TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_KCRS, BLITZ_FILTER_KRSC>(
+    if (dest->data_layout() == BLITZ_FILTER_RSCK) {
+      TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_KCRS, BLITZ_FILTER_RSCK>(
         source->data(), dest->data(),
         source->shape()[0], source->shape()[1], source->shape()[2], source->shape()[3]);
       return;
     }
-  } else if (source->data_layout() == BLITZ_FILTER_KRSC) {
+  } else if (source->data_layout() == BLITZ_FILTER_RSCK) {
     if (dest->data_layout() == BLITZ_FILTER_KCRS) {
-      TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_KRSC, BLITZ_FILTER_KCRS>(
+      TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_RSCK, BLITZ_FILTER_KCRS>(
         source->data(), dest->data(),
         dest->shape()[0], dest->shape()[1], dest->shape()[2], dest->shape()[3]);
       return;

@@ -22,6 +22,9 @@ void ConvolutionContext<CPUTensor, float>::InitAlgorithmForUser(BLITZ_ALGORITHM 
     case BLITZ_CONVOLUTION_NAIVE_DIRECT:
       workspace_shape[0] = 0;
       break;
+    case BLITZ_CONVOLUTION_VECTOR_DIRECT:
+      workspace_shape[0] = 0;
+      break;
     default:
       LOG(FATAL) << "No such algorithm: " << algorithm;
       break;
@@ -32,15 +35,7 @@ void ConvolutionContext<CPUTensor, float>::InitAlgorithmForUser(BLITZ_ALGORITHM 
 
 template<>
 void ConvolutionContext<CPUTensor, float>::InitAlgorithmForMemory(size_t memory_size) {
-  Shape workspace_shape(1);
-  size_t workspace_unpack_size = C_ * R_ * S_ * P_ * Q_;
-  if (workspace_unpack_size < memory_size / sizeof(float)) {
-    workspace_shape[0] = workspace_unpack_size;
-    this->conv_algorithm_ = BLITZ_CONVOLUTION_BLAS_GEMM;
-  } else {
-    LOG(FATAL) << "Not availble memory size!";
-  }
-  this->workspace_ = make_shared<CPUTensor<float> >(workspace_shape);
+  this->conv_algorithm_ = BLITZ_CONVOLUTION_NAIVE_DIRECT;
 }
 
 template<>
