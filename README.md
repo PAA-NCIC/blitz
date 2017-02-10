@@ -42,6 +42,7 @@ We are developing different algorithms for the convolution computations. It supp
 
 - BLITZ_CONVOLUTION_BLAS_GEMM (explicit GEMM)
 - BLITZ_CONVOLUTION_BLAS_GEMM_BATCH (batch GEMM)
+- BLITZ_CONVOLUTION_NAIVE_DIRECT (direct convolution without any dependency)
 
 ####GPU backend (not stable)
 
