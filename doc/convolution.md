@@ -40,8 +40,8 @@ Backend<CPUTensor, float>::Convolution2DUpdateFunc(&input_cpu, &output_cpu, &fil
 
 Two layouts and four combinations are supported.
 
-- input tensor: BLITZ_BUFFER_NCHW, filter tensor: BLITZ_FILTER_KCRS, output tensor: BLITZ_BUFFER_NHWC *or* BLITZ_BUFFER_NCHW
-- input tensor: BLITZ_BUFFER_NHWC, filter tensor: BLITZ_FILTER_RSCK, output tensor: BLITZ_BUFFER_NHWC *or* BLITZ_BUFFER_NCHW
+- input tensor: *BLITZ_BUFFER_NCHW*, filter tensor: *BLITZ_FILTER_KCRS*, output tensor: *BLITZ_BUFFER_NHWC* or *BLITZ_BUFFER_NCHW*
+- input tensor: *BLITZ_BUFFER_NHWC*, filter tensor: *BLITZ_FILTER_RSCK*, output tensor: *BLITZ_BUFFER_NHWC* or *BLITZ_BUFFER_NCHW*
 
 ### Algorithm
 
@@ -49,14 +49,14 @@ Two layouts and four combinations are supported.
 
 Three algorithms are supported, and extra memory is needed for some of them.
 
-- BLITZ_CONVOLUTION_BLAS_GEMM (explicit GEMM)
-- BLITZ_CONVOLUTION_BLAS_GEMM_BATCH (batch GEMM)
-- BLITZ_CONVOLUTION_NAIVE_DIRECT (direct convolution without any dependency)
+- *BLITZ_CONVOLUTION_BLAS_GEMM* (explicit GEMM)
+- *BLITZ_CONVOLUTION_BLAS_GEMM_BATCH* (batch GEMM)
+- *BLITZ_CONVOLUTION_NAIVE_DIRECT* (direct convolution without any dependency)
 
 ### Tuning
 
 Three methods are supported for choosing an algorithm.
 
-- InitAlgorithmForMemory (return an algorithm with the least extra memory).
-- InitAlgorithmForSpeed (return an algorithm with the fast speed).
-- InitAlgorithmForUser (specify an algorithm by user).
+- *InitAlgorithmForMemory* (return an algorithm with the least extra memory).
+- *InitAlgorithmForSpeed* (return an algorithm with the fast speed).
+- *InitAlgorithmForUser* (specify an algorithm by user).
