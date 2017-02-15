@@ -48,7 +48,9 @@ We mainly utilize *libxsmm* library for MIC accelerations. And we are adding *AV
 
 ## Interfaces
 
-A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. We use a contiguous tensor to manage data on different devices, and a template to instanitiate algorithms. A more compherensive guide will be presented here.
+A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. We use a contiguous tensor to manage data on different devices, and a template to instanitiate algorithms. A more compherensive guide is presented as following.
+
+- [Convolution](https://github.com/PAA-NCIC/blitz/blob/master/doc/convolution.md)
 
 ## Build
 
