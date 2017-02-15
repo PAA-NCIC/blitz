@@ -1,4 +1,4 @@
-# Convolution
+#Convolution
 
 This document shows how to use blitz convolution apis. With input parameters, only few setups are needed to run convolution in either forward or backward phase.
 
@@ -6,7 +6,7 @@ This document shows how to use blitz convolution apis. With input parameters, on
 
 A more comphrensive example is in `samples/cpu/convolutoin/convolution.cc`.
 
-```
+```C++
 // set up data layouts
 Shape input_shape(4, BLITZ_BUFFER_NCHW);
 Shape filter_shape(4, BLITZ_FILTER_KCRS);
@@ -23,8 +23,7 @@ CPUTensor<float> filter(filter_shape);
 CPUTensor<float> output(output_shape);
 
 // init context
-ConvolutionContext<CPUTensor, float> context(
-  input_shape, filter_shape, pad_h, pad_w, str_h, str_w);
+ConvolutionContext<CPUTensor, float> context(input_shape, filter_shape, pad_h, pad_w, str_h, str_w);
 
 // choose an algorithm
 context.InitAlgorithmForUser(BLITZ_CONVOLUTION_NAIVE_DIRECT);
