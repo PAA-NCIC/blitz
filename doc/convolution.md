@@ -6,7 +6,7 @@ This document shows how to use blitz convolution apis. With input parameters, on
 
 A more comphrensive example is in `samples/cpu/convolutoin/convolution.cc`.
 
-'''
+```
 // set up data layouts
 Shape input_shape(4, BLITZ_BUFFER_NCHW);
 Shape filter_shape(4, BLITZ_FILTER_KCRS);
@@ -33,7 +33,7 @@ context.InitAlgorithmForUser(BLITZ_CONVOLUTION_NAIVE_DIRECT);
 Backend<CPUTensor, float>::Convolution2DForwardFunc(&input_cpu, &output_cpu, &filter_cpu, &context); 
 Backend<CPUTensor, float>::Convolution2DBackwardFunc(&input_cpu, &output_cpu, &filter_cpu, &context); 
 Backend<CPUTensor, float>::Convolution2DUpdateFunc(&input_cpu, &output_cpu, &filter_cpu, &context); 
-'''
+```
 
 ### Data Layout
 
@@ -48,7 +48,7 @@ Two layouts and four combinations are supported.
 
 **CPU Backend**
 
-Three algorithms are supported of which some need extra memory allocation.
+Three algorithms are supported, and extra memory is needed for some of them.
 
 - BLITZ_CONVOLUTION_BLAS_GEMM (explicit GEMM)
 - BLITZ_CONVOLUTION_BLAS_GEMM_BATCH (batch GEMM)
