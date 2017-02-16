@@ -2,25 +2,82 @@
 #define SRC_BACKENDS_CPU_BACKEND_DISPATCH_INL_H_
 
 template<typename DType>
+void Backend<CPUTensor, DType>::Unpack2DDispatch(
+  const DType* I,
+  DType* U,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w,
+  BLITZ_DATA_LAYOUT input_data_layout) {
+  switch (input_data_layout) {
+    case BLITZ_BUFFER_NHWC:
+      UnpackImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+        I, U,
+        C, H, W, R, S, P, Q,
+        pad_h, pad_w, str_h, str_w);
+      break;
+    case BLITZ_BUFFER_NCHW:
+      UnpackImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+        I, U,
+        C, H, W, R, S, P, Q,
+        pad_h, pad_w, str_h, str_w);
+      break;
+    default:
+      LOG(FATAL) << "Unsupported input data layout: " << input_data_layout;
+  }
+}
+
+template<typename DType>
+void Backend<CPUTensor, DType>::Pack2DDispatch(
+  const DType* U,
+  DType* I,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w,
+  BLITZ_DATA_LAYOUT input_data_layout) {
+  switch (input_data_layout) {
+    case BLITZ_BUFFER_NHWC:
+      PackImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+        U, I,
+        C, H, W, R, S, P, Q,
+        pad_h, pad_w, str_h, str_w);
+      break;
+    case BLITZ_BUFFER_NCHW:
+      PackImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+        U, I,
+        C, H, W, R, S, P, Q,
+        pad_h, pad_w, str_h, str_w);
+      break;
+    default:
+      LOG(FATAL) << "Unsupported input data layout: " << input_data_layout;
+  }
+}
+
+
+template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
-  DType* unpack,
-  DType* output,
-  DType* filter,
+  const DType* U,
+  const DType* F,
+  DType* O,
   size_t K, size_t PQ, size_t CRS,
   BLITZ_DATA_LAYOUT input_data_layout,
   BLITZ_DATA_LAYOUT output_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(filter, // KCRS
-        unpack, // CRSPQ
-        output, // KPQ
+      BlitzCPUGemm(const_cast<DType*>(F), // KCRS
+        const_cast<DType*>(U), // CRSPQ
+        O, // KPQ
         false, false,
         static_cast<DType>(1), static_cast<DType>(0),
         K, PQ, CRS);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(unpack, // CRSPQ
-        filter, // KCRS
-        output, // PQK
+      BlitzCPUGemm(const_cast<DType*>(U), // CRSPQ
+        const_cast<DType*>(F), // KCRS
+        O, // PQK
         true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, K, CRS);
@@ -29,16 +86,16 @@ void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(filter, // RSCK
-        unpack, // PQRSC
-        output, // KPQ
+      BlitzCPUGemm(const_cast<DType*>(F), // RSCK
+        const_cast<DType*>(U), // PQRSC
+        O, // KPQ
         true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         K, PQ, CRS);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(unpack, // PQRSC
-        filter, // RSCK
-        output, // PQK
+      BlitzCPUGemm(const_cast<DType*>(U), // PQRSC
+        const_cast<DType*>(F), // RSCK
+        O, // PQK
         false, false,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, K, CRS);
@@ -50,24 +107,24 @@ void Backend<CPUTensor, DType>::Convolution2DForwardGEMMDispatch(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DBackwardGEMMDispatch(
-  DType* filter,
-  DType* output,
-  DType* unpack,
+  const DType* F,
+  const DType* O,
+  DType* U,
   size_t K, size_t PQ, size_t CRS,
   BLITZ_DATA_LAYOUT input_data_layout,
   BLITZ_DATA_LAYOUT output_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(filter, // KCRS
-        output, // KPQ
-        unpack, // CRSPQ
+      BlitzCPUGemm(const_cast<DType*>(F), // KCRS
+        const_cast<DType*>(O), // KPQ
+        U, // CRSPQ
         true, false,
         static_cast<DType>(1), static_cast<DType>(0),
         CRS, PQ, K);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(filter, // KCRS
-        output, // PQK
-        unpack, // CRSPQ
+      BlitzCPUGemm(const_cast<DType*>(F), // KCRS
+        const_cast<DType*>(O), // PQK
+        U, // CRSPQ
         true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         CRS, PQ, K);
@@ -76,16 +133,16 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(output, // KPQ
-        filter, // RSCK
-        unpack, // PQRSC
+      BlitzCPUGemm(const_cast<DType*>(O), // KPQ
+        const_cast<DType*>(F), // RSCK
+        U, // PQRSC
         true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, CRS, K);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(output, // PQK
-        filter, // RSCK
-        unpack, // PQRSC
+      BlitzCPUGemm(const_cast<DType*>(O), // PQK
+        const_cast<DType*>(F), // RSCK
+        U, // PQRSC
         false, true,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, CRS, K);
@@ -97,24 +154,24 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardGEMMDispatch(
 
 template<typename DType>
 void Backend<CPUTensor, DType>::Convolution2DUpdateGEMMDispatch(
-  DType* unpack,
-  DType* output,
-  DType* update,
+  const DType* U,
+  const DType* O,
+  DType* UP,
   size_t K, size_t CRS, size_t PQ,
   BLITZ_DATA_LAYOUT input_data_layout,
   BLITZ_DATA_LAYOUT output_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(output, // KPQ
-        unpack, // CRSPQ
-        update, // KCRS
+      BlitzCPUGemm(const_cast<DType*>(O), // KPQ
+        const_cast<DType*>(U), // CRSPQ
+        UP, // KCRS
         false, true,
         static_cast<DType>(1), static_cast<DType>(1),
         K, CRS, PQ);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(output, // PQK
-        unpack, // CRSPQ
-        update, // KCRS
+      BlitzCPUGemm(const_cast<DType*>(O), // PQK
+        const_cast<DType*>(U), // CRSPQ
+        UP, // KCRS
         true, true,
         static_cast<DType>(1), static_cast<DType>(1),
         K, CRS, PQ);
@@ -123,16 +180,16 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzCPUGemm(unpack, // PQRSC
-        output, // KPQ
-        update, // RSCK
+      BlitzCPUGemm(const_cast<DType*>(U), // PQRSC
+        const_cast<DType*>(O), // KPQ
+        UP, // RSCK
         true, true,
         static_cast<DType>(1), static_cast<DType>(1),
         CRS, K, PQ);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzCPUGemm(unpack, // PQRSC
-        output, // PQK
-        update, // RSCK
+      BlitzCPUGemm(const_cast<DType*>(U), // PQRSC
+        const_cast<DType*>(O), // PQK
+        UP, // RSCK
         true, false,
         static_cast<DType>(1), static_cast<DType>(1),
         CRS, K, PQ);

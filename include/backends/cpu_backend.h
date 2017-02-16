@@ -154,15 +154,13 @@ class Backend<CPUTensor, DType> {
     const CPUTensor<DType>* input,
     CPUTensor<DType>* output,
     CPUTensor<size_t>* max_index,
-    size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width);
+    size_t R, size_t S,
+    size_t str_h, size_t str_w);
 
   static void MaxPooling2DBackwardFunc(
     const CPUTensor<DType>* output, 
     CPUTensor<DType>* input,
-    const CPUTensor<size_t>* max_index,
-    size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width);
+    const CPUTensor<size_t>* max_index);
 
   static void MakeBinaryMaskFunc(
     CPUTensor<DType>* output,
@@ -183,63 +181,65 @@ class Backend<CPUTensor, DType> {
     const CPUTensor<DType>* output, const CPUTensor<DType>* target);
 
   static void TransformCopyFunc(const CPUTensor<DType>* source, CPUTensor<DType>* dest);
-
+  
   static void Unpack2DFunc(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout);
+    const CPUTensor<DType>* input,
+    CPUTensor<DType>* unpack,
+    size_t R, size_t S,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w);
 
   static void Pack2DFunc(
-    const DType* pack,
-    DType* input,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout);
+    const CPUTensor<DType>* unpack,
+    CPUTensor<DType>* input,
+    size_t R, size_t S,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w);
 
  private:
   static void Convolution2DForwardGEMMDispatch(
-    DType* unpack,
-    DType* output,
-    DType* filter,
+    const DType *unpack,
+    const DType *output,
+    DType *filter,
     size_t K, size_t PQ, size_t CRS,
     BLITZ_DATA_LAYOUT input_data_layout,
     BLITZ_DATA_LAYOUT output_data_layout);
 
   static void Convolution2DBackwardGEMMDispatch(
-    DType* filter,
-    DType* output,
-    DType* unpack,
+    const DType *filter,
+    const DType *output,
+    DType *unpack,
     size_t K, size_t PQ, size_t CRS,
     BLITZ_DATA_LAYOUT input_data_layout,
     BLITZ_DATA_LAYOUT output_data_layout);
 
   static void Convolution2DUpdateGEMMDispatch(
-    DType* unpack,
-    DType* output,
-    DType* update,
+    const DType *unpack,
+    const DType *output,
+    DType *update,
     size_t K, size_t CRS, size_t PQ,
     BLITZ_DATA_LAYOUT input_data_layout,
     BLITZ_DATA_LAYOUT output_data_layout);
+
+  static void Unpack2DDispatch(
+    const DType *input,
+    DType *unpack,
+    size_t C, size_t H, size_t W,
+    size_t R, size_t S,
+    size_t P, size_t Q,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w,
+    BLITZ_DATA_LAYOUT input_data_layout);
+
+  static void Pack2DDispatch(
+    const DType *unpack,
+    DType *input,
+    size_t C, size_t H, size_t W,
+    size_t R, size_t S,
+    size_t P, size_t Q,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w,
+    BLITZ_DATA_LAYOUT input_data_layout);
 };
 
 }  // namespace blitz

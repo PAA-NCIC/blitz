@@ -50,7 +50,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Unpack2DFunc(
+          Unpack2DDispatch(
             input->Slice(nCHW),
             workspace_unpack_slice,
             C, H, W,
@@ -59,9 +59,10 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
             pad_h, pad_w,
             str_h, str_w,
             input->data_layout());
-          Convolution2DForwardGEMMDispatch(workspace_unpack_slice,
+          Convolution2DForwardGEMMDispatch(
+            workspace_unpack_slice,
+            filter->data(),
             output->Slice(nKPQ),
-            const_cast<CPUTensor<DType>*>(filter)->data(),
             K, PQ, CRS,
             input->data_layout(),
             output->data_layout());
@@ -73,7 +74,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Unpack2DFunc(
+        Unpack2DDispatch(
           input->Slice(nCHW),
           workspace->data(),
           C, H, W,
@@ -82,9 +83,10 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        Convolution2DForwardGEMMDispatch(workspace->data(),
+        Convolution2DForwardGEMMDispatch(
+          workspace->data(),
+          filter->data(),
           output->Slice(nKPQ),
-          const_cast<CPUTensor<DType>*>(filter)->data(),
           K, PQ, CRS,
           input->data_layout(),
           output->data_layout());
@@ -211,13 +213,13 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
           nCHW = n * CHW;
           nKPQ = n * KPQ;
           Convolution2DBackwardGEMMDispatch(
-            const_cast<CPUTensor<DType>*>(filter)->data(),
-            const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
+            filter->data(),
+            output->Slice(nKPQ),
             workspace->Slice(workspace_unpack_offset),
             K, PQ, CRS,
             input->data_layout(),
             output->data_layout());
-          Pack2DFunc(workspace->Slice(workspace_unpack_offset),
+          Pack2DDispatch(workspace->Slice(workspace_unpack_offset),
             input->Slice(nCHW),
             C, H, W,
             R, S,
@@ -234,13 +236,13 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
         nCHW = n * CHW;
         nKPQ = n * KPQ;
         Convolution2DBackwardGEMMDispatch(
-          const_cast<CPUTensor<DType>*>(filter)->data(),
-          const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
+          filter->data(),
+          output->Slice(nKPQ),
           workspace->data(),
           K, PQ, CRS,
           input->data_layout(),
           output->data_layout());
-        Pack2DFunc(workspace->data(),
+        Pack2DDispatch(workspace->data(),
           input->Slice(nCHW),
           C, H, W,
           R, S,
@@ -348,7 +350,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Unpack2DFunc(input->Slice(nCHW),
+          Unpack2DDispatch(input->Slice(nCHW),
             workspace->Slice(workspace_unpack_offset),
             C, H, W,
             R, S,
@@ -358,7 +360,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
             input->data_layout());
           Convolution2DUpdateGEMMDispatch(
             workspace->Slice(workspace_unpack_offset),
-            const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
+            output->Slice(nKPQ),
             workspace->Slice(workspace_update_offset),
             K, CRS, PQ,
             input->data_layout(),
@@ -375,7 +377,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Unpack2DFunc(input->Slice(nCHW),
+        Unpack2DDispatch(input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
@@ -385,7 +387,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
           input->data_layout());
         Convolution2DUpdateGEMMDispatch(
           workspace->data(),
-          const_cast<CPUTensor<DType>*>(output)->Slice(nKPQ),
+          output->Slice(nKPQ),
           update->data(),
           K, CRS, PQ,
           input->data_layout(),

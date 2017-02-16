@@ -6,10 +6,8 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
   const CPUTensor<DType>* input,
   CPUTensor<DType>* output,
   CPUTensor<size_t>* max_index, 
-  size_t filter_height,
-  size_t filter_width,
-  size_t stride_width,
-  size_t stride_height) {
+  size_t R, size_t S,
+  size_t str_w, size_t str_h) {
   // shape init
   size_t IN, C, H, W;
   size_t ON, K, P, Q;
@@ -28,8 +26,8 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
         IN,
         C, H, W,
         K, P, Q,
-        filter_height, filter_width,
-        stride_height, stride_width);
+        R, S,
+        str_h, str_w);
       break;
     case BLITZ_BUFFER_NHWC:
       MaxPoolingForwardImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
@@ -39,8 +37,8 @@ void Backend<CPUTensor, DType>::MaxPooling2DForwardFunc(
         IN,
         C, H, W,
         K, P, Q,
-        filter_height, filter_width,
-        stride_height, stride_width);
+        R, S,
+        str_h, str_w);
       break;
     default:
       LOG(FATAL) << "Blitz not support pooling format: " << input->data_layout(); 
@@ -52,11 +50,7 @@ template<typename DType>
 void Backend<CPUTensor, DType>::MaxPooling2DBackwardFunc(
   const CPUTensor<DType>* output,
   CPUTensor<DType>* input,
-  const CPUTensor<size_t>* max_index,
-  size_t filter_height,
-  size_t filter_width,
-  size_t stride_height,
-  size_t stride_width) {
+  const CPUTensor<size_t>* max_index) {
   // shape init
   size_t IN, C, H, W;
   size_t ON, K, P, Q;

@@ -3,57 +3,51 @@
 
 template<typename DType>
 void Backend<CPUTensor, DType>::Unpack2DFunc(
-  const DType* I,
-  DType* unpack,
-  size_t C, size_t H, size_t W,
+  const CPUTensor<DType>* input,
+  CPUTensor<DType>* unpack,
   size_t R, size_t S,
-  size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w,
-  BLITZ_DATA_LAYOUT input_data_layout) {
-  switch (input_data_layout) {
-    case BLITZ_BUFFER_NHWC:
-      UnpackImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
-        I, unpack,
-        C, H, W, R, S, P, Q,
-        pad_h, pad_w, str_h, str_w);
-      break;
-    case BLITZ_BUFFER_NCHW:
-      UnpackImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
-        I, unpack,
-        C, H, W, R, S, P, Q,
-        pad_h, pad_w, str_h, str_w);
-      break;
-    default:
-      LOG(FATAL) << "Unsupported input data layout: " << input_data_layout;
+  size_t str_h, size_t str_w) {
+  size_t N, C, H, W;
+  size_t P, Q;
+  Blitz2DBuffer(input->shape(), &N, &C, &H, &W);
+  P = (H + 2 * pad_h - R) / str_h + 1;
+  Q = (W + 2 * pad_w - S) / str_w + 1;
+  CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
+  for (size_t i = 0; i < N; ++i) {
+    Unpack2DDispatch(
+      input->data(), unpack->data(),
+      C, H, W,
+      R, S,
+      P, Q,
+      pad_h, pad_w,
+      str_h, str_w,
+      input->data_layout());
   }
 }
 
 template<typename DType>
 void Backend<CPUTensor, DType>::Pack2DFunc(
-  const DType* unpack,
-  DType* I,
-  size_t C, size_t H, size_t W,
+  const CPUTensor<DType>* unpack,
+  CPUTensor<DType>* input,
   size_t R, size_t S,
-  size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w,
-  BLITZ_DATA_LAYOUT input_data_layout) {
-  switch (input_data_layout) {
-    case BLITZ_BUFFER_NHWC:
-      PackImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
-        unpack, I,
-        C, H, W, R, S, P, Q,
-        pad_h, pad_w, str_h, str_w);
-      break;
-    case BLITZ_BUFFER_NCHW:
-      PackImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
-        unpack, I,
-        C, H, W, R, S, P, Q,
-        pad_h, pad_w, str_h, str_w);
-      break;
-    default:
-      LOG(FATAL) << "Unsupported input data layout: " << input_data_layout;
+  size_t str_h, size_t str_w) {
+  size_t N, C, H, W;
+  size_t P, Q;
+  Blitz2DBuffer(input->shape(), &N, &C, &H, &W);
+  P = (H + 2 * pad_h - R) / str_h + 1;
+  Q = (W + 2 * pad_w - S) / str_w + 1;
+  CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
+  for (size_t i = 0; i < N; ++i) {
+    Pack2DDispatch(
+      unpack->data(), input->data(),
+      C, H, W,
+      R, S,
+      P, Q,
+      pad_h, pad_w,
+      str_h, str_w,
+      input->data_layout());
   }
 }
 

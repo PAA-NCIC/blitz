@@ -152,15 +152,13 @@ class Backend {
     const TensorType<DType>* input,
     TensorType<DType>* output,
     TensorType<size_t>* max_index,
-    size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width);
+    size_t R, size_t S,
+    size_t str_h, size_t str_w);
 
   static void MaxPooling2DBackwardFunc(
     const TensorType<DType>* output, 
     TensorType<DType>* input,
-    const TensorType<size_t>* max_index,
-    size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width);
+    const TensorType<size_t>* max_index);
 
   static void MakeBinaryMaskFunc(
     TensorType<DType>* output,
@@ -183,37 +181,19 @@ class Backend {
   static void TransformCopyFunc(const TensorType<DType>* source, TensorType<DType>* target);
 
   static void Unpack2DFunc(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout);
+    const TensorType<DType>* input,
+    TensorType<DType>* unpack,
+    size_t R, size_t S,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w);
 
   static void Pack2DFunc(
-    const DType* unpack,
-    DType* input,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout);
-
+    const TensorType<DType>* unpack,
+    TensorType<DType>* input,
+    size_t R, size_t S,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w);
+  
   DISABLE_COPY_AND_ASSIGN(Backend);
 };
 

@@ -6,6 +6,7 @@
 
 #include "backends/backend.h"
 #include "backends/gpu_tensor.h"
+#include "utils/blitz_gpu_function.h"
 
 namespace blitz {
 
