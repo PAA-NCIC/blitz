@@ -1,8 +1,7 @@
 #ifndef SRC_BACKENDS_GPU_BACKEND_TRANSFORM_INL_H_
 #define SRC_BACKENDS_GPU_BACKEND_TRANSFORM_INL_H_
 
-template<typename DType>
-void Backend<GPUTensor, DType>::Unpack2DFunc(
+void Unpack2DFunc(
   const GPUTensor<DType>* input,
   GPUTensor<DType>* unpack,
   size_t R, size_t S,
@@ -26,8 +25,7 @@ void Backend<GPUTensor, DType>::Unpack2DFunc(
   }
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::Pack2DFunc(
+void Pack2DFunc(
   const GPUTensor<DType>* unpack,
   GPUTensor<DType>* input,
   size_t R, size_t S,

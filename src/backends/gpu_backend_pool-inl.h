@@ -1,8 +1,7 @@
 #ifndef SRC_BACKEND_GPU_BACKEND_POOL_INL_H_
 #define SRC_BACKEND_GPU_BACKEND_POOL_INL_H_
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
+void MaxPooling2DForwardFunc(
   const GPUTensor<DType>* input,
   GPUTensor<DType>* output,
   GPUTensor<size_t>* max_index, 
@@ -30,8 +29,7 @@ void Backend<GPUTensor, DType>::MaxPooling2DForwardFunc(
     str_h, str_w);
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MaxPooling2DBackwardFunc(
+void MaxPooling2DBackwardFunc(
   const GPUTensor<DType>* output,
   GPUTensor<DType>* input,
   const GPUTensor<size_t>* max_index) {

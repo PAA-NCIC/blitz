@@ -1,21 +1,7 @@
 #ifndef SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
 #define SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
 
-template<typename DType>
-static __global__ void GPURectlinApply(
-  const DType* input, DType* output,
-  DType compare_value, DType slope,
-  size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType greater = input[i] > compare_value ? input[i] : compare_value;
-    DType less = input[i] <= compare_value ?
-      slope * input[i] : slope * compare_value;
-    output[i] = greater + less;
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::RectlinApplyFunc(
+void RectlinApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
@@ -24,20 +10,7 @@ void Backend<GPUTensor, DType>::RectlinApplyFunc(
     0, slope, input->size());
 }
 
-template<typename DType>
-static __global__ void GPURectlinDerivative(
-  const DType* input, DType* output,
-  DType compare_value, DType slope,
-  size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType greater = input[i] > compare_value ? 1.0 : 0.0;
-    DType less = input[i] <= compare_value ? slope : 0.0;
-    output[i] = (greater + less) * output[i];
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::RectlinDerivativeFunc(
+void RectlinDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
@@ -46,25 +19,7 @@ void Backend<GPUTensor, DType>::RectlinDerivativeFunc(
     0, slope, input->size());
 }
 
-template<typename DType>
-static __global__ void GPUSoftmaxApply(
-  const DType* input, DType* output,
-  size_t batch_size, size_t dim) {
-  BLITZ_CUDA_LOOP(i, batch_size) {
-    DType sum = 0; 
-    for (size_t j = 0; j < dim; ++j) {
-      size_t index = i * dim + j;
-      output[index] = exp(input[index]);
-      sum += output[index];
-    }
-    for (size_t j = 0; j < dim; ++j) {
-      output[i * dim + j] /= sum;
-    }
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::SoftmaxApplyFunc(
+void SoftmaxApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   size_t batch_size = input->shape()[0];
@@ -74,43 +29,30 @@ void Backend<GPUTensor, DType>::SoftmaxApplyFunc(
     batch_size, dim);
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::SoftmaxDerivativeFunc(
+void SoftmaxDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   // TODO(keren) not short cut version
 }
 
-template<typename DType>
-DType Backend<GPUTensor, DType>::SquareMeanApplyFunc(
+DType SquareMeanApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   return 0;
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::SquareMeanDerivativeFunc(
+void SquareMeanDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {}
 
-template<typename DType>
-DType Backend<GPUTensor, DType>::AbsMeanApplyFunc(
+DType AbsMeanApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   return 0;
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::AbsMeanDerivativeFunc(
+void AbsMeanDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {}
 
-template<typename DType>
-static __global__ void GPULogisticApply(const DType* input, DType* output, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    output[i] = 1 / (exp(-input[i]) + 1);
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::LogisticApplyFunc(
+void LogisticApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   GPULogisticApply<DType><<<BlitzGPUGetBlocks(input->size()),
@@ -118,27 +60,13 @@ void Backend<GPUTensor, DType>::LogisticApplyFunc(
     input->size());
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::LogisticDerivativeFunc(
+void LogisticDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   // TODO(keren) not short cut version
 }
 
-template<typename DType>
-static __global__ void GPUCrossEntropyBinaryApply(
-  const DType* input, const DType* target,
-  DType* sum, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType safe_input = BlitzGPUSafeLog(input[i]);
-    DType safe_inverse_input = BlitzGPUSafeLog(1 - input[i]);
-    sum[i] += -safe_input * target[i] - safe_inverse_input
-      * (1 - target[i]);
-  }
-}
-
-template<typename DType>
-DType Backend<GPUTensor, DType>::CrossEntropyBinaryApplyFunc(
+DType CrossEntropyBinaryApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   GPUTensor<DType> sum(input->shape());
   GPUCrossEntropyBinaryApply<DType><<<BlitzGPUGetBlocks(input->size()),
@@ -149,24 +77,13 @@ DType Backend<GPUTensor, DType>::CrossEntropyBinaryApplyFunc(
   return loss / input->shape()[0];
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::CrossEntropyBinaryDerivativeFunc(
+void CrossEntropyBinaryDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {
   MinusFunc(input, target, output);
 }
 
-template<typename DType>
-static __global__ void GPUCrossEntropyMultiApply(
-  const DType* input, const DType* target,
-  DType* sum, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    sum[i] = -BlitzGPUSafeLog(input[i]) * target[i];
-  }
-}
-
-template<typename DType>
-DType Backend<GPUTensor, DType>::CrossEntropyMultiApplyFunc(
+DType CrossEntropyMultiApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   const Shape& input_shape = input->shape();
@@ -180,26 +97,13 @@ DType Backend<GPUTensor, DType>::CrossEntropyMultiApplyFunc(
   return loss / input->shape()[0];
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::CrossEntropyMultiDerivativeFunc(
+void CrossEntropyMultiDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {
   MinusFunc(input, target, output);
 }
 
-template<typename DType>
-static __global__ void GPUBiasApply(
-  const DType* input, const DType* bias, DType* output,
-  size_t batch_size, size_t dim) {
-  BLITZ_CUDA_LOOP(i, batch_size) {
-    for (size_t j = 0; j < dim; ++j) {
-      output[i * dim + j] = input[i * dim + j] + bias[j];
-    }
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::BiasForwardFunc(
+void BiasForwardFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* bias,
   GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
@@ -210,18 +114,7 @@ void Backend<GPUTensor, DType>::BiasForwardFunc(
     batch_size, dim);
 }
 
-template<typename DType>
-static __global__ void GPUBiasDerivative(const DType* input, DType* update,
-  size_t dim, size_t batch_size) {
-  BLITZ_CUDA_LOOP(i, dim) {
-    for (size_t j = 0; j < batch_size; ++j) {
-      update[i] += input[j * dim + i];
-    }
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::BiasBackwardUpdateFunc(
+void BiasBackwardUpdateFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* update) {
   size_t batch_size = input->shape()[0];
   size_t dim = input->size() / batch_size;
@@ -230,8 +123,7 @@ void Backend<GPUTensor, DType>::BiasBackwardUpdateFunc(
     batch_size, dim);
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::BatchNormForwardFunc(
+void BatchNormForwardFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* gamma,
   const GPUTensor<DType>* beta,
@@ -240,8 +132,7 @@ void Backend<GPUTensor, DType>::BatchNormForwardFunc(
   GPUTensor<DType>* output,
   DType epsilon) {}
 
-template<typename DType>
-void Backend<GPUTensor, DType>::BatchNormBackwardFunc(
+void BatchNormBackwardFunc(
   const GPUTensor<DType>* backward_input,
   const GPUTensor<DType>* forward_input_hat,
   const GPUTensor<DType>* forward_input_var,
@@ -251,21 +142,8 @@ void Backend<GPUTensor, DType>::BatchNormBackwardFunc(
   GPUTensor<DType>* output,
   DType epsilon) {}
 
-template<typename DType>
-static __global__ void GPUGradientdescent(
-  DType* weight, DType* gradient, DType* velocity,
-  DType momentum_coef, DType learning_rate,
-  DType decay, size_t batch_size, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    gradient[i] /= batch_size;
-    velocity[i] = velocity[i] * momentum_coef - learning_rate *
-      (gradient[i] + decay * weight[i]);
-    weight[i] = weight[i] + velocity[i];
-  }
-}
 
-template<typename DType>
-void Backend<GPUTensor, DType>::GradientdescentFunc(
+void GradientdescentFunc(
   GPUTensor<DType>* weight,
   GPUTensor<DType>* gradient,
   GPUTensor<DType>* velocity,
@@ -282,8 +160,7 @@ void Backend<GPUTensor, DType>::GradientdescentFunc(
     batch_size, gradient->size());
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
+void MatrixMultiplyFunc(
   const GPUTensor<DType>* left,
   const GPUTensor<DType>* right,
   GPUTensor<DType>* output,
@@ -335,8 +212,7 @@ void Backend<GPUTensor, DType>::MatrixMultiplyFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::Transpose2DFunc(
+void Transpose2DFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   size_t dim_left = input->shape()[0];
   size_t dim_right = input->shape()[1];
@@ -346,13 +222,11 @@ void Backend<GPUTensor, DType>::Transpose2DFunc(
     output->data(), dim_left, dim_right); 
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MaximumFunc(
+void MaximumFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {}
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MinusFunc(
+void MinusFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -367,21 +241,18 @@ void Backend<GPUTensor, DType>::MinusFunc(
     rptr, optr, thrust::minus<DType>()); 
 }
 
-template<typename DType>
-DType Backend<GPUTensor, DType>::SumFunc(
+DType SumFunc(
   const GPUTensor<DType>* input) {
   thrust::device_ptr<DType> ptr = thrust::device_pointer_cast(
     const_cast<DType*>(input->data()));
   return thrust::reduce(ptr, ptr + input->size());
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::AddFunc(
+void AddFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {}
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MultiplyFunc(
+void MultiplyFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -396,8 +267,7 @@ void Backend<GPUTensor, DType>::MultiplyFunc(
     rptr, optr, thrust::multiplies<DType>()); 
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::MultiplyFunc(
+void MultiplyFunc(
   const GPUTensor<DType>* left, GPUTensor<DType>* output,
   DType right) {
   GPUTensor<DType> right_vector(left->shape());
@@ -405,19 +275,7 @@ void Backend<GPUTensor, DType>::MultiplyFunc(
   MultiplyFunc(left, &right_vector, output);
 }
 
-template<typename DType>
-static __global__ void GPUMakeBinaryMask(DType* output, DType keep, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    if (output[i] < keep) {
-      output[i] = DType(1);
-    } else {
-      output[i] = DType(0);
-    }
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::MakeBinaryMaskFunc(
+void MakeBinaryMaskFunc(
   GPUTensor<DType>* output,
   DType low,
   DType high,
@@ -427,14 +285,12 @@ void Backend<GPUTensor, DType>::MakeBinaryMaskFunc(
     BLITZ_NUM_GPU_THREADS>>>(output->data(), keep, output->size());
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::ConstantDistributionFunc(
+void ConstantDistributionFunc(
   GPUTensor<DType>* output, DType val) {
   output->Fill(val);
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::NormalDistributionFunc(
+void NormalDistributionFunc(
   GPUTensor<DType>* output, DType loc, DType scale) {
   static unsigned int seed = 0;
   curandGenerator_t gen;
@@ -443,16 +299,7 @@ void Backend<GPUTensor, DType>::NormalDistributionFunc(
   BlitzGenerateNormal(&gen, output->data(), loc, scale, output->size());
 }
 
-template<typename DType>
-static __global__ void GPUUniformTransform(DType* output, DType low, DType high,
-  size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    output[i] = low + (high - low) * output[i];
-  }
-}
-
-template<typename DType>
-void Backend<GPUTensor, DType>::UniformDistributionFunc(
+void UniformDistributionFunc(
   GPUTensor<DType>* output, DType low, DType high) {
   static unsigned int seed = 0;
   curandGenerator_t gen;
@@ -463,39 +310,17 @@ void Backend<GPUTensor, DType>::UniformDistributionFunc(
     BLITZ_NUM_GPU_THREADS>>>(output->data(), low, high, output->size());
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::HostCopyToFunc(
+void HostCopyToFunc(
   const DType* source, DType* target, size_t size) {
   cudaMemcpy(target, source, size * sizeof(DType), cudaMemcpyHostToDevice);
 }
 
-template<typename DType>
-static __global__ void GPUEvaluateClass(
-  const DType* output, const DType* target, DType* correct,
-  size_t dim, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType max = output[i * dim];
-    size_t max_index = 0;
-    for (size_t j = 1; j < dim; ++j) {
-      if (max < output[i * dim + j]) {
-        max_index = j;
-        max = output[i * dim + j];
-      }
-    }
-    if (target[i * dim + max_index] == (DType)1.0) {
-      correct[i] = 1.0f;
-    }
-  }
-}
-
-template<typename DType>
-float Backend<GPUTensor, DType>::EvaluateRegressFunc(
+float EvaluateRegressFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* target) {
   return 0;
 }
 
-template<typename DType>
-float Backend<GPUTensor, DType>::EvaluateClassifyFunc(
+float EvaluateClassifyFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* target) {
   size_t batch_size = output->shape()[0];
   size_t dim = output->size() / batch_size;

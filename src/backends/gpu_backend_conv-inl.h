@@ -1,8 +1,7 @@
 #ifndef SRC_BACKENDS_GPU_BACKEND_CONV_INL_H_
 #define SRC_BACKENDS_GPU_BACKEND_CONV_INL_H_
 
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
+void Convolution2DForwardFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* filter,
   GPUTensor<DType>* output,
@@ -109,8 +108,7 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
+void Convolution2DBackwardFunc(
   const GPUTensor<DType>* output,
   const GPUTensor<DType>* filter,
   GPUTensor<DType>* input,
@@ -232,8 +230,7 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-template<typename DType>
-void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
+void Convolution2DUpdateFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* output,
   GPUTensor<DType>* update,
