@@ -67,7 +67,11 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
 ifeq ($(BLITZ_USE_GPU), 1)
-	LDFLAGS += -lcudart -lcuda -lcublas -lcudnn -lcurand
+	LDFLAGS += -lcudart -lcuda -lcublas -lcurand
+endif
+
+ifeq ($(BLITZ_USE_CUDNN), 1)
+	LDFLAGS += -lcudnn
 endif
 
 #blitz different modes

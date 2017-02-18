@@ -15,7 +15,7 @@ namespace blitz {
 
 #include "gpu_backend_math-inl.h"
 #include "gpu_backend_conv-inl.h"
-#include "gpu_backend_pack-inl.h"
+#include "gpu_backend_transform-inl.h"
 #include "gpu_backend_pool-inl.h"
 
 INSTANTIATE_BACKEND(GPUTensor);

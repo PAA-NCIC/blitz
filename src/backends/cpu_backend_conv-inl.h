@@ -32,13 +32,13 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
-  output->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   timeval start, end;
   double elapsed_time;
   BLITZ_CPU_TIMER_START(elapsed_time, start);
   #endif  // BLITZ_PERFORMANCE
+  output->Fill(0);
   switch (context->algorithm()) { // NCHW & NHWC
     case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
       #pragma omp parallel private(nCHW, nKPQ)
@@ -50,7 +50,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Unpack2DDispatch(
+          Unpack2DDispatch<CPUTensor, DType>(
             input->Slice(nCHW),
             workspace_unpack_slice,
             C, H, W,
@@ -59,7 +59,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
             pad_h, pad_w,
             str_h, str_w,
             input->data_layout());
-          Convolution2DForwardGEMMDispatch(
+          Convolution2DForwardGEMMDispatch<CPUTensor, DType>(
             workspace_unpack_slice,
             filter->data(),
             output->Slice(nKPQ),
@@ -74,7 +74,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Unpack2DDispatch(
+        Unpack2DDispatch<CPUTensor, DType>(
           input->Slice(nCHW),
           workspace->data(),
           C, H, W,
@@ -83,7 +83,7 @@ void Backend<CPUTensor, DType>::Convolution2DForwardFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        Convolution2DForwardGEMMDispatch(
+        Convolution2DForwardGEMMDispatch<CPUTensor, DType>(
           workspace->data(),
           filter->data(),
           output->Slice(nKPQ),
@@ -212,14 +212,14 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Convolution2DBackwardGEMMDispatch(
+          Convolution2DBackwardGEMMDispatch<CPUTensor, DType>(
             filter->data(),
             output->Slice(nKPQ),
             workspace->Slice(workspace_unpack_offset),
             K, PQ, CRS,
             input->data_layout(),
             output->data_layout());
-          Pack2DDispatch(workspace->Slice(workspace_unpack_offset),
+          Pack2DDispatch<CPUTensor, DType>(workspace->Slice(workspace_unpack_offset),
             input->Slice(nCHW),
             C, H, W,
             R, S,
@@ -235,14 +235,14 @@ void Backend<CPUTensor, DType>::Convolution2DBackwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Convolution2DBackwardGEMMDispatch(
+        Convolution2DBackwardGEMMDispatch<CPUTensor, DType>(
           filter->data(),
           output->Slice(nKPQ),
           workspace->data(),
           K, PQ, CRS,
           input->data_layout(),
           output->data_layout());
-        Pack2DDispatch(workspace->data(),
+        Pack2DDispatch<CPUTensor, DType>(workspace->data(),
           input->Slice(nCHW),
           C, H, W,
           R, S,
@@ -321,14 +321,14 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
   str_h = context->str_h();
   str_w = context->str_w();
   CPUTensor<DType>* workspace = context->workspace();
+  // offset
+  size_t nCHW = 0;
+  size_t nKPQ = 0;
   // dims
   const size_t CHW = C * H * W;
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
-  // offset
-  size_t nCHW = 0;
-  size_t nKPQ = 0;
   workspace->Fill(0);
   update->Fill(0);
   // time counter
@@ -350,7 +350,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Unpack2DDispatch(input->Slice(nCHW),
+          Unpack2DDispatch<CPUTensor, DType>(input->Slice(nCHW),
             workspace->Slice(workspace_unpack_offset),
             C, H, W,
             R, S,
@@ -358,7 +358,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
             pad_h, pad_w,
             str_h, str_w,
             input->data_layout());
-          Convolution2DUpdateGEMMDispatch(
+          Convolution2DUpdateGEMMDispatch<CPUTensor, DType>(
             workspace->Slice(workspace_unpack_offset),
             output->Slice(nKPQ),
             workspace->Slice(workspace_update_offset),
@@ -377,7 +377,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Unpack2DDispatch(input->Slice(nCHW),
+        Unpack2DDispatch<CPUTensor, DType>(input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
@@ -385,7 +385,7 @@ void Backend<CPUTensor, DType>::Convolution2DUpdateFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        Convolution2DUpdateGEMMDispatch(
+        Convolution2DUpdateGEMMDispatch<CPUTensor, DType>(
           workspace->data(),
           output->Slice(nKPQ),
           update->data(),

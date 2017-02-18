@@ -121,17 +121,12 @@ void BlitzSassGemm(
 
 template<typename DType>
 void BlitzSassConvolution2D(
-  DType* input,
-  DType* output,
-  DType* filter,
-  size_t batch_size,
-  size_t input_channel,
-  size_t input_height, size_t input_width,
-  size_t filter_height, size_t filter_width,
-  size_t output_channel,
-  size_t output_height, size_t output_width,
-  size_t stride_height, size_t stride_width,
-  size_t padding_height, size_t padding_width,
+  DType *I, DType *O, DType *F,
+  size_t N, size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w,
   const string& phase);
 
 template<typename DType>

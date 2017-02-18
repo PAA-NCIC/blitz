@@ -1,10 +1,9 @@
-#ifndef SRC_BACKENDS_CPU_BACKEND_DISPATCH_INL_H_
-#define SRC_BACKENDS_CPU_BACKEND_DISPATCH_INL_H_
+#ifndef SRC_BACKENDS_GPU_BACKEND_DISPATCH_INL_H_
+#define SRC_BACKENDS_GPU_BACKEND_DISPATCH_INL_H_
 
-//template<typename DType>
-//void Backend<CPUTensor, DType>::Unpack2DDispatch(
-//  const DType* I,
-//  DType* U,
+//static void Unpack2DDispatch(
+//  const DType *input,
+//  DType *unpack,
 //  size_t C, size_t H, size_t W,
 //  size_t R, size_t S,
 //  size_t P, size_t Q,
@@ -12,14 +11,8 @@
 //  size_t str_h, size_t str_w,
 //  BLITZ_DATA_LAYOUT input_data_layout) {
 //  switch (input_data_layout) {
-//    case BLITZ_BUFFER_NHWC:
-//      UnpackImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
-//        I, U,
-//        C, H, W, R, S, P, Q,
-//        pad_h, pad_w, str_h, str_w);
-//      break;
 //    case BLITZ_BUFFER_NCHW:
-//      UnpackImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+//      UnpackImpl<GPUTensor, DType, BLITZ_BUFFER_NCHW>(
 //        I, U,
 //        C, H, W, R, S, P, Q,
 //        pad_h, pad_w, str_h, str_w);
@@ -29,10 +22,9 @@
 //  }
 //}
 //
-//template<typename DType>
-//void Backend<CPUTensor, DType>::Pack2DDispatch(
-//  const DType* U,
-//  DType* I,
+//static void Pack2DDispatch(
+//  const DType *unpack,
+//  DType *input,
 //  size_t C, size_t H, size_t W,
 //  size_t R, size_t S,
 //  size_t P, size_t Q,
@@ -40,14 +32,8 @@
 //  size_t str_h, size_t str_w,
 //  BLITZ_DATA_LAYOUT input_data_layout) {
 //  switch (input_data_layout) {
-//    case BLITZ_BUFFER_NHWC:
-//      PackImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
-//        U, I,
-//        C, H, W, R, S, P, Q,
-//        pad_h, pad_w, str_h, str_w);
-//      break;
 //    case BLITZ_BUFFER_NCHW:
-//      PackImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+//      PackImpl<GPUTensor, DType, BLITZ_BUFFER_NCHW>(
 //        U, I,
 //        C, H, W, R, S, P, Q,
 //        pad_h, pad_w, str_h, str_w);
@@ -57,4 +43,4 @@
 //  }
 //}
 
-#endif  // SRC_BACKENDS_CPU_BACKEND_DISPATCH_INL_H_
+#endif  // SRC_BACKENDS_GPU_BACKEND_DISPATCH_INL_H_

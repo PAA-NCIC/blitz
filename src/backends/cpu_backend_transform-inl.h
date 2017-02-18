@@ -15,7 +15,7 @@ void Backend<CPUTensor, DType>::Unpack2DFunc(
   Q = (W + 2 * pad_w - S) / str_w + 1;
   CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
   for (size_t i = 0; i < N; ++i) {
-    Unpack2DDispatch(
+    Unpack2DDispatch<CPUTensor, DType>(
       input->data(), unpack->data(),
       C, H, W,
       R, S,
@@ -40,7 +40,7 @@ void Backend<CPUTensor, DType>::Pack2DFunc(
   Q = (W + 2 * pad_w - S) / str_w + 1;
   CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
   for (size_t i = 0; i < N; ++i) {
-    Pack2DDispatch(
+    Pack2DDispatch<CPUTensor, DType>(
       unpack->data(), input->data(),
       C, H, W,
       R, S,

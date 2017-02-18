@@ -5,6 +5,8 @@
 #include "utils/blitz_algorithm_function.h"
 #include "utils/blitz_shape_function.h"
 #include "utils/blitz_impl_function.h"
+#include "utils/blitz_dispatch_function.h"
+#include "backends/tensor.h"
 #include "backends/context.h"
 
 namespace blitz {
@@ -193,7 +195,7 @@ class Backend {
     size_t R, size_t S,
     size_t pad_h, size_t pad_w,
     size_t str_h, size_t str_w);
-  
+
   DISABLE_COPY_AND_ASSIGN(Backend);
 };
 

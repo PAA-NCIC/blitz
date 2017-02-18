@@ -133,6 +133,13 @@ void MaxPoolingBackwardImpl(
   size_t C, size_t H, size_t W,
   size_t K, size_t P, size_t Q);
 
+template<template <typename> class TensorType, typename DType>
+void BlitzGemm(
+  DType* A, DType* B, DType* C,
+  bool transa, bool transb,
+  DType alpha, DType beta,
+  size_t M, size_t N, size_t K);
+
 }  // namespace blitz
 
 #endif  // INCLUDE_UTIL_BLITZ_IMPL_FUNCTION_H_

@@ -98,15 +98,12 @@ void BlitzSassGemm(
 
 template<>
 void BlitzSassConvolution2D(
-  float* I,
-  float* O,
-  float* F,
-  size_t N,
-  size_t C, size_t H, size_t W,
+  float* I, float* O, float* F,
+  size_t N, size_t C, size_t H, size_t W,
   size_t R, size_t S,
   size_t K, size_t P, size_t Q,
-  size_t str_h, size_t str_w,
   size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w,
   const string& phase) {
   float alpha = 1.0f;
   size_t D = 1, M = 1, T = 1;

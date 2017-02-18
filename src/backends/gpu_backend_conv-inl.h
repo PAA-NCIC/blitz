@@ -6,22 +6,24 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* filter,
   GPUTensor<DType>* output,
-  GPUTensor<DType>* workspace, 
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_ALGORITHM algorithm) {
+  ConvolutionContext<GPUTensor, DType>* context) {
   // shape decode
   size_t NIN, C, H, W;
   size_t KF, CF, R, S;
   size_t NOUT, K, P, Q;
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
-  CHECK_EQ(NIN, NOUT);
-  CHECK_EQ(KF, K);
-  CHECK_EQ(CF, C);
+  size_t pad_h, pad_w;
+  size_t str_h, str_w;
+  Blitz2DBuffer(input->shape(), &NIN, &C, &H, &W);
+  Blitz2DFilter(filter->shape(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape(), &NOUT, &K, &P, &Q);
+  context->CheckInputDataLayout(NIN, C, H, W);
+  context->CheckFilterDataLayout(KF, CF, R, S);
+  context->CheckOutputDataLayout(NOUT, K, P, Q);
+  pad_h = context->pad_h();
+  pad_w = context->pad_w();
+  str_h = context->str_h();
+  str_w = context->str_w();
+  GPUTensor<DType>* workspace = context->workspace();
   // offset
   size_t nCHW = 0;
   size_t nKPQ = 0;
@@ -31,13 +33,14 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
   // time counter
+  #ifdef BLITZ_PERFORMANCE
   cudaEvent_t start, stop;
   float elapsed_time = 0;
-  float compute_time = 0;
-  float transform_time = 0;
-  switch (algorithm) {
+  BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
+  #endif
+  output->Fill(0);
+  switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_SASS_DIRECT: {
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       workspace->Fill(0);
       // transpose Input
       BlitzGPUTrans(const_cast<DType*>(input->data()), 
@@ -47,30 +50,21 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       BlitzGPUTrans(const_cast<DType*>(filter->data()), 
         workspace->Slice(input->size() + output->size()),
         K, CRS);
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      transform_time += elapsed_time;
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       // direct GEMM
       BlitzSassConvolution2D(
         workspace->data(),
         workspace->Slice(input->size()),
         workspace->Slice(input->size() + output->size()),
-        NIN,
-        C, H, W,
+        NIN, C, H, W,
         R, S,
         K, P, Q,
-        stride_height, stride_width,
-        padding_height, padding_width,
+        pad_h, pad_w,
+        str_h, str_w,
         "forward");
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      compute_time = elapsed_time;
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       // transpose Output
       BlitzGPUTrans(const_cast<DType*>(workspace->Slice(input->size())), 
         output->data(),
         KPQ, NIN);
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      transform_time += elapsed_time;
       break;
     }
     case BLITZ_CONVOLUTION_BLAS_GEMM:
@@ -78,33 +72,22 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
-        // unpack
-        // (input_channel) *
-        // (input_width * input_height)
-        // to
-        // (output_width * output_height)
-        // (input_channel * filter_height * filter_width)
-        Unpack2DFunc(input->Slice(nCHW),
+        Unpack2DDispatch<GPUTensor, DType>(input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
           P, Q,
-          padding_height, padding_width,
-          stride_height, stride_width);
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        transform_time += elapsed_time;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
-        // gemm generate
-        // (output_channel) * (output_height * output_width)
-        if (algorithm == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          BlitzGPUGemm(const_cast<GPUTensor<DType>*>(filter)->data(),
+          pad_h, pad_w,
+          str_h, str_w,
+          input->data_layout());
+        if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
+          BlitzGemm<GPUTensor, DType>(const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),
             output->Slice(nKPQ),
             false, true,
             static_cast<DType>(1), static_cast<DType>(0),
             K, PQ, CRS);
-        } else if (algorithm == BLITZ_CONVOLUTION_SASS_GEMM) {
+        } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           BlitzSassGemm(const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),
             output->Slice(nKPQ),
@@ -112,21 +95,17 @@ void Backend<GPUTensor, DType>::Convolution2DForwardFunc(
             static_cast<DType>(1), static_cast<DType>(0),
             K, PQ, CRS);
         }
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        compute_time += elapsed_time;
       }
       break;
     }    
     default:
-      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;
   }
   #ifdef BLITZ_PERFORMANCE
   double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
-  LOG(INFO) << "Forward convolution compute: " << compute_time;
-  LOG(INFO) << "Forward convolution transform: " << transform_time;
-  LOG(INFO) << "Forward convolution compute gflops: " << computations / (compute_time * 1e9);
-  LOG(INFO) << "Forward convolution total gflops: " << computations / ((transform_time + compute_time) * 1e9);
+  BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
+  BLITZ_GPU_TIMER_INFO(computations, elapsed_time);
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -135,22 +114,24 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   const GPUTensor<DType>* output,
   const GPUTensor<DType>* filter,
   GPUTensor<DType>* input,
-  GPUTensor<DType>* workspace,
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_ALGORITHM algorithm) {
+  ConvolutionContext<GPUTensor, DType>* context) {
   // shape decode
   size_t NIN, C, H, W;
   size_t KF, CF, R, S;
   size_t NOUT, K, P, Q;
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(filter->data_layout(), filter->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
-  CHECK_EQ(NIN, NOUT);
-  CHECK_EQ(KF, K);
-  CHECK_EQ(CF, C);
+  size_t pad_h, pad_w;
+  size_t str_h, str_w;
+  Blitz2DBuffer(input->shape(), &NIN, &C, &H, &W);
+  Blitz2DFilter(filter->shape(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape(), &NOUT, &K, &P, &Q);
+  context->CheckInputDataLayout(NIN, C, H, W);
+  context->CheckFilterDataLayout(KF, CF, R, S);
+  context->CheckOutputDataLayout(NOUT, K, P, Q);
+  pad_h = context->pad_h();
+  pad_w = context->pad_w();
+  str_h = context->str_h();
+  str_w = context->str_w();
+  GPUTensor<DType>* workspace = context->workspace();
   // offset
   size_t nCHW = 0;
   size_t nKPQ = 0;
@@ -159,69 +140,54 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
-  // init
-  input->Fill(0);
   // time counter
+  #ifdef BLITZ_PERFORMANCE
   cudaEvent_t start, stop;
   float elapsed_time = 0;
-  float compute_time = 0;
-  float transform_time = 0;
-  switch (algorithm) {
+  BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
+  #endif  // BLITZ_PERFORMANCE
+  // init
+  input->Fill(0);
+  switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_SASS_DIRECT: {
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       workspace->Fill(0);
       // transpose output
       BlitzGPUTrans(const_cast<DType*>(output->data()), 
         workspace->Slice(input->size()),
         NIN, KPQ);
       if (C % 64 != 0) {
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        transform_time = elapsed_time;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
         // direct GEMM
         BlitzSassConvolution2D(
           workspace->data(),
           const_cast<DType*>(workspace->Slice(input->size())),
           const_cast<DType*>(filter->data()),
-          NIN,
-          C, H, W,
+          NIN, C, H, W,
           R, S,
           K, P, Q,
-          stride_height, stride_width,
-          padding_height, padding_width,
+          pad_h, pad_w,
+          str_h, str_w,
           "backward");
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        compute_time = elapsed_time;
       } else {
         // shuffle filter
         BlitzFilter2DShuffle(const_cast<DType*>(filter->data()), 
           workspace->Slice(input->size() + output->size()),
           K, C, R, S);
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        transform_time = elapsed_time;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
         // direct GEMM
         BlitzSassConvolution2D(
           workspace->data(),
           const_cast<DType*>(workspace->Slice(input->size())),
           const_cast<DType*>(workspace->Slice(input->size() + output->size())),
-          NIN,
-          C, H, W,
+          NIN, C, H, W,
           R, S,
           K, P, Q,
-          stride_height, stride_width,
-          padding_height, padding_width,
+          pad_h, pad_w,
+          str_h, str_w,
           "backward");
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        compute_time = elapsed_time;
       }
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       // transpose input
       BlitzGPUTrans(const_cast<DType*>(workspace->data()), 
         input->data(), 
         CHW, NIN);
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      transform_time += elapsed_time;
       break;
     }
     case BLITZ_CONVOLUTION_SASS_GEMM:
@@ -229,18 +195,14 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
-        // gemm generate
-        // (output_width * output_height) *
-        // (input_channel * filter_height * filter_width)
-        if (algorithm == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          BlitzGPUGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+        if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
+          BlitzGemm<GPUTensor, DType>(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),
             true, false,
             static_cast<DType>(1), static_cast<DType>(0),
             PQ, CRS, K);
-        } else if (algorithm == BLITZ_CONVOLUTION_SASS_GEMM) {
+        } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           BlitzSassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),
@@ -248,37 +210,25 @@ void Backend<GPUTensor, DType>::Convolution2DBackwardFunc(
             static_cast<DType>(1), static_cast<DType>(0),
             PQ, CRS, K);
         }
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        compute_time += elapsed_time;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
-        // pack
-        // (output_width * output_height)
-        // (input_channel * filter_height * filter_width)
-        // to
-        // (input_channel) *
-        // (input_height * input_width)
-        Pack2DFunc(workspace->data(),
+        Pack2DDispatch<GPUTensor, DType>(workspace->data(),
           input->Slice(nCHW),
           C, H, W,
           R, S,
           P, Q,
-          padding_height, padding_width,
-          stride_height, stride_width);
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        transform_time += elapsed_time;
+          pad_h, pad_w,
+          str_h, str_w,
+          input->data_layout());
       }
       break;
     }
     default:
-      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;
   }
   #ifdef BLITZ_PERFORMANCE
   double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
-  LOG(INFO) << "Backward convolution compute: " << compute_time;
-  LOG(INFO) << "Backward convolution transform: " << transform_time;
-  LOG(INFO) << "Backward convolution compute gflops: " << computations / (compute_time * 1e9);
-  LOG(INFO) << "Backward convolution total gflops: " << computations / ((transform_time + compute_time) * 1e9);
+  BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
+  BLITZ_GPU_TIMER_INFO(computations, elapsed_time);
   #endif  // BLITZ_PERFORMANCE
 }
 
@@ -287,22 +237,24 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* output,
   GPUTensor<DType>* update,
-  GPUTensor<DType>* workspace, 
-  size_t padding_height,
-  size_t padding_width,
-  size_t stride_height,
-  size_t stride_width,
-  BLITZ_ALGORITHM algorithm) {
+  ConvolutionContext<GPUTensor, DType>* context) {
   // shape decode
   size_t NIN, C, H, W;
   size_t KF, CF, R, S;
   size_t NOUT, K, P, Q;
-  Blitz2DBuffer(input->data_layout(), input->shape_ptr(), &NIN, &C, &H, &W);
-  Blitz2DFilter(update->data_layout(), update->shape_ptr(), &KF, &CF, &R, &S);
-  Blitz2DBuffer(output->data_layout(), output->shape_ptr(), &NOUT, &K, &P, &Q);
-  CHECK_EQ(NIN, NOUT);
-  CHECK_EQ(KF, K);
-  CHECK_EQ(CF, C);
+  size_t pad_h, pad_w;
+  size_t str_h, str_w;
+  Blitz2DBuffer(input->shape(), &NIN, &C, &H, &W);
+  Blitz2DFilter(update->shape(), &KF, &CF, &R, &S);
+  Blitz2DBuffer(output->shape(), &NOUT, &K, &P, &Q);
+  context->CheckInputDataLayout(NIN, C, H, W);
+  context->CheckFilterDataLayout(KF, CF, R, S);
+  context->CheckOutputDataLayout(NOUT, K, P, Q);
+  pad_h = context->pad_h();
+  pad_w = context->pad_w();
+  str_h = context->str_h();
+  str_w = context->str_w();
+  GPUTensor<DType>* workspace = context->workspace();
   // offset
   size_t nCHW = 0;
   size_t nKPQ = 0;
@@ -312,13 +264,14 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
   // time counter
+  #ifdef BLITZ_PERFORMANCE
   cudaEvent_t start, stop;
   float elapsed_time = 0;
-  float compute_time = 0;
-  float transform_time = 0;
-  switch (algorithm) {
+  BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
+  #endif  // BLITZ_PERFORMANCE
+  update->Fill(0);
+  switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_SASS_DIRECT: {
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       workspace->Fill(0);
       // transpose input
       BlitzGPUTrans(const_cast<DType*>(input->data()), 
@@ -328,30 +281,21 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       BlitzGPUTrans(const_cast<DType*>(output->data()), 
         workspace->Slice(input->size()), 
         NIN, KPQ);
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      transform_time = elapsed_time;
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       BlitzSassConvolution2D(
         const_cast<DType*>(workspace->data()),
         const_cast<DType*>(workspace->Slice(input->size())),
         workspace->Slice(input->size() + output->size()),
-        NIN,
-        C, H, W,
+        NIN, C, H, W,
         R, S,
         K, P, Q,
-        stride_height, stride_width,
-        padding_height, padding_width,
+        pad_h, pad_w,
+        str_h, str_w,
         "update");
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      compute_time = elapsed_time;
-      BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       // transpose update
       BlitzGPUTrans(
         const_cast<DType*>(workspace->Slice(input->size() + output->size())),
         update->data(),
         CRS, K);
-      BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-      transform_time += elapsed_time;
       break;
     }
     case BLITZ_CONVOLUTION_SASS_GEMM:
@@ -359,34 +303,22 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
-        // unpack
-        // (input_channel) *
-        // (input_width * input_height)
-        // to
-        // (output_width * output_height)
-        // (input_channel * filter_height * filter_width)
-        Unpack2DFunc(input->Slice(nCHW),
+        Unpack2DDispatch<GPUTensor, DType>(input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
           P, Q,
-          padding_height, padding_width,
-          stride_height, stride_width);
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        transform_time += elapsed_time;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
-        // gemm generate
-        // (output_channel) *
-        // (input_channel * filter_height * filter_width)
-        if (algorithm == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          BlitzGPUGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+          pad_h, pad_w,
+          str_h, str_w,
+          input->data_layout());
+        if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
+          BlitzGemm<GPUTensor, DType>(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->data(),
             update->data(),
             false, false,
             static_cast<DType>(1), static_cast<DType>(1),
             K, CRS, PQ);
-        } else if (algorithm == BLITZ_CONVOLUTION_SASS_GEMM) {
+        } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           BlitzSassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->data(),
             update->data(),
@@ -394,22 +326,17 @@ void Backend<GPUTensor, DType>::Convolution2DUpdateFunc(
             static_cast<DType>(1), static_cast<DType>(1),
             K, CRS, PQ);
         }
-        BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
-        compute_time += elapsed_time;
-        BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
       }
       break;
     }
     default:
-      LOG(FATAL) << "Unsupported algorithm type: " << algorithm;
+      LOG(FATAL) << "Unsupported algorithm type: " << context->algorithm();
       break;
   }
   #ifdef BLITZ_PERFORMANCE
   double computations = static_cast<double>(KPQ) * static_cast<double>(CRS) * static_cast<double>(2 * NIN);
-  LOG(INFO) << "Backward convolution update compute: " << compute_time;
-  LOG(INFO) << "Backward convolution update transform: " << transform_time;
-  LOG(INFO) << "Backward convolution update compute gflops: " << computations / (compute_time * 1e9);
-  LOG(INFO) << "Backward convolution update total gflops: " << computations / ((transform_time + compute_time) * 1e9);
+  BLITZ_GPU_TIMER_END(elapsed_time, start, stop);
+  BLITZ_GPU_TIMER_INFO(computations, elapsed_time);
   #endif  // BLITZ_PERFORMANCE
 }
 

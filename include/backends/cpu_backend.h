@@ -1,9 +1,6 @@
 #ifndef INCLUDE_BACKENDS_CPU_BACKEND_H_
 #define INCLUDE_BACKENDS_CPU_BACKEND_H_
 
-#include <vector>
-#include <string>
-
 #include "backends/backend.h"
 #include "backends/cpu_tensor.h"
 #include "utils/blitz_cpu_function.h"
@@ -197,49 +194,49 @@ class Backend<CPUTensor, DType> {
     size_t str_h, size_t str_w);
 
  private:
-  static void Convolution2DForwardGEMMDispatch(
-    const DType *unpack,
-    const DType *output,
-    DType *filter,
-    size_t K, size_t PQ, size_t CRS,
-    BLITZ_DATA_LAYOUT input_data_layout,
-    BLITZ_DATA_LAYOUT output_data_layout);
+ // static void Convolution2DForwardGEMMDispatch(
+ //   const DType *unpack,
+ //   const DType *output,
+ //   DType *filter,
+ //   size_t K, size_t PQ, size_t CRS,
+ //   BLITZ_DATA_LAYOUT input_data_layout,
+ //   BLITZ_DATA_LAYOUT output_data_layout);
 
-  static void Convolution2DBackwardGEMMDispatch(
-    const DType *filter,
-    const DType *output,
-    DType *unpack,
-    size_t K, size_t PQ, size_t CRS,
-    BLITZ_DATA_LAYOUT input_data_layout,
-    BLITZ_DATA_LAYOUT output_data_layout);
+ // static void Convolution2DBackwardGEMMDispatch(
+ //   const DType *filter,
+ //   const DType *output,
+ //   DType *unpack,
+ //   size_t K, size_t PQ, size_t CRS,
+ //   BLITZ_DATA_LAYOUT input_data_layout,
+ //   BLITZ_DATA_LAYOUT output_data_layout);
 
-  static void Convolution2DUpdateGEMMDispatch(
-    const DType *unpack,
-    const DType *output,
-    DType *update,
-    size_t K, size_t CRS, size_t PQ,
-    BLITZ_DATA_LAYOUT input_data_layout,
-    BLITZ_DATA_LAYOUT output_data_layout);
+ // static void Convolution2DUpdateGEMMDispatch(
+ //   const DType *unpack,
+ //   const DType *output,
+ //   DType *update,
+ //   size_t K, size_t CRS, size_t PQ,
+ //   BLITZ_DATA_LAYOUT input_data_layout,
+ //   BLITZ_DATA_LAYOUT output_data_layout);
 
-  static void Unpack2DDispatch(
-    const DType *input,
-    DType *unpack,
-    size_t C, size_t H, size_t W,
-    size_t R, size_t S,
-    size_t P, size_t Q,
-    size_t pad_h, size_t pad_w,
-    size_t str_h, size_t str_w,
-    BLITZ_DATA_LAYOUT input_data_layout);
+ // static void Unpack2DDispatch(
+ //   const DType *input,
+ //   DType *unpack,
+ //   size_t C, size_t H, size_t W,
+ //   size_t R, size_t S,
+ //   size_t P, size_t Q,
+ //   size_t pad_h, size_t pad_w,
+ //   size_t str_h, size_t str_w,
+ //   BLITZ_DATA_LAYOUT input_data_layout);
 
-  static void Pack2DDispatch(
-    const DType *unpack,
-    DType *input,
-    size_t C, size_t H, size_t W,
-    size_t R, size_t S,
-    size_t P, size_t Q,
-    size_t pad_h, size_t pad_w,
-    size_t str_h, size_t str_w,
-    BLITZ_DATA_LAYOUT input_data_layout);
+ // static void Pack2DDispatch(
+ //   const DType *unpack,
+ //   DType *input,
+ //   size_t C, size_t H, size_t W,
+ //   size_t R, size_t S,
+ //   size_t P, size_t Q,
+ //   size_t pad_h, size_t pad_w,
+ //   size_t str_h, size_t str_w,
+ //   BLITZ_DATA_LAYOUT input_data_layout);
 };
 
 }  // namespace blitz

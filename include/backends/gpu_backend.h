@@ -1,9 +1,6 @@
 #ifndef INCLUDE_BACKENDS_GPU_BACKEND_H_
 #define INCLUDE_BACKENDS_GPU_BACKEND_H_
 
-#include <string>
-#include <vector>
-
 #include "backends/backend.h"
 #include "backends/gpu_tensor.h"
 #include "utils/blitz_gpu_function.h"
@@ -135,42 +132,31 @@ class Backend<GPUTensor, DType> {
     const GPUTensor<DType>* input,
     const GPUTensor<DType>* filter,
     GPUTensor<DType>* output,
-    GPUTensor<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<GPUTensor, DType>* context);
 
   static void Convolution2DBackwardFunc(
     const GPUTensor<DType>* output,
     const GPUTensor<DType>* filter,
     GPUTensor<DType>* input,
-    GPUTensor<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<GPUTensor, DType>* context);
 
   static void Convolution2DUpdateFunc(
     const GPUTensor<DType>* input,
     const GPUTensor<DType>* output,
     GPUTensor<DType>* update,
-    GPUTensor<DType>* workspace,
-    size_t padding_height, size_t padding_width,
-    size_t stride_height, size_t stride_width,
-    BLITZ_ALGORITHM algorithm = BLITZ_CONVOLUTION_BLAS_GEMM);
+    ConvolutionContext<GPUTensor, DType>* context);
 
   static void MaxPooling2DForwardFunc(
     const GPUTensor<DType>* input,
     GPUTensor<DType>* output,
     GPUTensor<size_t>* max_index,
-    size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width);
+    size_t R, size_t S,
+    size_t str_h, size_t str_w);
 
   static void MaxPooling2DBackwardFunc(
     const GPUTensor<DType>* output, 
     GPUTensor<DType>* input,
-    const GPUTensor<size_t>* max_index,
-    size_t filter_height, size_t filter_width,
-    size_t stride_height, size_t stride_width);
+    const GPUTensor<size_t>* max_index);
 
   static void MakeBinaryMaskFunc(
     GPUTensor<DType>* output,
@@ -192,37 +178,42 @@ class Backend<GPUTensor, DType> {
   static float EvaluateRegressFunc(
     const GPUTensor<DType>* output, const GPUTensor<DType>* target);
 
-  static BLITZ_DATA_LAYOUT Unpack2DFunc(
-    const DType* input,
-    DType* unpack,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width,
-    BLITZ_DATA_LAYOUT input_data_layout = BLITZ_PACK_CRSPQ);
+  static void TransformCopyFunc(const GPUTensor<DType>* source, GPUTensor<DType>* dest);
 
-  static BLITZ_DATA_LAYOUT Pack2DFunc(
-    const DType* pack,
-    DType* input,
-    size_t channel,
-    size_t input_height,
-    size_t input_width,
-    size_t filter_height,
-    size_t filter_width,
-    size_t output_height,
-    size_t output_width,
-    size_t padding_height,
-    size_t padding_width,
-    size_t stride_height,
-    size_t stride_width,
-    BLITZ_DATA_LAYOUT pack_data_layout = BLITZ_PACK_CRSPQ);
+  static void Unpack2DFunc(
+    const GPUTensor<DType>* input,
+    GPUTensor<DType>* unpack,
+    size_t R, size_t S,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w);
+
+  static void Pack2DFunc(
+    const GPUTensor<DType>* unpack,
+    GPUTensor<DType>* input,
+    size_t R, size_t S,
+    size_t pad_h, size_t pad_w,
+    size_t str_h, size_t str_w);
+
+ private:
+  //static void Unpack2DDispatch(
+  //  const DType *input,
+  //  DType *unpack,
+  //  size_t C, size_t H, size_t W,
+  //  size_t R, size_t S,
+  //  size_t P, size_t Q,
+  //  size_t pad_h, size_t pad_w,
+  //  size_t str_h, size_t str_w,
+  //  BLITZ_DATA_LAYOUT input_data_layout);
+
+  //static void Pack2DDispatch(
+  //  const DType *unpack,
+  //  DType *input,
+  //  size_t C, size_t H, size_t W,
+  //  size_t R, size_t S,
+  //  size_t P, size_t Q,
+  //  size_t pad_h, size_t pad_w,
+  //  size_t str_h, size_t str_w,
+  //  BLITZ_DATA_LAYOUT input_data_layout);
 };
 
 }  // namespace blitz

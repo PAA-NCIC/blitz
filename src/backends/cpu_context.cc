@@ -56,7 +56,7 @@ void ConvolutionContext<CPUTensor, float>::InitAlgorithmForSpeed(size_t memory_s
     workspace_shape[0] = workspace_unpack_size;
     this->conv_algorithm_ = BLITZ_CONVOLUTION_BLAS_GEMM;
   } else {
-    LOG(FATAL) << "Not availble memory size!";
+    this->conv_algorithm_ = BLITZ_CONVOLUTION_NAIVE_DIRECT;
   }
   this->workspace_ = make_shared<CPUTensor<float> >(workspace_shape);
 }

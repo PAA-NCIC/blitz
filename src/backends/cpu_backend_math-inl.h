@@ -347,7 +347,7 @@ void Backend<CPUTensor, DType>::MatrixMultiplyFunc(
   size_t dim_common_right = transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
-  BlitzCPUGemm(
+  BlitzGemm<CPUTensor, DType>(
     const_cast<CPUTensor<DType>*>(left)->data(),
     const_cast<CPUTensor<DType>*>(right)->data(),
     output->data(), 
