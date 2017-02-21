@@ -81,7 +81,7 @@ ifeq ($(BLITZ_MODE), release)
 else ifeq ($(BLITZ_MODE), performance)
 	CXXFLAGS += -DBLITZ_PERFORMANCE -g
 	NVCC_XCOMPILE += -DBLITZ_PERFORMANCE -g
-else ifeq ($(BLITZ_MODE), DEVELOP)
+else ifeq ($(BLITZ_MODE), develop)
 	CXXFLAGS += -DBLITZ_DEVELOP -g 
 	NVCC_XCOMPILE += -DBLITZ_DEVELOP -g 
 endif

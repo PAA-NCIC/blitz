@@ -1,7 +1,7 @@
 #ifndef SRC_BACKENDS_CPU_BACKEND_TRANSFORM_INL_H_
 #define SRC_BACKENDS_CPU_BACKEND_TRANSFORM_INL_H_
 
-void Unpack2DFunc(
+static void Unpack2DFunc(
   const CPUTensor<DType>* input,
   CPUTensor<DType>* unpack,
   size_t R, size_t S,
@@ -25,7 +25,7 @@ void Unpack2DFunc(
   }
 }
 
-void Pack2DFunc(
+static void Pack2DFunc(
   const CPUTensor<DType>* unpack,
   CPUTensor<DType>* input,
   size_t R, size_t S,
@@ -49,7 +49,7 @@ void Pack2DFunc(
   }
 }
 
-void TransformCopyFunc(
+static void TransformCopyFunc(
   const CPUTensor<DType>* source, CPUTensor<DType>* dest) {
   if (source->size() != dest->size()) {
     LOG(FATAL) << "Tensor size do not match!";

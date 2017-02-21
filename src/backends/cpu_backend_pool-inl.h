@@ -1,7 +1,7 @@
 #ifndef SRC_BACKENDS_CPU_BACKEND_POOL_INL_H_
 #define SRC_BACKENDS_CPU_BACKEND_POOL_INL_H_
 
-void MaxPooling2DForwardFunc(
+static void MaxPooling2DForwardFunc(
   const CPUTensor<DType>* input,
   CPUTensor<DType>* output,
   CPUTensor<size_t>* max_index, 
@@ -45,7 +45,7 @@ void MaxPooling2DForwardFunc(
   }  
 }
 
-void MaxPooling2DBackwardFunc(
+static void MaxPooling2DBackwardFunc(
   const CPUTensor<DType>* output,
   CPUTensor<DType>* input,
   const CPUTensor<size_t>* max_index) {

@@ -66,11 +66,11 @@
 ./samples/gpu/convolution/convolution forward convolution_sass_direct 128 1024 12 12 3 3 1024 12 12 1 1 1 1 2
 
 #backward:
-./samples/gpu/convolution/convolution backward convolution_sass_direct 128 3 231 231 11 11 96 56 56 0 0 4 4 2
-./samples/gpu/convolution/convolution backward convolution_sass_direct 128 96 28 28 5 5 256 24 24 0 0 1 1 2
-./samples/gpu/convolution/convolution backward convolution_sass_direct 128 256 12 12 3 3 512 12 12 1 1 1 1 2 
-./samples/gpu/convolution/convolution backward convolution_sass_direct 128 512 12 12 3 3 1024 12 12 1 1 1 1 2
-./samples/gpu/convolution/convolution backward convolution_sass_direct 128 1024 12 12 3 3 1024 12 12 1 1 1 1 2
+#./samples/gpu/convolution/convolution backward convolution_sass_direct 128 3 231 231 11 11 96 56 56 0 0 4 4 2
+#./samples/gpu/convolution/convolution backward convolution_sass_direct 128 96 28 28 5 5 256 24 24 0 0 1 1 2
+#./samples/gpu/convolution/convolution backward convolution_sass_direct 128 256 12 12 3 3 512 12 12 1 1 1 1 2 
+#./samples/gpu/convolution/convolution backward convolution_sass_direct 128 512 12 12 3 3 1024 12 12 1 1 1 1 2
+#./samples/gpu/convolution/convolution backward convolution_sass_direct 128 1024 12 12 3 3 1024 12 12 1 1 1 1 2
 
 ##update:
 #./samples/gpu/convolution/convolution update convolution_sass_direct 128 3 231 231 11 11 96 56 56 0 0 4 4 2

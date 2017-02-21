@@ -1,7 +1,7 @@
 #ifndef SRC_BACKENDS_CPU_BACKEND_CONV_INL_H_
 #define SRC_BACKENDS_CPU_BACKEND_CONV_INL_H_
 
-void Convolution2DForwardFunc(
+static void Convolution2DForwardFunc(
   const CPUTensor<DType>* input,
   const CPUTensor<DType>* filter,
   CPUTensor<DType>* output,
@@ -163,7 +163,7 @@ void Convolution2DForwardFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-void Convolution2DBackwardFunc(
+static void Convolution2DBackwardFunc(
   const CPUTensor<DType>* output,
   const CPUTensor<DType>* filter,
   CPUTensor<DType>* input,
@@ -296,7 +296,7 @@ void Convolution2DBackwardFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-void Convolution2DUpdateFunc(
+static void Convolution2DUpdateFunc(
   const CPUTensor<DType>* input,
   const CPUTensor<DType>* output,
   CPUTensor<DType>* update,

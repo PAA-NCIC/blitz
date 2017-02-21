@@ -1,7 +1,7 @@
 #ifndef SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
 #define SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
 
-void RectlinApplyFunc(
+static void RectlinApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
@@ -10,7 +10,7 @@ void RectlinApplyFunc(
     0, slope, input->size());
 }
 
-void RectlinDerivativeFunc(
+static void RectlinDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
@@ -19,7 +19,7 @@ void RectlinDerivativeFunc(
     0, slope, input->size());
 }
 
-void SoftmaxApplyFunc(
+static void SoftmaxApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   size_t batch_size = input->shape()[0];
@@ -29,30 +29,30 @@ void SoftmaxApplyFunc(
     batch_size, dim);
 }
 
-void SoftmaxDerivativeFunc(
+static void SoftmaxDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   // TODO(keren) not short cut version
 }
 
-DType SquareMeanApplyFunc(
+static DType SquareMeanApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   return 0;
 }
 
-void SquareMeanDerivativeFunc(
+static void SquareMeanDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {}
 
-DType AbsMeanApplyFunc(
+static DType AbsMeanApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   return 0;
 }
 
-void AbsMeanDerivativeFunc(
+static void AbsMeanDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {}
 
-void LogisticApplyFunc(
+static void LogisticApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   GPULogisticApply<DType><<<BlitzGPUGetBlocks(input->size()),
@@ -60,13 +60,13 @@ void LogisticApplyFunc(
     input->size());
 }
 
-void LogisticDerivativeFunc(
+static void LogisticDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   // TODO(keren) not short cut version
 }
 
-DType CrossEntropyBinaryApplyFunc(
+static DType CrossEntropyBinaryApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   GPUTensor<DType> sum(input->shape());
   GPUCrossEntropyBinaryApply<DType><<<BlitzGPUGetBlocks(input->size()),
@@ -77,13 +77,13 @@ DType CrossEntropyBinaryApplyFunc(
   return loss / input->shape()[0];
 }
 
-void CrossEntropyBinaryDerivativeFunc(
+static void CrossEntropyBinaryDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {
   MinusFunc(input, target, output);
 }
 
-DType CrossEntropyMultiApplyFunc(
+static DType CrossEntropyMultiApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   const Shape& input_shape = input->shape();
@@ -97,13 +97,13 @@ DType CrossEntropyMultiApplyFunc(
   return loss / input->shape()[0];
 }
 
-void CrossEntropyMultiDerivativeFunc(
+static void CrossEntropyMultiDerivativeFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target,
   GPUTensor<DType>* output) {
   MinusFunc(input, target, output);
 }
 
-void BiasForwardFunc(
+static void BiasForwardFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* bias,
   GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
@@ -114,7 +114,7 @@ void BiasForwardFunc(
     batch_size, dim);
 }
 
-void BiasBackwardUpdateFunc(
+static void BiasBackwardUpdateFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* update) {
   size_t batch_size = input->shape()[0];
   size_t dim = input->size() / batch_size;
@@ -123,7 +123,7 @@ void BiasBackwardUpdateFunc(
     batch_size, dim);
 }
 
-void BatchNormForwardFunc(
+static void BatchNormForwardFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* gamma,
   const GPUTensor<DType>* beta,
@@ -132,7 +132,7 @@ void BatchNormForwardFunc(
   GPUTensor<DType>* output,
   DType epsilon) {}
 
-void BatchNormBackwardFunc(
+static void BatchNormBackwardFunc(
   const GPUTensor<DType>* backward_input,
   const GPUTensor<DType>* forward_input_hat,
   const GPUTensor<DType>* forward_input_var,
@@ -143,7 +143,7 @@ void BatchNormBackwardFunc(
   DType epsilon) {}
 
 
-void GradientdescentFunc(
+static void GradientdescentFunc(
   GPUTensor<DType>* weight,
   GPUTensor<DType>* gradient,
   GPUTensor<DType>* velocity,
@@ -160,7 +160,7 @@ void GradientdescentFunc(
     batch_size, gradient->size());
 }
 
-void MatrixMultiplyFunc(
+static void MatrixMultiplyFunc(
   const GPUTensor<DType>* left,
   const GPUTensor<DType>* right,
   GPUTensor<DType>* output,
@@ -212,7 +212,7 @@ void MatrixMultiplyFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-void Transpose2DFunc(
+static void Transpose2DFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   size_t dim_left = input->shape()[0];
   size_t dim_right = input->shape()[1];
@@ -222,11 +222,11 @@ void Transpose2DFunc(
     output->data(), dim_left, dim_right); 
 }
 
-void MaximumFunc(
+static void MaximumFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {}
 
-void MinusFunc(
+static void MinusFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -241,18 +241,18 @@ void MinusFunc(
     rptr, optr, thrust::minus<DType>()); 
 }
 
-DType SumFunc(
+static DType SumFunc(
   const GPUTensor<DType>* input) {
   thrust::device_ptr<DType> ptr = thrust::device_pointer_cast(
     const_cast<DType*>(input->data()));
   return thrust::reduce(ptr, ptr + input->size());
 }
 
-void AddFunc(
+static void AddFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {}
 
-void MultiplyFunc(
+static void MultiplyFunc(
   const GPUTensor<DType>* left, const GPUTensor<DType>* right,
   GPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -267,7 +267,7 @@ void MultiplyFunc(
     rptr, optr, thrust::multiplies<DType>()); 
 }
 
-void MultiplyFunc(
+static void MultiplyFunc(
   const GPUTensor<DType>* left, GPUTensor<DType>* output,
   DType right) {
   GPUTensor<DType> right_vector(left->shape());
@@ -275,7 +275,7 @@ void MultiplyFunc(
   MultiplyFunc(left, &right_vector, output);
 }
 
-void MakeBinaryMaskFunc(
+static void MakeBinaryMaskFunc(
   GPUTensor<DType>* output,
   DType low,
   DType high,
@@ -285,12 +285,12 @@ void MakeBinaryMaskFunc(
     BLITZ_NUM_GPU_THREADS>>>(output->data(), keep, output->size());
 }
 
-void ConstantDistributionFunc(
+static void ConstantDistributionFunc(
   GPUTensor<DType>* output, DType val) {
   output->Fill(val);
 }
 
-void NormalDistributionFunc(
+static void NormalDistributionFunc(
   GPUTensor<DType>* output, DType loc, DType scale) {
   static unsigned int seed = 0;
   curandGenerator_t gen;
@@ -299,7 +299,7 @@ void NormalDistributionFunc(
   BlitzGenerateNormal(&gen, output->data(), loc, scale, output->size());
 }
 
-void UniformDistributionFunc(
+static void UniformDistributionFunc(
   GPUTensor<DType>* output, DType low, DType high) {
   static unsigned int seed = 0;
   curandGenerator_t gen;
@@ -310,17 +310,17 @@ void UniformDistributionFunc(
     BLITZ_NUM_GPU_THREADS>>>(output->data(), low, high, output->size());
 }
 
-void HostCopyToFunc(
+static void HostCopyToFunc(
   const DType* source, DType* target, size_t size) {
   cudaMemcpy(target, source, size * sizeof(DType), cudaMemcpyHostToDevice);
 }
 
-float EvaluateRegressFunc(
+static float EvaluateRegressFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* target) {
   return 0;
 }
 
-float EvaluateClassifyFunc(
+static float EvaluateClassifyFunc(
   const GPUTensor<DType>* output, const GPUTensor<DType>* target) {
   size_t batch_size = output->shape()[0];
   size_t dim = output->size() / batch_size;

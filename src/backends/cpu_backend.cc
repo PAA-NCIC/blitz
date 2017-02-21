@@ -15,7 +15,6 @@ class Backend<CPUTensor, DType> {
 #include "cpu_backend_conv-inl.h"
 #include "cpu_backend_transform-inl.h"
 #include "cpu_backend_pool-inl.h"
-#include "cpu_backend_dispatch-inl.h"
 };
 
 INSTANTIATE_BACKEND(CPUTensor);

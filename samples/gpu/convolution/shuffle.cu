@@ -1,10 +1,7 @@
-#include <iostream>
-
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-
-#include "backends/backends.h"
-#include "kernels/sass_function.h"
+#include <blitz.h>
+#include "../../../include/kernels/sass_function.h"
 
 using namespace blitz;
 
@@ -46,7 +43,7 @@ void cpu_shuffle(size_t K, size_t C, size_t R, size_t S,
   }
 }
 
-void compare_cpu_gpu(size_t size, float* output_cpu, float* output_gpu) {
+void compare(float* output_cpu, float* output_gpu, size_t size) {
   for (size_t i = 0; i < size; ++i) {
     if (output_cpu[i] > output_gpu[i] + 1e-2 ||
       output_cpu[i] < output_gpu[i] - 1e-2) {
@@ -79,7 +76,7 @@ void shuffle(size_t K, size_t C, size_t R, size_t S) {
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_shuffle_gpu.data(),
     filter_shuffle_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
-  compare_cpu_gpu(filter_shuffle_cpu.size(), filter_shuffle_cpu.data(), filter_copy.data());
+  compare(filter_shuffle_cpu.data(), filter_copy.data(), filter_shuffle_cpu.size());
 }
 
 int main(int argc, char** argv) {

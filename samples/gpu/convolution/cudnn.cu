@@ -1,8 +1,5 @@
 #include <cudnn.h>
-#include "utils/common.h"
-#include "utils/blitz_gpu_function.h"
-#include "utils/blitz_cpu_function.h"
-#include "backends/backends.h"
+#include <blitz.h>
 
 using namespace blitz;
 

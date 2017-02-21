@@ -1,7 +1,7 @@
 #ifndef SRC_BACKENDS_CPU_BACKEND_COMMON_INL_H_
 #define SRC_BACKENDS_CPU_BACKEND_COMMON_INL_H_
 
-void RectlinApplyFunc(
+static void RectlinApplyFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
@@ -12,7 +12,7 @@ void RectlinApplyFunc(
   }
 }
 
-void RectlinDerivativeFunc(
+static void RectlinDerivativeFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
@@ -24,7 +24,7 @@ void RectlinDerivativeFunc(
   }
 }
 
-void LogisticApplyFunc(
+static void LogisticApplyFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   #pragma omp parallel for
@@ -33,13 +33,13 @@ void LogisticApplyFunc(
   }
 }
 
-void LogisticDerivativeFunc(
+static void LogisticDerivativeFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   // TODO(keren) not short cut version
 }
 
-void SoftmaxApplyFunc(
+static void SoftmaxApplyFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   size_t batch_size = input->shape()[0];
@@ -58,13 +58,13 @@ void SoftmaxApplyFunc(
   }
 }
 
-void SoftmaxDerivativeFunc(
+static void SoftmaxDerivativeFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
   // TODO(keren) not short cut version
 }
 
-DType CrossEntropyBinaryApplyFunc(
+static DType CrossEntropyBinaryApplyFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   DType private_output = 0;
@@ -83,7 +83,7 @@ DType CrossEntropyBinaryApplyFunc(
   return output;
 }
 
-DType SquareMeanApplyFunc(
+static DType SquareMeanApplyFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   size_t batch_size = input->shape()[0];
@@ -105,7 +105,7 @@ DType SquareMeanApplyFunc(
   return sum / (2 * batch_size);
 }
 
-void SquareMeanDerivativeFunc(
+static void SquareMeanDerivativeFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target,
   CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), target->size());
@@ -113,7 +113,7 @@ void SquareMeanDerivativeFunc(
   MinusFunc(input, target, output);
 }
 
-DType AbsMeanApplyFunc(
+static DType AbsMeanApplyFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   size_t batch_size = input->shape()[0];
@@ -135,7 +135,7 @@ DType AbsMeanApplyFunc(
   return sum / batch_size;
 }
 
-void AbsMeanDerivativeFunc(
+static void AbsMeanDerivativeFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target,
   CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), target->size());
@@ -156,13 +156,13 @@ void AbsMeanDerivativeFunc(
   }
 }
 
-void CrossEntropyBinaryDerivativeFunc(
+static void CrossEntropyBinaryDerivativeFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target,
   CPUTensor<DType>* output) {
   MinusFunc(input, target, output);
 }
 
-DType CrossEntropyMultiApplyFunc(
+static DType CrossEntropyMultiApplyFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target) {
   CHECK_EQ(input->size(), target->size());
   DType private_output = 0;
@@ -180,13 +180,13 @@ DType CrossEntropyMultiApplyFunc(
   return output;
 }
 
-void CrossEntropyMultiDerivativeFunc(
+static void CrossEntropyMultiDerivativeFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* target,
   CPUTensor<DType>* output) {
   MinusFunc(input, target, output);
 }
 
-void BiasForwardFunc(
+static void BiasForwardFunc(
   const CPUTensor<DType>* input, const CPUTensor<DType>* bias,
   CPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
@@ -200,7 +200,7 @@ void BiasForwardFunc(
   }
 }
 
-void BiasBackwardUpdateFunc(
+static void BiasBackwardUpdateFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* update) {
   size_t batch_size = input->shape()[0];
   size_t dim = input->size() / batch_size;
@@ -212,7 +212,7 @@ void BiasBackwardUpdateFunc(
   }
 }
 
-void BatchNormForwardFunc(
+static void BatchNormForwardFunc(
   const CPUTensor<DType>* input,
   const CPUTensor<DType>* gamma,
   const CPUTensor<DType>* beta,
@@ -252,7 +252,7 @@ void BatchNormForwardFunc(
   }
 }
 
-void BatchNormBackwardFunc(
+static void BatchNormBackwardFunc(
   const CPUTensor<DType>* backward_input,
   const CPUTensor<DType>* forward_input_hat,
   const CPUTensor<DType>* forward_input_var,
@@ -283,7 +283,7 @@ void BatchNormBackwardFunc(
   }
 }
 
-void GradientdescentFunc(
+static void GradientdescentFunc(
   CPUTensor<DType>* weight,
   CPUTensor<DType>* gradient,
   CPUTensor<DType>* velocity,
@@ -309,7 +309,7 @@ void GradientdescentFunc(
   }
 }
 
-void MatrixMultiplyFunc(
+static void MatrixMultiplyFunc(
   const CPUTensor<DType>* left,
   const CPUTensor<DType>* right,
   CPUTensor<DType>* output, 
@@ -336,7 +336,7 @@ void MatrixMultiplyFunc(
     dim_left, dim_right, dim_common_left);
 }
 
-void Transpose2DFunc(
+static void Transpose2DFunc(
   const CPUTensor<DType>* input, CPUTensor<DType>* output) {
   size_t dim_left = input->shape()[0];
   size_t dim_right = input->shape()[1];
@@ -350,7 +350,7 @@ void Transpose2DFunc(
   }
 }
 
-void MaximumFunc(
+static void MaximumFunc(
   const CPUTensor<DType>* left, const CPUTensor<DType>* right,
   CPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -361,7 +361,7 @@ void MaximumFunc(
   }
 }
 
-void MinusFunc(
+static void MinusFunc(
   const CPUTensor<DType>* left, const CPUTensor<DType>* right,
   CPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -372,7 +372,7 @@ void MinusFunc(
   }
 }
 
-DType SumFunc(
+static DType SumFunc(
   const CPUTensor<DType>* input) {
   DType output = 0;
   for (size_t i = 0; i < input->size(); ++i) {
@@ -381,7 +381,7 @@ DType SumFunc(
   return output;
 }
 
-void AddFunc(
+static void AddFunc(
   const CPUTensor<DType>* left, const CPUTensor<DType>* right,
   CPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -392,7 +392,7 @@ void AddFunc(
   }
 }
 
-void MultiplyFunc(
+static void MultiplyFunc(
   const CPUTensor<DType>* left, const CPUTensor<DType>* right,
   CPUTensor<DType>* output) {
   CHECK_EQ(left->size(), right->size());
@@ -404,7 +404,7 @@ void MultiplyFunc(
 }
 
 
-void MultiplyFunc(
+static void MultiplyFunc(
   const CPUTensor<DType>* left, CPUTensor<DType>* output,
   DType right) {
   CHECK_EQ(left->size(), output->size());
@@ -414,7 +414,7 @@ void MultiplyFunc(
   }
 }
 
-void MakeBinaryMaskFunc(
+static void MakeBinaryMaskFunc(
   CPUTensor<DType>* output,
   DType low,
   DType high,
@@ -430,12 +430,12 @@ void MakeBinaryMaskFunc(
   }
 }
 
-void ConstantDistributionFunc(
+static void ConstantDistributionFunc(
   CPUTensor<DType>* output, DType val) {
   output->Fill(val);
 }
 
-void NormalDistributionFunc(
+static void NormalDistributionFunc(
   CPUTensor<DType>* output, DType loc, DType scale) {
   // TODO(keren) synchronized seed
   static unsigned int seed = 0;
@@ -449,7 +449,7 @@ void NormalDistributionFunc(
   }
 }
 
-void UniformDistributionFunc(
+static void UniformDistributionFunc(
   CPUTensor<DType>* output, DType low, DType high) {
   // TODO(keren) synchronized seed
   static unsigned int seed = 0;
@@ -463,7 +463,7 @@ void UniformDistributionFunc(
   }
 }
 
-float EvaluateClassifyFunc(
+static float EvaluateClassifyFunc(
   const CPUTensor<DType>* output, const CPUTensor<DType>* target) {
   size_t batch_size = output->shape()[0];
   size_t dim = output->size() / batch_size;
@@ -487,7 +487,7 @@ float EvaluateClassifyFunc(
   return correct / batch_size;
 }
 
-float EvaluateRegressFunc(
+static float EvaluateRegressFunc(
   const CPUTensor<DType>* output, const CPUTensor<DType>* target) {
   size_t batch_size = output->shape()[0];
   size_t dim = output->size() / batch_size;

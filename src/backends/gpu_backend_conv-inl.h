@@ -1,7 +1,7 @@
 #ifndef SRC_BACKENDS_GPU_BACKEND_CONV_INL_H_
 #define SRC_BACKENDS_GPU_BACKEND_CONV_INL_H_
 
-void Convolution2DForwardFunc(
+static void Convolution2DForwardFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* filter,
   GPUTensor<DType>* output,
@@ -108,7 +108,7 @@ void Convolution2DForwardFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-void Convolution2DBackwardFunc(
+static void Convolution2DBackwardFunc(
   const GPUTensor<DType>* output,
   const GPUTensor<DType>* filter,
   GPUTensor<DType>* input,
@@ -230,7 +230,7 @@ void Convolution2DBackwardFunc(
   #endif  // BLITZ_PERFORMANCE
 }
 
-void Convolution2DUpdateFunc(
+static void Convolution2DUpdateFunc(
   const GPUTensor<DType>* input,
   const GPUTensor<DType>* output,
   GPUTensor<DType>* update,
@@ -266,7 +266,6 @@ void Convolution2DUpdateFunc(
   float elapsed_time = 0;
   BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
   #endif  // BLITZ_PERFORMANCE
-  update->Fill(0);
   switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_SASS_DIRECT: {
       workspace->Fill(0);
