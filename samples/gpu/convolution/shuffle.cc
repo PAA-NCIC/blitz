@@ -71,7 +71,7 @@ void shuffle(size_t K, size_t C, size_t R, size_t S) {
     filter_cpu.data(),
     filter_shuffle_cpu.data());
   // gpu shuffle
-  BlitzFilter2DShuffle<float>(filter_gpu.data(), filter_shuffle_gpu.data(),
+  kernels::Filter2DShuffle<float>(filter_gpu.data(), filter_shuffle_gpu.data(),
     K, C, R, S);
   // copy from gpu to cpu
   cudaMemcpy(filter_copy.data(), filter_shuffle_gpu.data(),

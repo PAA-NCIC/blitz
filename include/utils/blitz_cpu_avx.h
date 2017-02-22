@@ -6,22 +6,22 @@ namespace blitz {
 namespace utils {
 
 template <typename DType>
-union BlitzAVXReg;
+union AVXReg;
 
 template<typename DType>
-inline void BlitzAVXBroadcast(const DType* addr, BlitzAVXReg<DType>* reg);
+inline void AVXBroadcast(const DType* addr, AVXReg<DType>* reg);
 
 template<typename DType>
-inline void BlitzAVXLoad(const DType* addr, BlitzAVXReg<DType>* reg);
+inline void AVXLoad(const DType* addr, AVXReg<DType>* reg);
 
 template<typename DType>
-inline void BlitzAVXStore(const DType* addr, BlitzAVXReg<DType>* reg);
+inline void AVXStore(const DType* addr, AVXReg<DType>* reg);
 
 template<typename DType>
-inline void BlitzAVXMax(const BlitzAVXReg<DType>* left, const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
+inline void AVXMax(const AVXReg<DType>* left, const AVXReg<DType>* right, AVXReg<DType>* output);
 
 template<typename DType>
-inline void BlitzAVXMin(const BlitzAVXReg<DType>* left, const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
+inline void AVXMin(const AVXReg<DType>* left, const AVXReg<DType>* right, AVXReg<DType>* output);
 
 }
 

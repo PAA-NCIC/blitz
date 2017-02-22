@@ -137,7 +137,7 @@ void MaxPoolingBackwardImpl(
   size_t K, size_t P, size_t Q);
 
 template<template <typename> class TensorType, typename DType>
-void BlitzGemm(
+void Gemm(
   DType* A, DType* B, DType* C,
   bool transa, bool transb,
   DType alpha, DType beta,

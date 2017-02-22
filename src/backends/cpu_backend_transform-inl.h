@@ -83,7 +83,7 @@ static void TransformCopyFunc(
       return;
     }
   }
-  utils::BlitzCPUCopy(source->data(), dest->data(), source->size());
+  utils::CPUCopy(source->data(), dest->data(), source->size());
 }
 
 #endif  // SRC_BACKENDS_CPU_BACKEND_TRANSFORM_INL_H_

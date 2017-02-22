@@ -75,14 +75,14 @@ void Convolution2DForwardGEMMDispatch(
   BLITZ_DATA_LAYOUT output_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(F), // KCRS
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(F), // KCRS
         const_cast<DType*>(U), // CRSPQ
         O, // KPQ
         false, false,
         static_cast<DType>(1), static_cast<DType>(0),
         K, PQ, CRS);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(U), // CRSPQ
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(U), // CRSPQ
         const_cast<DType*>(F), // KCRS
         O, // PQK
         true, true,
@@ -93,14 +93,14 @@ void Convolution2DForwardGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(F), // RSCK
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(F), // RSCK
         const_cast<DType*>(U), // PQRSC
         O, // KPQ
         true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         K, PQ, CRS);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(U), // PQRSC
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(U), // PQRSC
         const_cast<DType*>(F), // RSCK
         O, // PQK
         false, false,
@@ -122,14 +122,14 @@ void Convolution2DBackwardGEMMDispatch(
   BLITZ_DATA_LAYOUT output_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(F), // KCRS
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(F), // KCRS
         const_cast<DType*>(O), // KPQ
         U, // CRSPQ
         true, false,
         static_cast<DType>(1), static_cast<DType>(0),
         CRS, PQ, K);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(F), // KCRS
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(F), // KCRS
         const_cast<DType*>(O), // PQK
         U, // CRSPQ
         true, true,
@@ -140,14 +140,14 @@ void Convolution2DBackwardGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(O), // KPQ
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(O), // KPQ
         const_cast<DType*>(F), // RSCK
         U, // PQRSC
         true, true,
         static_cast<DType>(1), static_cast<DType>(0),
         PQ, CRS, K);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(O), // PQK
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(O), // PQK
         const_cast<DType*>(F), // RSCK
         U, // PQRSC
         false, true,
@@ -169,14 +169,14 @@ void Convolution2DUpdateGEMMDispatch(
   BLITZ_DATA_LAYOUT output_data_layout) {
   if (input_data_layout == BLITZ_BUFFER_NCHW) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(O), // KPQ
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(O), // KPQ
         const_cast<DType*>(U), // CRSPQ
         UP, // KCRS
         false, true,
         static_cast<DType>(1), static_cast<DType>(1),
         K, CRS, PQ);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(O), // PQK
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(O), // PQK
         const_cast<DType*>(U), // CRSPQ
         UP, // KCRS
         true, true,
@@ -187,14 +187,14 @@ void Convolution2DUpdateGEMMDispatch(
     }
   } else if (input_data_layout == BLITZ_BUFFER_NHWC) {
     if (output_data_layout == BLITZ_BUFFER_NCHW) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(U), // PQRSC
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(U), // PQRSC
         const_cast<DType*>(O), // KPQ
         UP, // RSCK
         true, true,
         static_cast<DType>(1), static_cast<DType>(1),
         CRS, K, PQ);
     } else if (output_data_layout == BLITZ_BUFFER_NHWC) {
-      BlitzGemm<TensorType, DType>(const_cast<DType*>(U), // PQRSC
+      utils::Gemm<TensorType, DType>(const_cast<DType*>(U), // PQRSC
         const_cast<DType*>(O), // PQK
         UP, // RSCK
         true, false,

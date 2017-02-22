@@ -18,12 +18,12 @@ namespace blitz {
 namespace utils {
 
 template<>
-void BlitzCPUCopy<float>(const float* X, float* Y, size_t N) {
+void CPUCopy<float>(const float* X, float* Y, size_t N) {
   cblas_scopy(N, X, 1, Y, 1);
 }
 
 template<>
-void BlitzCPUCopy<double>(const double* X, double* Y, size_t N) {
+void CPUCopy<double>(const double* X, double* Y, size_t N) {
   cblas_dcopy(N, X, 1, Y, 1);
 }
 

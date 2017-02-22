@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstddef>
 
+namespace blitz {
+
 #define BLITZ_CPU_TIMER_START(elapsed_time, t1) \
   do { \
     elapsed_time = 0.0; \
@@ -24,15 +26,13 @@
     LOG(INFO) << "Gflops: " << computations / (elapsed_time * 1e9); \
   } while (0) \
 
-namespace blitz {
-
 namespace utils {
 
 template<typename DType>
-void BlitzCPUCopy(const DType* X, DType* Y, size_t N);
+void CPUCopy(const DType* X, DType* Y, size_t N);
 
 template <typename DType>
-inline DType BlitzCPUSafeLog(DType input) {
+inline DType CPUSafeLog(DType input) {
   return log(input > exp(-50.0) ? input : exp(-50.0));
 }
 

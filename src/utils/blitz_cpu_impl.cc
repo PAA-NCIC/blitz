@@ -700,7 +700,7 @@ void MaxPoolingBackwardImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
 }
 
 template<>
-void BlitzGemm<CPUTensor, float>(
+void Gemm<CPUTensor, float>(
   float* A, float* B, float* C,
   bool transa, bool transb,
   float alpha, float beta,
@@ -719,7 +719,7 @@ void BlitzGemm<CPUTensor, float>(
 }
 
 template<>
-void BlitzGemm<CPUTensor, double>(
+void Gemm<CPUTensor, double>(
   double* A, double* B, double* C,
   bool transa, bool transb,
   double alpha, double beta,

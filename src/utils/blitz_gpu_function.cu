@@ -13,7 +13,7 @@ boost::scoped_ptr<cublasHandle_t> CuBlasHandle::instance_(0);
 boost::once_flag CuBlasHandle::flag_ = BOOST_ONCE_INIT;
 
 template<>
-void BlitzGPUTrans(float* input, float* output, size_t M, size_t N) {
+void GPUTrans(float* input, float* output, size_t M, size_t N) {
   float alpha = 1.0;
   float beta = 0.0;
   cublasSgeam(CuBlasHandle::GetInstance(), CUBLAS_OP_T, CUBLAS_OP_N,
@@ -21,7 +21,7 @@ void BlitzGPUTrans(float* input, float* output, size_t M, size_t N) {
 }
 
 template<>
-void BlitzGPUTrans(double* input, double* output, size_t M, size_t N) {
+void GPUTrans(double* input, double* output, size_t M, size_t N) {
   double alpha = 1.0;
   double beta = 0.0;
   cublasDgeam(CuBlasHandle::GetInstance(), CUBLAS_OP_T, CUBLAS_OP_N,
@@ -29,38 +29,38 @@ void BlitzGPUTrans(double* input, double* output, size_t M, size_t N) {
 }
 
 template<>
-float BlitzGPUASum(const float* data, size_t N) {
+float GPUASum(const float* data, size_t N) {
   float sum = 0.0;
   cublasSasum_v2(CuBlasHandle::GetInstance(), N, data, 1, &sum);
   return sum;
 }
 
 template<>
-double BlitzGPUASum(const double* data, size_t N) {
+double GPUASum(const double* data, size_t N) {
   double sum = 0.0;
   cublasDasum_v2(CuBlasHandle::GetInstance(), N, data, 1, &sum);
   return sum;
 }
 
 template<>
-void BlitzGenerateNormal(curandGenerator_t* gen, float* data,
+void GenerateNormal(curandGenerator_t* gen, float* data,
   float loc, float scale, size_t size) {
   curandGenerateNormal(*gen, data, size, loc, scale);
 }
 
 template<>
-void BlitzGenerateNormal(curandGenerator_t* gen, double* data,
+void GenerateNormal(curandGenerator_t* gen, double* data,
   double loc, double scale, size_t size) {
   curandGenerateNormalDouble(*gen, data, size, loc, scale);
 }
 
 template<>
-void BlitzGenerateUniform(curandGenerator_t* gen, float* data, size_t size) {
+void GenerateUniform(curandGenerator_t* gen, float* data, size_t size) {
   curandGenerateUniform(*gen, data, size);
 }
 
 template<>
-void BlitzGenerateUniform(curandGenerator_t* gen, double* data, size_t size) {
+void GenerateUniform(curandGenerator_t* gen, double* data, size_t size) {
   curandGenerateUniformDouble(*gen, data, size);
 }
 
@@ -118,8 +118,8 @@ __global__ void GPUCrossEntropyBinaryApply(
   const float* input, const float* target,
   float* sum, size_t size) {
   BLITZ_CUDA_LOOP(i, size) {
-    float safe_input = BlitzGPUSafeLog(input[i]);
-    float safe_inverse_input = BlitzGPUSafeLog(1 - input[i]);
+    float safe_input = GPUSafeLog(input[i]);
+    float safe_inverse_input = GPUSafeLog(1 - input[i]);
     sum[i] += -safe_input * target[i] - safe_inverse_input
       * (1 - target[i]);
   }
@@ -130,7 +130,7 @@ __global__ void GPUCrossEntropyMultiApply(
   const float* input, const float* target,
   float* sum, size_t size) {
   BLITZ_CUDA_LOOP(i, size) {
-    sum[i] = -BlitzGPUSafeLog(input[i]) * target[i];
+    sum[i] = -GPUSafeLog(input[i]) * target[i];
   }
 }
 

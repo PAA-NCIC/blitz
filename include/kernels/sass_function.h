@@ -14,6 +14,8 @@
 
 namespace blitz {
 
+namespace kernels {
+
 class CubinLoadModule {
  public:
   CubinLoadModule() {
@@ -110,7 +112,7 @@ class CubinModule {
 };
 
 template<typename DType>
-void BlitzSassGemm(
+void SassGemm(
   const DType* A,
   const DType* B,
   DType* C,
@@ -120,7 +122,7 @@ void BlitzSassGemm(
   size_t M, size_t N, size_t K);
 
 template<typename DType>
-void BlitzSassConvolution2D(
+void SassConvolution2D(
   DType *I, DType *O, DType *F,
   size_t N, size_t C, size_t H, size_t W,
   size_t R, size_t S,
@@ -130,10 +132,12 @@ void BlitzSassConvolution2D(
   const string& phase);
 
 template<typename DType>
-void BlitzFilter2DShuffle(
+void Filter2DShuffle(
   const DType* input,
   DType* output,
   size_t K, size_t C, size_t R, size_t S);
+
+}  // namespace kernels
 
 }  // namespace blitz
 

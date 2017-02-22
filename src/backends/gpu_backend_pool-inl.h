@@ -18,7 +18,7 @@ static void MaxPooling2DForwardFunc(
   CHECK_EQ(C, K);
   // set min
   output->Fill(std::numeric_limits<DType>::min());
-  MaxPoolingForwardImpl<GPUTensor, DType, BLITZ_BUFFER_NCHW>(
+  utils::MaxPoolingForwardImpl<GPUTensor, DType, BLITZ_BUFFER_NCHW>(
     input->data(),
     output->data(),
     max_index->data(),
@@ -44,7 +44,7 @@ static void MaxPooling2DBackwardFunc(
   CHECK_EQ(C, K);
   // set zero
   input->Fill(0);
-  MaxPoolingBackwardImpl<GPUTensor, DType, BLITZ_BUFFER_NCHW>(
+  utils::MaxPoolingBackwardImpl<GPUTensor, DType, BLITZ_BUFFER_NCHW>(
     output->data(),
     input->data(),
     max_index->data(),

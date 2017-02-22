@@ -108,7 +108,7 @@ void UnpackImpl<GPUTensor, float, BLITZ_BUFFER_NCHW>(
       str_h, str_w);
   } else {
     size_t size = C * P * Q;
-    GPUUnpackKernel<<<BlitzGPUGetBlocks(size),
+    GPUUnpackKernel<<<GPUGetBlocks(size),
       BLITZ_NUM_GPU_THREADS>>>(
       I, U,
       size,
@@ -223,7 +223,7 @@ void PackImpl<GPUTensor, float, BLITZ_BUFFER_NCHW>(
       str_h, str_w);
   } else {
     size_t size = C * H * W;
-    GPUPackKernel<<<BlitzGPUGetBlocks(size),
+    GPUPackKernel<<<GPUGetBlocks(size),
       BLITZ_NUM_GPU_THREADS>>>(
       U, I,
       size,
@@ -290,7 +290,7 @@ void MaxPoolingForwardImpl<GPUTensor, float, BLITZ_BUFFER_NCHW>(
   size_t R, size_t S,
   size_t str_h, size_t str_w) {
   GPUMaxPoolingForward
-    <<<BlitzGPUGetBlocks(N * K * P * Q), BLITZ_NUM_GPU_THREADS>>>(
+    <<<GPUGetBlocks(N * K * P * Q), BLITZ_NUM_GPU_THREADS>>>(
     I, O, max_index,
     N * K * P * Q,
     C, H, W,
@@ -324,7 +324,7 @@ void MaxPoolingBackwardImpl<GPUTensor, float, BLITZ_BUFFER_NCHW>(
   size_t C, size_t H, size_t W,
   size_t K, size_t P, size_t Q) {
   GPUMaxPoolingBackward
-    <<<BlitzGPUGetBlocks(N * K * P * Q), BLITZ_NUM_GPU_THREADS>>>(
+    <<<GPUGetBlocks(N * K * P * Q), BLITZ_NUM_GPU_THREADS>>>(
     O, I, max_index,
     N * K * P * Q,
     C, H, W,
@@ -332,7 +332,7 @@ void MaxPoolingBackwardImpl<GPUTensor, float, BLITZ_BUFFER_NCHW>(
 }
 
 template<>
-void BlitzGemm<GPUTensor, float>(
+void Gemm<GPUTensor, float>(
   float* A, float* B, float* C,
   bool transa, bool transb,
   float alpha, float beta,
@@ -352,7 +352,7 @@ void BlitzGemm<GPUTensor, float>(
 }
 
 template<>
-void BlitzGemm<GPUTensor, double>(
+void Gemm<GPUTensor, double>(
   double* A, double* B, double* C,
   bool transa, bool transb,
   double alpha, double beta,

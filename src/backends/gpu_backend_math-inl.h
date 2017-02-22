@@ -1,11 +1,11 @@
-#ifndef SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
-#define SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
+#ifndef SRC_BACKENDS_GPU_BACKEND_MATH_INL_H_
+#define SRC_BACKENDS_GPU_BACKEND_MATH_INL_H_
 
 static void RectlinApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
-  GPURectlinApply<DType><<<BlitzGPUGetBlocks(input->size()),
+  utils::GPURectlinApply<DType><<<utils::GPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), output->data(),
     0, slope, input->size());
 }
@@ -14,7 +14,7 @@ static void RectlinDerivativeFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output,
   DType slope) {
   CHECK_EQ(input->size(), output->size());
-  GPURectlinDerivative<DType><<<BlitzGPUGetBlocks(input->size()),
+  utils::GPURectlinDerivative<DType><<<utils::GPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), output->data(),
     0, slope, input->size());
 }
@@ -24,7 +24,7 @@ static void SoftmaxApplyFunc(
   CHECK_EQ(input->size(), output->size());
   size_t batch_size = input->shape()[0];
   size_t dim = input->size() / batch_size;
-  GPUSoftmaxApply<DType><<<BlitzGPUGetBlocks(batch_size),
+  utils::GPUSoftmaxApply<DType><<<utils::GPUGetBlocks(batch_size),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), output->data(),
     batch_size, dim);
 }
@@ -55,7 +55,7 @@ static void AbsMeanDerivativeFunc(
 static void LogisticApplyFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* output) {
   CHECK_EQ(input->size(), output->size());
-  GPULogisticApply<DType><<<BlitzGPUGetBlocks(input->size()),
+  utils::GPULogisticApply<DType><<<utils::GPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), output->data(),
     input->size());
 }
@@ -69,7 +69,7 @@ static void LogisticDerivativeFunc(
 static DType CrossEntropyBinaryApplyFunc(
   const GPUTensor<DType>* input, const GPUTensor<DType>* target) {
   GPUTensor<DType> sum(input->shape());
-  GPUCrossEntropyBinaryApply<DType><<<BlitzGPUGetBlocks(input->size()),
+  utils::GPUCrossEntropyBinaryApply<DType><<<utils::GPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), target->data(),
     sum.data(), input->size());
   thrust::device_ptr<DType> sptr = thrust::device_pointer_cast(sum.data());
@@ -89,7 +89,7 @@ static DType CrossEntropyMultiApplyFunc(
   const Shape& input_shape = input->shape();
   const Shape& target_shape = target->shape();
   GPUTensor<DType> sum(input->shape());
-  GPUCrossEntropyMultiApply<DType><<<BlitzGPUGetBlocks(input->size()),
+  utils::GPUCrossEntropyMultiApply<DType><<<utils::GPUGetBlocks(input->size()),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), target->data(),
     sum.data(), input->size());
   thrust::device_ptr<DType> sptr = thrust::device_pointer_cast(sum.data());
@@ -109,7 +109,7 @@ static void BiasForwardFunc(
   CHECK_EQ(input->size(), output->size());
   size_t batch_size = input->shape()[0];
   size_t dim = input->size() / batch_size;
-  GPUBiasApply<DType><<<BlitzGPUGetBlocks(batch_size),
+  utils::GPUBiasApply<DType><<<utils::GPUGetBlocks(batch_size),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), bias->data(), output->data(),
     batch_size, dim);
 }
@@ -118,7 +118,7 @@ static void BiasBackwardUpdateFunc(
   const GPUTensor<DType>* input, GPUTensor<DType>* update) {
   size_t batch_size = input->shape()[0];
   size_t dim = input->size() / batch_size;
-  GPUBiasDerivative<DType><<<BlitzGPUGetBlocks(dim),
+  utils::GPUBiasDerivative<DType><<<utils::GPUGetBlocks(dim),
     BLITZ_NUM_GPU_THREADS>>>(input->data(), update->data(),
     batch_size, dim);
 }
@@ -153,7 +153,7 @@ static void GradientdescentFunc(
   size_t batch_size) {
   CHECK_EQ(weight->size(), gradient->size());
   CHECK_EQ(gradient->size(), velocity->size());
-  GPUGradientdescent<DType><<<BlitzGPUGetBlocks(gradient->size()),
+  utils::GPUGradientdescent<DType><<<utils::GPUGetBlocks(gradient->size()),
     BLITZ_NUM_GPU_THREADS>>>(
     weight->data(), gradient->data(), velocity->data(),
     momentum_coef, learning_rate, decay,
@@ -184,7 +184,7 @@ static void MatrixMultiplyFunc(
   #endif  // BLITZ_PERFORMANCE
   switch (algorithm) {
     case BLITZ_BLAS_GEMM:
-      BlitzGemm<GPUTensor, DType>(
+      utils::Gemm<GPUTensor, DType>(
         const_cast<GPUTensor<DType>*>(left)->data(),
         const_cast<GPUTensor<DType>*>(right)->data(),
         output->data(),
@@ -193,7 +193,7 @@ static void MatrixMultiplyFunc(
         dim_left, dim_right, dim_common_left);
       break;
     case BLITZ_SASS_GEMM:
-      BlitzSassGemm(
+      kernels::SassGemm(
         const_cast<GPUTensor<DType>*>(left)->data(),
         const_cast<GPUTensor<DType>*>(right)->data(),
         output->data(),
@@ -218,7 +218,7 @@ static void Transpose2DFunc(
   size_t dim_right = input->shape()[1];
   CHECK_EQ(dim_left, output->shape()[1]);
   CHECK_EQ(dim_right, output->shape()[0]);
-  BlitzGPUTrans(const_cast<DType*>(input->data()),
+  utils::GPUTrans(const_cast<DType*>(input->data()),
     output->data(), dim_left, dim_right); 
 }
 
@@ -281,7 +281,7 @@ static void MakeBinaryMaskFunc(
   DType high,
   DType keep) {
   UniformDistributionFunc(output, low, high);
-  GPUMakeBinaryMask<DType><<<BlitzGPUGetBlocks(output->size()),
+  utils::GPUMakeBinaryMask<DType><<<utils::GPUGetBlocks(output->size()),
     BLITZ_NUM_GPU_THREADS>>>(output->data(), keep, output->size());
 }
 
@@ -296,7 +296,7 @@ static void NormalDistributionFunc(
   curandGenerator_t gen;
   curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
   curandSetPseudoRandomGeneratorSeed(gen, (++seed)+time(NULL));
-  BlitzGenerateNormal(&gen, output->data(), loc, scale, output->size());
+  utils::GenerateNormal(&gen, output->data(), loc, scale, output->size());
 }
 
 static void UniformDistributionFunc(
@@ -305,8 +305,8 @@ static void UniformDistributionFunc(
   curandGenerator_t gen;
   curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
   curandSetPseudoRandomGeneratorSeed(gen, (++seed)+time(NULL));
-  BlitzGenerateUniform(&gen, output->data(), output->size());
-  GPUUniformTransform<DType><<<BlitzGPUGetBlocks(output->size()),
+  utils::GenerateUniform(&gen, output->data(), output->size());
+  utils::GPUUniformTransform<DType><<<utils::GPUGetBlocks(output->size()),
     BLITZ_NUM_GPU_THREADS>>>(output->data(), low, high, output->size());
 }
 
@@ -327,7 +327,7 @@ static float EvaluateClassifyFunc(
   Shape shape(1);
   shape[0] = batch_size;
   GPUTensor<DType> correct(shape);
-  GPUEvaluateClass<DType><<<BlitzGPUGetBlocks(batch_size),
+  utils::GPUEvaluateClass<DType><<<utils::GPUGetBlocks(batch_size),
     BLITZ_NUM_GPU_THREADS>>>(
     output->data(), target->data(), correct.data(),
     dim, batch_size);
@@ -336,4 +336,4 @@ static float EvaluateClassifyFunc(
   return thrust::reduce(rptr, rptr + correct.size()) / batch_size;
 }
 
-#endif  // SRC_BACKENDS_GPU_BACKEND_COMMON_INL_H_
+#endif  // SRC_BACKENDS_GPU_BACKEND_MATH_INL_H_

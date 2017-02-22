@@ -14,7 +14,7 @@ static void Unpack2DFunc(
   Q = (W + 2 * pad_w - S) / str_w + 1;
   CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
   for (size_t i = 0; i < N; ++i) {
-    Unpack2DDispatch<GPUTensor, DType>(
+    utils::Unpack2DDispatch<GPUTensor, DType>(
       input->data(), unpack->data(),
       C, H, W,
       R, S,
@@ -38,7 +38,7 @@ static void Pack2DFunc(
   Q = (W + 2 * pad_w - S) / str_w + 1;
   CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
   for (size_t i = 0; i < N; ++i) {
-    Pack2DDispatch<GPUTensor, DType>(
+    utils::Pack2DDispatch<GPUTensor, DType>(
       unpack->data(), input->data(),
       C, H, W,
       R, S,

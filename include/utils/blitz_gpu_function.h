@@ -14,12 +14,7 @@
 
 #include "utils/common.h"
 
-#define CUDNN_CHECK(condition) \
-  do { \
-    cudnnStatus_t status = condition; \
-    if (status != CUDNN_STATUS_SUCCESS) \
-      LOG(INFO) << cudnnGetErrorString(status); \
-  } while (0)
+namespace blitz {
 
 #define BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop) \
   do { \
@@ -43,32 +38,6 @@
     LOG(INFO) << "Gflops: " << computations / (elapsed_time * 1e9); \
   } while (0) \
 
-namespace blitz {
-
-class CuBlasHandle {
- public:
-  static cublasHandle_t& GetInstance() {
-    // thread safe
-    boost::call_once(&CuBlasHandle::Create, flag_);
-    return *(CuBlasHandle::instance_);
-  }
-
-  static void Create() {
-    CuBlasHandle::instance_.reset(new cublasHandle_t());
-    cublasCreate_v2(CuBlasHandle::instance_.get());
-  }
-
-  virtual ~CuBlasHandle();
-
- private:
-  CuBlasHandle();
-
-  static boost::scoped_ptr<cublasHandle_t> instance_;
-  static boost::once_flag flag_;
-
-  DISABLE_COPY_AND_ASSIGN(CuBlasHandle);
-};
-
 #if __CUDA_ARCH__ >= 200
   #define BLITZ_NUM_GPU_THREADS 1024
 #else
@@ -84,6 +53,13 @@ class CuBlasHandle {
 
 #ifdef BLITZ_USE_CUDNN
 namespace cudnn {
+
+#define CUDNN_CHECK(condition) \
+  do { \
+    cudnnStatus_t status = condition; \
+    if (status != CUDNN_STATUS_SUCCESS) \
+      LOG(INFO) << cudnnGetErrorString(status); \
+  } while (0)
 
 template <typename DType> class DataType;
 
@@ -141,31 +117,55 @@ inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
 
 namespace utils {
 
-inline size_t BlitzGPUGetBlocks(size_t N) {
+class CuBlasHandle {
+ public:
+  static cublasHandle_t& GetInstance() {
+    // thread safe
+    boost::call_once(&CuBlasHandle::Create, flag_);
+    return *(CuBlasHandle::instance_);
+  }
+
+  static void Create() {
+    CuBlasHandle::instance_.reset(new cublasHandle_t());
+    cublasCreate_v2(CuBlasHandle::instance_.get());
+  }
+
+  virtual ~CuBlasHandle();
+
+ private:
+  CuBlasHandle();
+
+  static boost::scoped_ptr<cublasHandle_t> instance_;
+  static boost::once_flag flag_;
+
+  DISABLE_COPY_AND_ASSIGN(CuBlasHandle);
+};
+
+inline size_t GPUGetBlocks(size_t N) {
   return (N + BLITZ_NUM_GPU_THREADS - 1) / BLITZ_NUM_GPU_THREADS;
 }
 
-inline size_t BlitzGPUGetBlocks(size_t N, size_t nthreads) {
+inline size_t GPUGetBlocks(size_t N, size_t nthreads) {
   return (N + nthreads - 1) / nthreads;
 }
 
 template <typename DType>
-inline __device__ DType BlitzGPUSafeLog(DType input) {
+inline __device__ DType GPUSafeLog(DType input) {
   return log(input > exp(-100.0) ? input : exp(-100.0));
 }
 
 template<typename DType>
-void BlitzGPUTrans(DType* input, DType* output, size_t M, size_t N);
+void GPUTrans(DType* input, DType* output, size_t M, size_t N);
 
 template<typename DType>
-DType BlitzGPUASum(const DType* data, size_t N);
+DType GPUASum(const DType* data, size_t N);
 
 template<typename DType>
-void BlitzGenerateNormal(curandGenerator_t* gen, DType* data,
+void GenerateNormal(curandGenerator_t* gen, DType* data,
   DType loc, DType scale, size_t size);
 
 template<typename DType>
-void BlitzGenerateUniform(curandGenerator_t* gen, DType* data, size_t size);
+void GenerateUniform(curandGenerator_t* gen, DType* data, size_t size);
 
 template<typename DType>
 __global__ void GPURectlinApply(const DType* input, DType* output, DType compare_value, DType slope, size_t size);

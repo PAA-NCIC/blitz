@@ -5,7 +5,7 @@ namespace blitz {
 
 namespace utils {
 
-size_t BlitzLenD2b(size_t n) {
+size_t LenD2b(size_t n) {
   size_t i, j = 0;
   i = n;
   while (i) {
@@ -15,9 +15,9 @@ size_t BlitzLenD2b(size_t n) {
   return j;
 }
 
-void BlitzMagic32(size_t nmax, size_t d, size_t& m, size_t& p) {
+void Magic32(size_t nmax, size_t d, size_t& m, size_t& p) {
   size_t nc = ((nmax + 1) / d) * d - 1;
-  size_t nbits = BlitzLenD2b(nmax);
+  size_t nbits = LenD2b(nmax);
   size_t len_bits = 2 * nbits + 1;
   for(p = 0; p < len_bits; ++p) {   
     if(pow(2, p) > nc * (d - 1 -

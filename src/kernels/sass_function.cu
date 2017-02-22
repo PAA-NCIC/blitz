@@ -6,15 +6,16 @@
 
 #include "utils/blitz_math_function.h"
 #include "utils/blitz_gpu_function.h"
-#include "utils/blitz_cpu_function.h"
 
 namespace blitz {
+
+namespace kernels {
 
 scoped_ptr<CubinLoadModule> CubinModule::instance_(0);
 boost::once_flag CubinModule::flag_ = BOOST_ONCE_INIT;
 
 template<>
-void BlitzSassGemm(
+void SassGemm(
   const float* A,
   const float* B,
   float* C,
@@ -24,13 +25,11 @@ void BlitzSassGemm(
   CUfunction function;
   size_t lda, ldb, ldc = N;
 
-#ifdef BLITZ_PERFORMANCE
+  #ifdef BLITZ_PERFORMANCE
   float elapsed_time = 0.0f;
   CUevent event_start, event_stop;
-  cuEventCreate(&event_start, CU_EVENT_BLOCKING_SYNC);
-  cuEventCreate(&event_stop, CU_EVENT_BLOCKING_SYNC);
-  cuEventRecord(event_start, NULL);
-#endif  // BLITZ_PERFORMANCE
+  BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop);
+  #endif  // BLITZ_PERFORMANCE
   // create kernel
   string kernel;
   if (transa == true && transb == false) {
@@ -64,14 +63,6 @@ void BlitzSassGemm(
   // kernel call, asynrhonize
   function = CubinModule::GetFunction(kernel);
 
-#ifdef BLITZ_PERFORMANCE
-  cuEventRecord(event_stop, NULL);
-  cuEventSynchronize(event_stop);
-  cuEventElapsedTime(&elapsed_time, event_start, event_stop);
-  LOG(INFO) << "Load kernel: " << kernel;
-  LOG(INFO) << "Load kernel time: " << elapsed_time / 1000.0;
-#endif  // BLITZ_PERFORMANCE
-
   void* params[] = {&A, &B, &C, &alpha, &beta, &lda, &ldb, &ldc,
     (void*)&M, (void*)&N, (void*)&K};
   // TODO(keren): multiple kernels
@@ -83,10 +74,16 @@ void BlitzSassGemm(
 
   // lanuch kernel
   cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
+
+  #ifdef BLITZ_PERFORMANCE
+  double computations = 2 * M * N * K;
+  BLITZ_GPU_TIMER_END(elapsed_time, event_start, event_stop);
+  BLITZ_GPU_TIMER_INFO(computations, elapsed_time);
+  #endif  // BLITZ_PERFORMANCE
 }
 
 template<>
-void BlitzSassGemm(
+void SassGemm(
   const double* A,
   const double* B,
   double* C,
@@ -97,7 +94,7 @@ void BlitzSassGemm(
 }
 
 template<>
-void BlitzSassConvolution2D(
+void SassConvolution2D(
   float* I, float* O, float* F,
   size_t N, size_t C, size_t H, size_t W,
   size_t R, size_t S,
@@ -150,18 +147,18 @@ void BlitzSassConvolution2D(
   CRST32 = 32 * CRST;
   MPQN32 = 32 * MPQN;
   // magic numbers
-  BlitzMagic32(DHW, HW, magic_HW, shift_HW);
-  BlitzMagic32(HW, W, magic_W, shift_W);
-  BlitzMagic32(CRST, RST, magic_RST, shift_RST);
-  BlitzMagic32(RST + 32, RS, magic_RS, shift_RS);
-  BlitzMagic32(RS + 32, S, magic_S, shift_S);
-  BlitzMagic32(MPQ, PQ, magic_PQ, shift_PQ);
-  BlitzMagic32(PQ, Q, magic_Q, shift_Q);
-  BlitzMagic32(grid_PQM, grid_PQ, magic_PQu, shift_PQu);
-  BlitzMagic32(grid_PQ, grid_Q, magic_Qu, shift_Qu);
-  BlitzMagic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
-  BlitzMagic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
-  BlitzMagic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
+  utils::Magic32(DHW, HW, magic_HW, shift_HW);
+  utils::Magic32(HW, W, magic_W, shift_W);
+  utils::Magic32(CRST, RST, magic_RST, shift_RST);
+  utils::Magic32(RST + 32, RS, magic_RS, shift_RS);
+  utils::Magic32(RS + 32, S, magic_S, shift_S);
+  utils::Magic32(MPQ, PQ, magic_PQ, shift_PQ);
+  utils::Magic32(PQ, Q, magic_Q, shift_Q);
+  utils::Magic32(grid_PQM, grid_PQ, magic_PQu, shift_PQu);
+  utils::Magic32(grid_PQ, grid_Q, magic_Qu, shift_Qu);
+  utils::Magic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
+  utils::Magic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
+  utils::Magic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
   // test param set up TODO(keren): erase
   float *test_param;
   // arguments
@@ -186,7 +183,6 @@ void BlitzSassConvolution2D(
       gridY = K / 64 + (K % 64 != 0);
       gridZ = N / 64 + (N % 64 != 0);
       kernel_name = "sconv_fprop_K64_N64";
-      // TODO(keren): tune kernels in future
       function = CubinModule::GetFunction(kernel_name);
       result = cuLaunchKernel(function, gridX, gridY, gridZ,
         64, 1, 1, 64 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
@@ -195,7 +191,6 @@ void BlitzSassConvolution2D(
       gridY = K / 128 + (K % 128 != 0);
       gridZ = N / 128 + (N % 128 != 0);
       kernel_name = "sconv_fprop_K128_N128";
-      // TODO(keren): tune kernels in future
       function = CubinModule::GetFunction(kernel_name);
       result = cuLaunchKernel(function, gridX, gridY, gridZ,
         256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
@@ -283,7 +278,7 @@ void BlitzSassConvolution2D(
 }
 
 template<>
-void BlitzSassConvolution2D(
+void SassConvolution2D(
   double* I,
   double* O,
   double* F,
@@ -343,7 +338,7 @@ __global__ void GPUFilterShuffle(
 }
 
 template<>
-void BlitzFilter2DShuffle(
+void Filter2DShuffle(
   const float* input,
   float* output,
   size_t K, size_t C,
@@ -360,8 +355,8 @@ void BlitzFilter2DShuffle(
   // filter
   RS = R * S; 
   RST = T * RS;
-  BlitzMagic32(RST + 32, RS, magic_RS, shift_RS);
-  BlitzMagic32(RS + 32, S, magic_S, shift_S);
+  utils::Magic32(RST + 32, RS, magic_RS, shift_RS);
+  utils::Magic32(RS + 32, S, magic_S, shift_S);
   const size_t gridX = K / 32 + (K % 32 != 0);
   const size_t gridY = C / 32 + (C % 32 != 0);
   dim3 grid_dim(gridX, gridY, RST);
@@ -375,13 +370,15 @@ void BlitzFilter2DShuffle(
 }
 
 template<>
-void BlitzFilter2DShuffle(
+void Filter2DShuffle(
   const double* input,
   double* output,
   size_t K, size_t C,
   size_t R, size_t S) {
   LOG(FATAL) << "sass kernel dost not support double precision";
 }
+
+}  // namespace kernels
 
 }  // namespace blitz
 

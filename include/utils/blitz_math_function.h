@@ -7,9 +7,9 @@ namespace blitz {
 
 namespace utils {
 
-size_t BlitzLenD2b(size_t n);
+size_t LenD2b(size_t n);
 
-void BlitzMagic32(size_t nmax, size_t d, size_t& m, size_t& p);
+void Magic32(size_t nmax, size_t d, size_t& m, size_t& p);
 
 }  // namespace utils
 
