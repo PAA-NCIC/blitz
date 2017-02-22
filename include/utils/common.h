@@ -87,7 +87,6 @@ using std::string;
 using std::list;
 using std::vector;
 using std::map;
-using std::size_t;
 using std::stringstream;
 using std::ofstream;
 

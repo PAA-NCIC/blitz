@@ -7,6 +7,8 @@
 
 namespace blitz {
 
+namespace utils {
+
 template<template <typename> class TensorType, typename DType>
 void Unpack2DDispatch(
   const DType *I,
@@ -203,6 +205,8 @@ void Convolution2DUpdateGEMMDispatch(
     }
   }
 }
+
+}  // namespace utils
 
 }  // namespace blitz
 

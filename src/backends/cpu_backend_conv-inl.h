@@ -49,7 +49,7 @@ static void Convolution2DForwardFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Unpack2DDispatch<CPUTensor, DType>(
+          utils::Unpack2DDispatch<CPUTensor, DType>(
             input->Slice(nCHW),
             workspace_unpack_slice,
             C, H, W,
@@ -58,7 +58,7 @@ static void Convolution2DForwardFunc(
             pad_h, pad_w,
             str_h, str_w,
             input->data_layout());
-          Convolution2DForwardGEMMDispatch<CPUTensor, DType>(
+          utils::Convolution2DForwardGEMMDispatch<CPUTensor, DType>(
             workspace_unpack_slice,
             filter->data(),
             output->Slice(nKPQ),
@@ -73,7 +73,7 @@ static void Convolution2DForwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Unpack2DDispatch<CPUTensor, DType>(
+        utils::Unpack2DDispatch<CPUTensor, DType>(
           input->Slice(nCHW),
           workspace->data(),
           C, H, W,
@@ -82,7 +82,7 @@ static void Convolution2DForwardFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        Convolution2DForwardGEMMDispatch<CPUTensor, DType>(
+        utils::Convolution2DForwardGEMMDispatch<CPUTensor, DType>(
           workspace->data(),
           filter->data(),
           output->Slice(nKPQ),
@@ -99,7 +99,7 @@ static void Convolution2DForwardFunc(
       }
       switch (input->data_layout()) {
         case BLITZ_BUFFER_NCHW:
-          ConvolutionForwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+          utils::ConvolutionForwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
             input->data(),
             filter->data(),
             output->data(),
@@ -111,7 +111,7 @@ static void Convolution2DForwardFunc(
             str_h, str_w);
           break;
         case BLITZ_BUFFER_NHWC:
-          ConvolutionForwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+          utils::ConvolutionForwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
             input->data(),
             filter->data(),
             output->data(),
@@ -136,7 +136,7 @@ static void Convolution2DForwardFunc(
         case BLITZ_BUFFER_NCHW:
           LOG(FATAL) << "Not supported data layout!" << input->data_layout();
         case BLITZ_BUFFER_NHWC:
-          ConvolutionForwardVectorImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+          utils::ConvolutionForwardVectorImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
             input->data(),
             filter->data(),
             output->data(),
@@ -210,14 +210,14 @@ static void Convolution2DBackwardFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Convolution2DBackwardGEMMDispatch<CPUTensor, DType>(
+          utils::Convolution2DBackwardGEMMDispatch<CPUTensor, DType>(
             filter->data(),
             output->Slice(nKPQ),
             workspace->Slice(workspace_unpack_offset),
             K, PQ, CRS,
             input->data_layout(),
             output->data_layout());
-          Pack2DDispatch<CPUTensor, DType>(workspace->Slice(workspace_unpack_offset),
+          utils::Pack2DDispatch<CPUTensor, float>(workspace->Slice(workspace_unpack_offset),
             input->Slice(nCHW),
             C, H, W,
             R, S,
@@ -233,14 +233,14 @@ static void Convolution2DBackwardFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Convolution2DBackwardGEMMDispatch<CPUTensor, DType>(
+        utils::Convolution2DBackwardGEMMDispatch<CPUTensor, float>(
           filter->data(),
           output->Slice(nKPQ),
           workspace->data(),
           K, PQ, CRS,
           input->data_layout(),
           output->data_layout());
-        Pack2DDispatch<CPUTensor, DType>(workspace->data(),
+        utils::Pack2DDispatch<CPUTensor, DType>(workspace->data(),
           input->Slice(nCHW),
           C, H, W,
           R, S,
@@ -257,7 +257,7 @@ static void Convolution2DBackwardFunc(
       }
       switch (input->data_layout()) {
         case BLITZ_BUFFER_NCHW:
-          ConvolutionBackwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+          utils::ConvolutionBackwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
             output->data(),
             filter->data(),
             input->data(),
@@ -269,7 +269,7 @@ static void Convolution2DBackwardFunc(
             str_h, str_w);
           break;
         case BLITZ_BUFFER_NHWC:
-          ConvolutionBackwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+          utils::ConvolutionBackwardNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
             output->data(),
             filter->data(),
             input->data(),
@@ -347,7 +347,7 @@ static void Convolution2DUpdateFunc(
         for (size_t n = 0; n < NIN; ++n) {
           nCHW = n * CHW;
           nKPQ = n * KPQ;
-          Unpack2DDispatch<CPUTensor, DType>(input->Slice(nCHW),
+          utils::Unpack2DDispatch<CPUTensor, DType>(input->Slice(nCHW),
             workspace->Slice(workspace_unpack_offset),
             C, H, W,
             R, S,
@@ -355,7 +355,7 @@ static void Convolution2DUpdateFunc(
             pad_h, pad_w,
             str_h, str_w,
             input->data_layout());
-          Convolution2DUpdateGEMMDispatch<CPUTensor, DType>(
+          utils::Convolution2DUpdateGEMMDispatch<CPUTensor, DType>(
             workspace->Slice(workspace_unpack_offset),
             output->Slice(nKPQ),
             workspace->Slice(workspace_update_offset),
@@ -374,7 +374,7 @@ static void Convolution2DUpdateFunc(
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
         nKPQ = n * KPQ;
-        Unpack2DDispatch<CPUTensor, DType>(input->Slice(nCHW),
+        utils::Unpack2DDispatch<CPUTensor, DType>(input->Slice(nCHW),
           workspace->data(),
           C, H, W,
           R, S,
@@ -382,7 +382,7 @@ static void Convolution2DUpdateFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        Convolution2DUpdateGEMMDispatch<CPUTensor, DType>(
+        utils::Convolution2DUpdateGEMMDispatch<CPUTensor, DType>(
           workspace->data(),
           output->Slice(nKPQ),
           update->data(),
@@ -398,7 +398,7 @@ static void Convolution2DUpdateFunc(
       }
       switch (input->data_layout()) {
         case BLITZ_BUFFER_NCHW:
-          ConvolutionUpdateNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+          utils::ConvolutionUpdateNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
             input->data(),
             output->data(),
             update->data(),
@@ -410,7 +410,7 @@ static void Convolution2DUpdateFunc(
             str_h, str_w);
           break;
         case BLITZ_BUFFER_NHWC:
-          ConvolutionUpdateNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+          utils::ConvolutionUpdateNaiveImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
             input->data(),
             output->data(),
             update->data(),

@@ -10,6 +10,8 @@
 
 namespace blitz {
 
+namespace utils {
+
 // small kernel
 static __global__ void GPUUnpack1024Kernel(
   const float* I,
@@ -368,5 +370,7 @@ void BlitzGemm<GPUTensor, double>(
     &beta,
     C, N);
 }
+
+}  // namespace utils
 
 }  // namespace blitz

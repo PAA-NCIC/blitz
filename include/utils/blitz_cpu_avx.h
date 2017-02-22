@@ -1,9 +1,9 @@
 #ifndef INCLUDE_UTIL_BLITZ_CPU_AVX_H_
 #define INCLUDE_UTIL_BLITZ_CPU_AVX_H_
 
-#include <immintrin.h>
-
 namespace blitz {
+
+namespace utils {
 
 template <typename DType>
 union BlitzAVXReg;
@@ -22,6 +22,8 @@ inline void BlitzAVXMax(const BlitzAVXReg<DType>* left, const BlitzAVXReg<DType>
 
 template<typename DType>
 inline void BlitzAVXMin(const BlitzAVXReg<DType>* left, const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
+
+}
 
 }  // namespace blitz
 

@@ -2,10 +2,11 @@
 #define INCLUDE_UTIL_BLITZ_ALGORITHM_FUNCTION_H_
 
 #include "utils/blitz_define.h"
+#include "utils/common.h"
 
 namespace blitz {
 
-inline BLITZ_ALGORITHM BlitzParseAlgorithm(const string& algorithm) {
+inline BLITZ_ALGORITHM BlitzParseAlgorithm(const std::string& algorithm) {
   if (algorithm == "convolution_sass_gemm") {
     return BLITZ_CONVOLUTION_SASS_GEMM;
   } else if (algorithm == "convolution_sass_direct") {

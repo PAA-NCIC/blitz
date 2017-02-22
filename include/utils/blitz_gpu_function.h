@@ -139,6 +139,8 @@ inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
 }  // namespace cudnn 
 #endif
 
+namespace utils {
+
 inline size_t BlitzGPUGetBlocks(size_t N) {
   return (N + BLITZ_NUM_GPU_THREADS - 1) / BLITZ_NUM_GPU_THREADS;
 }
@@ -200,6 +202,8 @@ __global__ void GPUUniformTransform(DType* output, DType low, DType high, size_t
 
 template <typename DType>
 __global__ void GPUEvaluateClass(const DType* output, const DType* target, DType* correct, size_t dim, size_t size);
+
+}  // namespace utils
 
 }  // namespace blitz
 

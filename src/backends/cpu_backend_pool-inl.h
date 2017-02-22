@@ -18,7 +18,7 @@ static void MaxPooling2DForwardFunc(
   CHECK_EQ(C, K);
   switch (input->data_layout()) {
     case BLITZ_BUFFER_NCHW:
-      MaxPoolingForwardImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+      utils::MaxPoolingForwardImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
         input->data(),
         output->data(),
         max_index->data(),
@@ -29,7 +29,7 @@ static void MaxPooling2DForwardFunc(
         str_h, str_w);
       break;
     case BLITZ_BUFFER_NHWC:
-      MaxPoolingForwardImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+      utils::MaxPoolingForwardImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
         input->data(),
         output->data(),
         max_index->data(),
@@ -63,7 +63,7 @@ static void MaxPooling2DBackwardFunc(
   // no padding
   switch (input->data_layout()) {
     case BLITZ_BUFFER_NCHW:
-      MaxPoolingBackwardImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
+      utils::MaxPoolingBackwardImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW>(
         output->data(),
         input->data(),
         max_index->data(),
@@ -72,7 +72,7 @@ static void MaxPooling2DBackwardFunc(
         K, P, Q);
       break;
     case BLITZ_BUFFER_NHWC:
-      MaxPoolingBackwardImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
+      utils::MaxPoolingBackwardImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC>(
         output->data(),
         input->data(),
         max_index->data(),

@@ -17,6 +17,8 @@
 
 namespace blitz {
 
+namespace utils {
+
 #define ACCESS_INPUT_NCHW(i, j, k, v) *(I + ((i * C + j) * H + k) * W + v)
 #define ACCESS_OUTPUT_NKPQ(i, j, k, v) *(O + ((i * K + j) * P + k) * Q + v)
 #define ACCESS_FILTER_KCRS(i, j, k, v) *(F + ((i * C + j) * R + k) * S + v)
@@ -735,5 +737,7 @@ void BlitzGemm<CPUTensor, double>(
     beta,
     C, N);
 }
+
+}  // namespace utils
 
 }  // namespace blitz

@@ -6,6 +6,8 @@
 #include <curand_kernel.h>
 
 namespace blitz {
+ 
+namespace utils {
 
 boost::scoped_ptr<cublasHandle_t> CuBlasHandle::instance_(0);
 boost::once_flag CuBlasHandle::flag_ = BOOST_ONCE_INIT;
@@ -203,6 +205,8 @@ __global__ void GPUEvaluateClass(
     }
   }
 }
+
+}  // namespace utils
 
 }  // namespace blitz
 

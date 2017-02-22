@@ -26,6 +26,8 @@
 
 namespace blitz {
 
+namespace utils {
+
 template<typename DType>
 void BlitzCPUCopy(const DType* X, DType* Y, size_t N);
 
@@ -33,6 +35,8 @@ template <typename DType>
 inline DType BlitzCPUSafeLog(DType input) {
   return log(input > exp(-50.0) ? input : exp(-50.0));
 }
+
+}  // namespace utils
 
 }  // namespace blitz
 

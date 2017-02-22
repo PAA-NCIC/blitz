@@ -14,7 +14,7 @@ static void Unpack2DFunc(
   Q = (W + 2 * pad_w - S) / str_w + 1;
   CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
   for (size_t i = 0; i < N; ++i) {
-    Unpack2DDispatch<CPUTensor, DType>(
+    utils::Unpack2DDispatch<CPUTensor, DType>(
       input->data(), unpack->data(),
       C, H, W,
       R, S,
@@ -38,7 +38,7 @@ static void Pack2DFunc(
   Q = (W + 2 * pad_w - S) / str_w + 1;
   CHECK_EQ(unpack->size(), N * C * R * S * P * Q);
   for (size_t i = 0; i < N; ++i) {
-    Pack2DDispatch<CPUTensor, DType>(
+    utils::Pack2DDispatch<CPUTensor, DType>(
       unpack->data(), input->data(),
       C, H, W,
       R, S,
@@ -56,34 +56,34 @@ static void TransformCopyFunc(
   }
   if (source->data_layout() == BLITZ_BUFFER_NCHW) {
     if (dest->data_layout() == BLITZ_BUFFER_NHWC) {
-      TransformBufferImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW, BLITZ_BUFFER_NHWC>(
+      utils::TransformBufferImpl<CPUTensor, DType, BLITZ_BUFFER_NCHW, BLITZ_BUFFER_NHWC>(
         source->data(), dest->data(),
         source->shape()[0], source->shape()[1], source->shape()[2], source->shape()[3]);
       return;
     }
   } else if (source->data_layout() == BLITZ_BUFFER_NHWC) {
     if (dest->data_layout() == BLITZ_BUFFER_NCHW) {
-      TransformBufferImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC, BLITZ_BUFFER_NCHW>(
+      utils::TransformBufferImpl<CPUTensor, DType, BLITZ_BUFFER_NHWC, BLITZ_BUFFER_NCHW>(
         source->data(), dest->data(),
         dest->shape()[0], dest->shape()[1], dest->shape()[2], dest->shape()[3]);
       return;
     }
   } else if (source->data_layout() == BLITZ_FILTER_KCRS) {
     if (dest->data_layout() == BLITZ_FILTER_RSCK) {
-      TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_KCRS, BLITZ_FILTER_RSCK>(
+      utils::TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_KCRS, BLITZ_FILTER_RSCK>(
         source->data(), dest->data(),
         source->shape()[0], source->shape()[1], source->shape()[2], source->shape()[3]);
       return;
     }
   } else if (source->data_layout() == BLITZ_FILTER_RSCK) {
     if (dest->data_layout() == BLITZ_FILTER_KCRS) {
-      TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_RSCK, BLITZ_FILTER_KCRS>(
+      utils::TransformFilterImpl<CPUTensor, DType, BLITZ_FILTER_RSCK, BLITZ_FILTER_KCRS>(
         source->data(), dest->data(),
         dest->shape()[0], dest->shape()[1], dest->shape()[2], dest->shape()[3]);
       return;
     }
   }
-  BlitzCPUCopy(source->data(), dest->data(), source->size());
+  utils::BlitzCPUCopy(source->data(), dest->data(), source->size());
 }
 
 #endif  // SRC_BACKENDS_CPU_BACKEND_TRANSFORM_INL_H_

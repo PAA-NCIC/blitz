@@ -1,6 +1,10 @@
 #include "utils/blitz_cpu_avx.h"
 
+#include <immintrin.h>
+
 namespace blitz {
+
+namespace utils {
 
 template <>
 union BlitzAVXReg<float> {
@@ -73,5 +77,7 @@ inline void BlitzAVXMin<double>(const BlitzAVXReg<double>* left,
   const BlitzAVXReg<double>* right, BlitzAVXReg<double>* output) {
   output->v = _mm256_min_pd(left->v, right->v);
 }
+
+}  // namespace utils
 
 }  // namespace blitz

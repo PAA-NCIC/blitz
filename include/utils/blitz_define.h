@@ -30,7 +30,6 @@ enum BLITZ_DATA_LAYOUT {
   BLITZ_SHAPE_UNDEFINED = 9
 };
 
-
 }  // namespace blitz
 
 #endif  // INCLUDE_UTIL_BLITZ_ALGORITHM_FUNCTION_H_

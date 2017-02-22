@@ -3,10 +3,11 @@
 
 #include "backends/shape.h"
 #include "utils/blitz_define.h"
+#include "utils/common.h"
 
 namespace blitz {
 
-inline BLITZ_DATA_LAYOUT BlitzParseShape(const string& data_layout) {
+inline BLITZ_DATA_LAYOUT BlitzParseShape(const std::string& data_layout) {
   if (data_layout == "nchw") {
     return BLITZ_BUFFER_NCHW;
   } else if (data_layout == "nhwc") {

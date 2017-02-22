@@ -73,8 +73,8 @@ static DType CrossEntropyBinaryApplyFunc(
   {
     #pragma omp for
     for (size_t i = 0; i < input->size(); ++i) {
-      private_output += -BlitzCPUSafeLog((*input)[i]) * (*target)[i] -
-      BlitzCPUSafeLog(1 - (*input)[i]) * (1 - (*target)[i]);
+      private_output += -utils::BlitzCPUSafeLog((*input)[i]) * (*target)[i] -
+      utils::BlitzCPUSafeLog(1 - (*input)[i]) * (1 - (*target)[i]);
     }
     #pragma omp atomic
     output += private_output;
@@ -171,7 +171,7 @@ static DType CrossEntropyMultiApplyFunc(
   {
     #pragma omp for
     for (size_t i = 0; i < input->size(); ++i) {
-      private_output += BlitzCPUSafeLog((*input)[i]) * (*target)[i];
+      private_output += utils::BlitzCPUSafeLog((*input)[i]) * (*target)[i];
     }
     #pragma omp atomic
     output += -private_output;
@@ -327,7 +327,7 @@ static void MatrixMultiplyFunc(
   size_t dim_common_right = transb ? right->size() / (right->shape())[0] :
     (right->shape())[0];
   CHECK_EQ(dim_common_left, dim_common_right);
-  BlitzGemm<CPUTensor, DType>(
+  utils::BlitzGemm<CPUTensor, DType>(
     const_cast<CPUTensor<DType>*>(left)->data(),
     const_cast<CPUTensor<DType>*>(right)->data(),
     output->data(), 

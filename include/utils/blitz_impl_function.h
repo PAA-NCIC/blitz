@@ -1,10 +1,12 @@
 #ifndef INCLUDE_UTIL_BLITZ_IMPL_FUNCTION_H_
 #define INCLUDE_UTIL_BLITZ_IMPL_FUNCTION_H_
 
-#include "backends/tensor.h"
+#include <cstddef>
 #include "utils/blitz_define.h"
 
 namespace blitz {
+
+namespace utils {
 
 template<template <typename> class TensorType, typename DType, BLITZ_DATA_LAYOUT DataLayout>
 void ConvolutionForwardNaiveImpl(
@@ -140,6 +142,8 @@ void BlitzGemm(
   bool transa, bool transb,
   DType alpha, DType beta,
   size_t M, size_t N, size_t K);
+
+}  // namespace utils
 
 }  // namespace blitz
 
