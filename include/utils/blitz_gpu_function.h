@@ -7,7 +7,6 @@
 #include <cudnn.h>
 #endif
 #include <curand_kernel.h>
-#include <iostream>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/once.hpp>
@@ -140,19 +139,6 @@ inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
 }  // namespace cudnn 
 #endif
 
-template<typename DType>
-void BlitzGPUTrans(DType* input, DType* output, size_t M, size_t N);
-
-template<typename DType>
-DType BlitzGPUASum(const DType* data, size_t N);
-
-template<typename DType>
-void BlitzGenerateNormal(curandGenerator_t* gen, DType* data,
-  DType loc, DType scale, size_t size);
-
-template<typename DType>
-void BlitzGenerateUniform(curandGenerator_t* gen, DType* data, size_t size);
-
 inline size_t BlitzGPUGetBlocks(size_t N) {
   return (N + BLITZ_NUM_GPU_THREADS - 1) / BLITZ_NUM_GPU_THREADS;
 }
@@ -167,146 +153,53 @@ inline __device__ DType BlitzGPUSafeLog(DType input) {
 }
 
 template<typename DType>
-__global__ void GPURectlinApply(
-  const DType* input, DType* output,
-  DType compare_value, DType slope,
-  size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType greater = input[i] > compare_value ? input[i] : compare_value;
-    DType less = input[i] <= compare_value ?
-      slope * input[i] : slope * compare_value;
-    output[i] = greater + less;
-  }
-}
+void BlitzGPUTrans(DType* input, DType* output, size_t M, size_t N);
+
+template<typename DType>
+DType BlitzGPUASum(const DType* data, size_t N);
+
+template<typename DType>
+void BlitzGenerateNormal(curandGenerator_t* gen, DType* data,
+  DType loc, DType scale, size_t size);
+
+template<typename DType>
+void BlitzGenerateUniform(curandGenerator_t* gen, DType* data, size_t size);
+
+template<typename DType>
+__global__ void GPURectlinApply(const DType* input, DType* output, DType compare_value, DType slope, size_t size);
 
 template <typename DType>
-__global__ void GPURectlinDerivative(
-  const DType* input, DType* output,
-  DType compare_value, DType slope,
-  size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType greater = input[i] > compare_value ? 1.0 : 0.0;
-    DType less = input[i] <= compare_value ? slope : 0.0;
-    output[i] = (greater + less) * output[i];
-  }
-}
+__global__ void GPURectlinDerivative(const DType* input, DType* output, DType compare_value, DType slope, size_t size);
 
 template <typename DType>
-__global__ void GPUSoftmaxApply(
-  const DType* input, DType* output,
-  size_t batch_size, size_t dim) {
-  BLITZ_CUDA_LOOP(i, batch_size) {
-    DType sum = 0; 
-    for (size_t j = 0; j < dim; ++j) {
-      size_t index = i * dim + j;
-      output[index] = exp(input[index]);
-      sum += output[index];
-    }
-    for (size_t j = 0; j < dim; ++j) {
-      output[i * dim + j] /= sum;
-    }
-  }
-}
+__global__ void GPUSoftmaxApply(const DType* input, DType* output, size_t batch_size, size_t dim);
 
 template <typename DType>
-__global__ void GPULogisticApply(const DType* input, DType* output, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    output[i] = 1 / (exp(-input[i]) + 1);
-  }
-}
+__global__ void GPULogisticApply(const DType* input, DType* output, size_t size);
 
 template <typename DType>
-__global__ void GPUCrossEntropyBinaryApply(
-  const DType* input, const DType* target,
-  DType* sum, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType safe_input = BlitzGPUSafeLog(input[i]);
-    DType safe_inverse_input = BlitzGPUSafeLog(1 - input[i]);
-    sum[i] += -safe_input * target[i] - safe_inverse_input
-      * (1 - target[i]);
-  }
-}
+__global__ void GPUCrossEntropyBinaryApply(const DType* input, const DType* target, DType* sum, size_t size);
 
 template <typename DType>
-__global__ void GPUCrossEntropyMultiApply(
-  const DType* input, const DType* target,
-  DType* sum, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    sum[i] = -BlitzGPUSafeLog(input[i]) * target[i];
-  }
-}
+__global__ void GPUCrossEntropyMultiApply(const DType* input, const DType* target, DType* sum, size_t size);
 
 template <typename DType>
-__global__ void GPUBiasApply(
-  const DType* input, const DType* bias, DType* output,
-  size_t batch_size, size_t dim) {
-  BLITZ_CUDA_LOOP(i, batch_size) {
-    for (size_t j = 0; j < dim; ++j) {
-      output[i * dim + j] = input[i * dim + j] + bias[j];
-    }
-  }
-}
+__global__ void GPUBiasApply(const DType* input, const DType* bias, DType* output, size_t batch_size, size_t dim);
 
 template <typename DType>
-__global__ void GPUBiasDerivative(const DType* input, DType* update,
-  size_t dim, size_t batch_size) {
-  BLITZ_CUDA_LOOP(i, dim) {
-    for (size_t j = 0; j < batch_size; ++j) {
-      update[i] += input[j * dim + i];
-    }
-  }
-}
+__global__ void GPUBiasDerivative(const DType* input, DType* update, size_t dim, size_t batch_size);
 
 template <typename DType>
-__global__ void GPUGradientdescent(
-  DType* weight, DType* gradient, DType* velocity,
-  DType momentum_coef, DType learning_rate,
-  DType decay, size_t batch_size, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    gradient[i] /= batch_size;
-    velocity[i] = velocity[i] * momentum_coef - learning_rate *
-      (gradient[i] + decay * weight[i]);
-    weight[i] = weight[i] + velocity[i];
-  }
-}
+__global__ void GPUGradientdescent(DType* weight, DType* gradient, DType* velocity, DType momentum_coef, DType learning_rate, DType decay, size_t batch_size, size_t size);
 
 template <typename DType>
-__global__ void GPUMakeBinaryMask(DType* output, DType keep, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    if (output[i] < keep) {
-      output[i] = DType(1);
-    } else {
-      output[i] = DType(0);
-    }
-  }
-}
+__global__ void GPUMakeBinaryMask(DType* output, DType keep, size_t size);
 
 template <typename DType>
-__global__ void GPUUniformTransform(DType* output, DType low, DType high,
-  size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    output[i] = low + (high - low) * output[i];
-  }
-}
+__global__ void GPUUniformTransform(DType* output, DType low, DType high, size_t size);
 
 template <typename DType>
-__global__ void GPUEvaluateClass(
-  const DType* output, const DType* target, DType* correct,
-  size_t dim, size_t size) {
-  BLITZ_CUDA_LOOP(i, size) {
-    DType max = output[i * dim];
-    size_t max_index = 0;
-    for (size_t j = 1; j < dim; ++j) {
-      if (max < output[i * dim + j]) {
-        max_index = j;
-        max = output[i * dim + j];
-      }
-    }
-    if (target[i * dim + max_index] == (DType)1.0) {
-      correct[i] = 1.0f;
-    }
-  }
-}
+__global__ void GPUEvaluateClass(const DType* output, const DType* target, DType* correct, size_t dim, size_t size);
 
 }  // namespace blitz
 

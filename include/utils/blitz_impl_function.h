@@ -1,7 +1,8 @@
 #ifndef INCLUDE_UTIL_BLITZ_IMPL_FUNCTION_H_
 #define INCLUDE_UTIL_BLITZ_IMPL_FUNCTION_H_
 
-#include "backends/shape.h"
+#include "backends/tensor.h"
+#include "utils/blitz_define.h"
 
 namespace blitz {
 

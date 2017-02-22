@@ -2,6 +2,7 @@
 #define INCLUDE_UTIL_BLITZ_SHAPE_FUNCTION_H_
 
 #include "backends/shape.h"
+#include "utils/blitz_define.h"
 
 namespace blitz {
 

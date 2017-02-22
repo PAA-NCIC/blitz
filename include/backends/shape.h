@@ -2,23 +2,11 @@
 #define INCLUDE_BACKENDS_SHAPE_H_
 
 #include <vector>
+#include <cstddef>
 
-#include "utils/common.h"
+#include "utils/blitz_define.h"
 
 namespace blitz {
-
-enum BLITZ_DATA_LAYOUT {
-  BLITZ_FLAT = 0,
-  BLITZ_BUFFER_NCHW = 1,
-  BLITZ_BUFFER_NHWC = 2,
-  BLITZ_FILTER_KCRS = 3,
-  BLITZ_FILTER_RSCK = 4,
-  BLITZ_UNPACK_PQRSC = 5,
-  BLITZ_UNPACK_PQCRS = 6,
-  BLITZ_UNPACK_CRSPQ = 7,
-  BLITZ_UNPACK_RSCPQ = 8,
-  BLITZ_SHAPE_UNDEFINED = 9
-};
 
 // Rule of three: use self-defined copy assignment to restore size_ to 0
 class Shape {

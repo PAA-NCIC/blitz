@@ -2,7 +2,7 @@
 .PHONY: clean bins
 
 #project
-BINS := convolution shuffle
+BINS := cudnn_convolution
 CC := g++
 
 bins: $(BINS)

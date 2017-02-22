@@ -2,7 +2,7 @@
 #define INCLUDE_UTIL_BLITZ_DISPATCH_FUNCTION_H_
 
 #include "backends/tensor.h"
-#include "utils/blitz_shape_function.h"
+#include "utils/blitz_define.h"
 #include "utils/blitz_impl_function.h"
 
 namespace blitz {

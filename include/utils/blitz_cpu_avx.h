@@ -18,12 +18,10 @@ template<typename DType>
 inline void BlitzAVXStore(const DType* addr, BlitzAVXReg<DType>* reg);
 
 template<typename DType>
-inline void BlitzAVXMax(const BlitzAVXReg<DType>* left,
-  const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
+inline void BlitzAVXMax(const BlitzAVXReg<DType>* left, const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
 
 template<typename DType>
-inline void BlitzAVXMin(const BlitzAVXReg<DType>* left,
-  const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
+inline void BlitzAVXMin(const BlitzAVXReg<DType>* left, const BlitzAVXReg<DType>* right, BlitzAVXReg<DType>* output);
 
 }  // namespace blitz
 

@@ -169,25 +169,18 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
   CPUTensor<float> workspace_cpu_transform(workspace_shape_cpu);
   Backend<CPUTensor, float>::UniformDistributionFunc(&input_cpu, 0.0, 1.0);
 
-  timeval t1, t2; 
-  double elapsed_time;
-
   if (input_shape.data_layout() == BLITZ_BUFFER_NHWC) {
     input_hwc2chw(input_cpu.data(), input_cpu_transform.data(), C, H, W);
   } else {
     memcpy(input_cpu_transform.data(), input_cpu.data(), sizeof(float) * input_cpu.size());  
   }
-  BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
     unpack_base(
       input_cpu_transform.data(), workspace_cpu.data(),
       C, H, W, R, S, P, Q,
       pad_h, pad_w, str_h, str_w);
   }
-  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
-  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
 
-  BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
     Backend<CPUTensor, float>::Unpack2DFunc(
       &input_cpu, &workspace_cpu_optimize,
@@ -195,8 +188,6 @@ void unpack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t itera
       pad_h, pad_w,
       str_h, str_w);
   }
-  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
-  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
 
   bool hwc = false;
   bool transform = false;
@@ -242,8 +233,6 @@ void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterati
   Backend<CPUTensor, float>::UniformDistributionFunc(&workspace_cpu_optimize, 0.0, 1.0);
   memcpy(workspace_cpu.data(), workspace_cpu_optimize.data(), sizeof(float) * workspace_cpu.size());  
 
-  timeval t1, t2; 
-  double elapsed_time;
   bool hwc = false;
   bool transform = false;
 
@@ -269,17 +258,13 @@ void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterati
     memcpy(workspace_cpu.data(), workspace_cpu_transform.data(), sizeof(float) * workspace_cpu.size());  
   }  
 
-  BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
     pack_base(
       workspace_cpu.data(), input_cpu.data(),
       C, H, W, R, S, P, Q,
       pad_h, pad_w, str_h, str_w);
   }
-  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
-  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
 
-  BLITZ_CPU_TIMER_START(elapsed_time, t1);
   for (size_t i = 0; i < iterations; ++i) {
     Backend<CPUTensor, float>::Pack2DFunc(
       &workspace_cpu_optimize, &input_cpu_optimize,
@@ -287,8 +272,6 @@ void pack(size_t pad_h, size_t pad_w, size_t str_h, size_t str_w, size_t iterati
       pad_h, pad_w,
       str_h, str_w);
   }
-  BLITZ_CPU_TIMER_END(elapsed_time, t1, t2);
-  BLITZ_CPU_TIMER_INFO(0, elapsed_time);
 
   if (input_shape.data_layout() == BLITZ_BUFFER_NHWC) {
     input_hwc2chw(input_cpu_optimize.data(), input_cpu_transform.data(), C, H, W);

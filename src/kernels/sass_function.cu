@@ -150,18 +150,18 @@ void BlitzSassConvolution2D(
   CRST32 = 32 * CRST;
   MPQN32 = 32 * MPQN;
   // magic numbers
-  blitz_magic32(DHW, HW, magic_HW, shift_HW);
-  blitz_magic32(HW, W, magic_W, shift_W);
-  blitz_magic32(CRST, RST, magic_RST, shift_RST);
-  blitz_magic32(RST + 32, RS, magic_RS, shift_RS);
-  blitz_magic32(RS + 32, S, magic_S, shift_S);
-  blitz_magic32(MPQ, PQ, magic_PQ, shift_PQ);
-  blitz_magic32(PQ, Q, magic_Q, shift_Q);
-  blitz_magic32(grid_PQM, grid_PQ, magic_PQu, shift_PQu);
-  blitz_magic32(grid_PQ, grid_Q, magic_Qu, shift_Qu);
-  blitz_magic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
-  blitz_magic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
-  blitz_magic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
+  BlitzMagic32(DHW, HW, magic_HW, shift_HW);
+  BlitzMagic32(HW, W, magic_W, shift_W);
+  BlitzMagic32(CRST, RST, magic_RST, shift_RST);
+  BlitzMagic32(RST + 32, RS, magic_RS, shift_RS);
+  BlitzMagic32(RS + 32, S, magic_S, shift_S);
+  BlitzMagic32(MPQ, PQ, magic_PQ, shift_PQ);
+  BlitzMagic32(PQ, Q, magic_Q, shift_Q);
+  BlitzMagic32(grid_PQM, grid_PQ, magic_PQu, shift_PQu);
+  BlitzMagic32(grid_PQ, grid_Q, magic_Qu, shift_Qu);
+  BlitzMagic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
+  BlitzMagic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
+  BlitzMagic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
   // test param set up TODO(keren): erase
   float *test_param;
   // arguments
@@ -360,8 +360,8 @@ void BlitzFilter2DShuffle(
   // filter
   RS = R * S; 
   RST = T * RS;
-  blitz_magic32(RST + 32, RS, magic_RS, shift_RS);
-  blitz_magic32(RS + 32, S, magic_S, shift_S);
+  BlitzMagic32(RST + 32, RS, magic_RS, shift_RS);
+  BlitzMagic32(RS + 32, S, magic_S, shift_S);
   const size_t gridX = K / 32 + (K % 32 != 0);
   const size_t gridY = C / 32 + (C % 32 != 0);
   dim3 grid_dim(gridX, gridY, RST);
