@@ -16,7 +16,7 @@ Shape output_shape_algorithm(4);
 void compare(float* algo1, float* algo2, size_t size, float precision = 1e-3) {
   for (size_t i = 0; i < size; ++i) {
     if (algo1[i] > algo2[i] + precision || algo1[i] < algo2[i] - precision) {
-      LOG(FATAL) << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i];
+      LOG(INFO) << "Index: " << i << " algo1: " << algo1[i] << " algo2: " << algo2[i];
     }
   }
 }

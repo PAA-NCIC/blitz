@@ -323,75 +323,14 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
+#ifdef BLITZ_AVX
+#include "vector/convolution_forward_sse-inl.h"
+#else
   #pragma omp parallel for
   for (size_t n = 0; n < N; ++n) {
-    float Ipack[4 * 4];
-    __m128 Ovec[4];
-    __m128 Fvec;
-    __m128 Ivec;
     for (size_t p = 0; p < P; ++p) {
       int ih = p * str_h - pad_h;
-      for (size_t q = 0; q < Q / 4; ++q) {
-        for (size_t r = 0; r < R; ++r) {
-          if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
-            for (size_t s = 0; s < S; ++s) {
-              for (size_t c = 0; c < C / 4; ++c) {
-                for (size_t k = 0; k < K / 4; ++k) {
-                  int ih_index = ih + r;
-                  int iw_index = (q * 4) * str_w - pad_w + static_cast<int>(s);
-                  if (k == 0) {
-                    if (iw_index >= 0 && iw_index < static_cast<int>(W)) {
-                      Ipack[0] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4));
-                      Ipack[4] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4 + 1));
-                      Ipack[8] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4 + 2));
-                      Ipack[12] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4 + 3));
-                    } else {
-                      Ipack[0] = Ipack[4] = Ipack[8] = Ipack[12] = 0;
-                    }
-                    if (iw_index + 1 >= 0 && iw_index + 1 < static_cast<int>(W)) {
-                      Ipack[1] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4));
-                      Ipack[5] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4 + 1));
-                      Ipack[9] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4 + 2));
-                      Ipack[13] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4 + 3));
-                    } else {
-                      Ipack[1] = Ipack[5] = Ipack[9] = Ipack[13] = 0;
-                    }
-                    if (iw_index + 2 >= 0 && iw_index + 2 < static_cast<int>(W)) {
-                      Ipack[2] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4));
-                      Ipack[6] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4 + 1));
-                      Ipack[10] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4 + 2));
-                      Ipack[14] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4 + 3));
-                    } else {
-                      Ipack[2] = Ipack[6] = Ipack[10] = Ipack[14] = 0;
-                    }
-                    if (iw_index + 3 >= 0 && iw_index + 3 < static_cast<int>(W)) {
-                      Ipack[3] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4));
-                      Ipack[7] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4 + 1));
-                      Ipack[11] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4 + 2));
-                      Ipack[15] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4 + 3));
-                    } else {
-                      Ipack[3] = Ipack[7] = Ipack[11] = Ipack[15] = 0;
-                    }
-                  }
-                  Ovec[0] = Ovec[1] = Ovec[2] = Ovec[3] = _mm_set_ps1(0);
-                  for (size_t bc = 0; bc < 4; ++bc) {
-                    Fvec = _mm_load_ps(ADDRESS_FILTER_RSCK(r, s, (c * 4 + bc), (k * 4)));
-                    for (size_t bq = 0; bq < 4; ++bq) {
-                      Ivec = _mm_load_ps1(Ipack + bc * 4 + bq);
-                      Ovec[bq] = _mm_add_ps(_mm_mul_ps(Ivec, Fvec), Ovec[bq]);
-                    }
-                  }
-                  for (size_t bq = 0; bq < 4; ++bq) {
-                      _mm_store_ps(ADDRESS_OUTPUT_NPQK(n, p, (q * 4 + bq), (k * 4)),
-                        _mm_add_ps(_mm_load_ps(ADDRESS_OUTPUT_NPQK(n, p, (q * 4 + bq), (k * 4))), Ovec[bq]));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      for (size_t q = (Q / 4) * 4; q < Q; ++q) {  // q remainder
+      for (size_t q = 0; q < Q; ++q) {
         int iw = q * str_w - pad_w;
         size_t r_end = ih + R < H ? R : H - ih;
         size_t s_end = iw + S < W ? S : W - iw;
@@ -399,8 +338,8 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
         for (; r < r_end; ++r) {
           size_t s = iw < 0 ? -iw : 0;
           for (; s < s_end; ++s) {
-            for (size_t k = 0; k < K; ++k) {
-              for (size_t c = 0; c < C; ++c) {
+            for (size_t c = 0; c < C / 4; ++c) {
+              for (size_t k = 0; k < K; ++k) {
                 ACCESS_OUTPUT_NPQK(n, p, q, k) += ACCESS_INPUT_NHWC(n, (ih + r), (iw + s), c) *
                   ACCESS_FILTER_RSCK(r, s, c, k); 
               }
@@ -410,6 +349,7 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
       }
     }
   }
+#endif
 }
 
 

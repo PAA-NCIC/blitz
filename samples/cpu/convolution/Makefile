@@ -9,7 +9,7 @@ bins: $(BINS)
 
 #flags
 LDFLAGS := -Wl,--no-as-needed -lglog -lblitz
-CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx
+CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx -g
 
 $(BINS): % : %.cc
 	$(CC) $(CXXFLAGS) $(INC) -o $@ $^ $(LDFLAGS) 

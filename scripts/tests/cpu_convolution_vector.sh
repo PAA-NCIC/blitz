@@ -6,7 +6,7 @@ ALG=(convolution_vector_direct)
 INPUT_LAYOUT=(nhwc)
 OUTPUT_LAYOUT=(nhwc)
 ITER=1
-BATCH_SIZE=128
+BATCH_SIZE=16
 
 for((i=0;i<${#PHASE[@]};i++))
 do
@@ -16,13 +16,13 @@ for((k=0;k<${#INPUT_LAYOUT[@]};k++))
 do
 for((v=0;v<${#OUTPUT_LAYOUT[@]};v++))
 do
-#if ./samples/cpu/convolution/convolution ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]} ${BATCH_SIZE} 3 224 224 11 11 64 55 55 3 3 4 4 1
-#then
-#	echo "Alexnet first layer pass!" ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]}
-#else
-#	echo "Alexnet first layer fail!" ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]}
-#	exit 1
-#fi
+if ./samples/cpu/convolution/convolution ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]} ${BATCH_SIZE} 3 224 224 11 11 64 55 55 3 3 4 4 1
+then
+	echo "Alexnet first layer pass!" ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]}
+else
+	echo "Alexnet first layer fail!" ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]}
+	exit 1
+fi
 
 if ./samples/cpu/convolution/convolution ${PHASE[$i]} ${ALG[$j]} ${INPUT_LAYOUT[$k]} ${OUTPUT_LAYOUT[$v]} ${BATCH_SIZE} 64 27 27 5 5 192 27 27 2 2 1 1 ${ITER}
 then
