@@ -1,5 +1,7 @@
 #include "utils/blitz_impl_function.h"
 
+#include <immintrin.h>
+
 #ifdef USE_MKL
 #include <mkl.h>
 #else
@@ -26,6 +28,9 @@ namespace utils {
 #define ACCESS_INPUT_NHWC(i, j, k, v) *(I + ((i * H + j) * W + k) * C + v)
 #define ACCESS_OUTPUT_NPQK(i, j, k, v) *(O + ((i * P + j) * Q + k) * K + v)
 #define ACCESS_FILTER_RSCK(i, j, k, v) *(F + ((i * S + j) * C + k) * K + v)
+
+#define ADDRESS_OUTPUT_NPQK(i, j, k, v) (O + ((i * P + j) * Q + k) * K + v)
+#define ADDRESS_FILTER_RSCK(i, j, k, v) (F + ((i * S + j) * C + k) * K + v)
 
 template<>
 void ConvolutionForwardNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NCHW>(
@@ -321,7 +326,9 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   #pragma omp parallel for
   for (size_t n = 0; n < N; ++n) {
     float Ipack[4 * 4];
-    float Cpack[4 * 4];
+    __m128 Ovec[4];
+    __m128 Fvec;
+    __m128 Ivec;
     for (size_t p = 0; p < P; ++p) {
       int ih = p * str_h - pad_h;
       for (size_t q = 0; q < Q / 4; ++q) {
@@ -366,23 +373,17 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
                       Ipack[3] = Ipack[7] = Ipack[11] = Ipack[15] = 0;
                     }
                   }
-                  for (size_t bq = 0; bq < 4; ++bq) {
-                    for (size_t bk = 0; bk < 4; ++bk) {
-                      Cpack[bq * 4 + bk] = 0;
-                    }
-                  }
+                  Ovec[0] = Ovec[1] = Ovec[2] = Ovec[3] = _mm_set_ps1(0);
                   for (size_t bc = 0; bc < 4; ++bc) {
+                    Fvec = _mm_load_ps(ADDRESS_FILTER_RSCK(r, s, (c * 4 + bc), (k * 4)));
                     for (size_t bq = 0; bq < 4; ++bq) {
-                      for (size_t bk = 0; bk < 4; ++bk) {
-                        Cpack[bq * 4 + bk] += Ipack[bc * 4 + bq] *
-                          ACCESS_FILTER_RSCK(r, s, (c * 4 + bc), (k * 4 + bk)); 
-                      }
+                      Ivec = _mm_load_ps1(Ipack + bc * 4 + bq);
+                      Ovec[bq] = _mm_add_ps(_mm_mul_ps(Ivec, Fvec), Ovec[bq]);
                     }
                   }
                   for (size_t bq = 0; bq < 4; ++bq) {
-                    for (size_t bk = 0; bk < 4; ++bk) {
-                      ACCESS_OUTPUT_NPQK(n, p, (q * 4 + bq), (k * 4 + bk)) += Cpack[bq * 4 + bk];
-                    }
+                      _mm_store_ps(ADDRESS_OUTPUT_NPQK(n, p, (q * 4 + bq), (k * 4)),
+                        _mm_add_ps(_mm_load_ps(ADDRESS_OUTPUT_NPQK(n, p, (q * 4 + bq), (k * 4))), Ovec[bq]));
                   }
                 }
               }
@@ -390,7 +391,7 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
           }
         }
       }
-      for (size_t q = (Q / 4) * 4; q < Q; ++q) {
+      for (size_t q = (Q / 4) * 4; q < Q; ++q) {  // q remainder
         int iw = q * str_w - pad_w;
         size_t r_end = ih + R < H ? R : H - ih;
         size_t s_end = iw + S < W ? S : W - iw;

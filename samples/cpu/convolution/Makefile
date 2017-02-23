@@ -3,7 +3,7 @@
 
 #project
 BINS := convolution pack
-CC ?= g++
+CC := g++
 
 bins: $(BINS)
 

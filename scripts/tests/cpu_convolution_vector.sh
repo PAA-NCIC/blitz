@@ -6,7 +6,7 @@ ALG=(convolution_vector_direct)
 INPUT_LAYOUT=(nhwc)
 OUTPUT_LAYOUT=(nhwc)
 ITER=1
-BATCH_SIZE=16
+BATCH_SIZE=128
 
 for((i=0;i<${#PHASE[@]};i++))
 do
