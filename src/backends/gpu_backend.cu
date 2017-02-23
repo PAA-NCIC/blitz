@@ -9,7 +9,6 @@
 #include <thrust/transform_reduce.h>
 
 #include "backends/gpu_tensor.h"
-#include "kernels/sass_function.h"
 #include "utils/blitz_gpu_function.h"
 
 namespace blitz {

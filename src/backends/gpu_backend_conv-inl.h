@@ -80,12 +80,13 @@ static void Convolution2DForwardFunc(
           str_h, str_w,
           input->data_layout());
         if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          utils::Gemm<GPUTensor, DType>(const_cast<GPUTensor<DType>*>(filter)->data(),
+          utils::Convolution2DForwardGEMMDispatch<GPUTensor, DType>(
             workspace->data(),
+            const_cast<GPUTensor<DType>*>(filter)->data(),
             output->Slice(nKPQ),
-            false, true,
-            static_cast<DType>(1), static_cast<DType>(0),
-            K, PQ, CRS);
+            K, PQ, CRS,
+            input->data_layout(),
+            output->data_layout());
         } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           kernels::SassGemm(const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),
@@ -194,12 +195,13 @@ static void Convolution2DBackwardFunc(
         nCHW = n * CHW;
         nKPQ = n * KPQ;
         if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          utils::Gemm<GPUTensor, DType>(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+          utils::Convolution2DBackwardGEMMDispatch<GPUTensor, DType>(
             const_cast<GPUTensor<DType>*>(filter)->data(),
+            const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             workspace->data(),
-            true, false,
-            static_cast<DType>(1), static_cast<DType>(0),
-            PQ, CRS, K);
+            PQ, CRS, K,
+            input->data_layout(),
+            output->data_layout());
         } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           kernels::SassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             const_cast<GPUTensor<DType>*>(filter)->data(),
@@ -294,7 +296,6 @@ static void Convolution2DUpdateFunc(
         CRS, K);
       break;
     }
-    case BLITZ_CONVOLUTION_SASS_GEMM:
     case BLITZ_CONVOLUTION_BLAS_GEMM: {
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
@@ -307,21 +308,13 @@ static void Convolution2DUpdateFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          utils::Gemm<GPUTensor, DType>(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
-            workspace->data(),
-            update->data(),
-            false, false,
-            static_cast<DType>(1), static_cast<DType>(1),
-            K, CRS, PQ);
-        } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
-          kernels::SassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
-            workspace->data(),
-            update->data(),
-            false, false,
-            static_cast<DType>(1), static_cast<DType>(1),
-            K, CRS, PQ);
-        }
+        utils::Convolution2DUpdateGEMMDispatch<GPUTensor, DType>(
+          workspace->data(),
+          const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+          update->data(),
+          K, CRS, PQ,
+          input->data_layout(),
+          output->data_layout());
       }
       break;
     }

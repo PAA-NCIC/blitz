@@ -320,9 +320,77 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   size_t str_h, size_t str_w) {
   #pragma omp parallel for
   for (size_t n = 0; n < N; ++n) {
+    float Ipack[4 * 4];
+    float Cpack[4 * 4];
     for (size_t p = 0; p < P; ++p) {
       int ih = p * str_h - pad_h;
-      for (size_t q = 0; q < Q; ++q) {
+      for (size_t q = 0; q < Q / 4; ++q) {
+        for (size_t r = 0; r < R; ++r) {
+          if (ih + static_cast<int>(r) >= 0 && ih + static_cast<int>(r) < static_cast<int>(H)) {
+            for (size_t s = 0; s < S; ++s) {
+              for (size_t c = 0; c < C / 4; ++c) {
+                for (size_t k = 0; k < K / 4; ++k) {
+                  int ih_index = ih + r;
+                  int iw_index = (q * 4) * str_w - pad_w + static_cast<int>(s);
+                  if (k == 0) {
+                    if (iw_index >= 0 && iw_index < static_cast<int>(W)) {
+                      Ipack[0] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4));
+                      Ipack[4] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4 + 1));
+                      Ipack[8] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4 + 2));
+                      Ipack[12] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (c * 4 + 3));
+                    } else {
+                      Ipack[0] = Ipack[4] = Ipack[8] = Ipack[12] = 0;
+                    }
+                    if (iw_index + 1 >= 0 && iw_index + 1 < static_cast<int>(W)) {
+                      Ipack[1] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4));
+                      Ipack[5] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4 + 1));
+                      Ipack[9] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4 + 2));
+                      Ipack[13] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 1, (c * 4 + 3));
+                    } else {
+                      Ipack[1] = Ipack[5] = Ipack[9] = Ipack[13] = 0;
+                    }
+                    if (iw_index + 2 >= 0 && iw_index + 2 < static_cast<int>(W)) {
+                      Ipack[2] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4));
+                      Ipack[6] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4 + 1));
+                      Ipack[10] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4 + 2));
+                      Ipack[14] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 2, (c * 4 + 3));
+                    } else {
+                      Ipack[2] = Ipack[6] = Ipack[10] = Ipack[14] = 0;
+                    }
+                    if (iw_index + 3 >= 0 && iw_index + 3 < static_cast<int>(W)) {
+                      Ipack[3] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4));
+                      Ipack[7] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4 + 1));
+                      Ipack[11] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4 + 2));
+                      Ipack[15] = ACCESS_INPUT_NHWC(n, ih_index, iw_index + 3, (c * 4 + 3));
+                    } else {
+                      Ipack[3] = Ipack[7] = Ipack[11] = Ipack[15] = 0;
+                    }
+                  }
+                  for (size_t bq = 0; bq < 4; ++bq) {
+                    for (size_t bk = 0; bk < 4; ++bk) {
+                      Cpack[bq * 4 + bk] = 0;
+                    }
+                  }
+                  for (size_t bc = 0; bc < 4; ++bc) {
+                    for (size_t bq = 0; bq < 4; ++bq) {
+                      for (size_t bk = 0; bk < 4; ++bk) {
+                        Cpack[bq * 4 + bk] += Ipack[bc * 4 + bq] *
+                          ACCESS_FILTER_RSCK(r, s, (c * 4 + bc), (k * 4 + bk)); 
+                      }
+                    }
+                  }
+                  for (size_t bq = 0; bq < 4; ++bq) {
+                    for (size_t bk = 0; bk < 4; ++bk) {
+                      ACCESS_OUTPUT_NPQK(n, p, (q * 4 + bq), (k * 4 + bk)) += Cpack[bq * 4 + bk];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      for (size_t q = (Q / 4) * 4; q < Q; ++q) {
         int iw = q * str_w - pad_w;
         size_t r_end = ih + R < H ? R : H - ih;
         size_t s_end = iw + S < W ? S : W - iw;
