@@ -24,7 +24,7 @@ for (size_t r = 0; r < R; ++r) {
             }
             #pragma unroll
             for (size_t rpq = 0; rpq < PQREG; ++rpq) {
-              Ivec = _mm256_broadcast_ss(I_pack + (bpq * PQREG + rpq) * CBLOCK + bc);
+              Ivec = _mm256_set1_ps(*(I_pack + (bpq * PQREG + rpq) * CBLOCK + bc));
               #pragma unroll
               for (size_t rk = 0; rk < KREG; ++rk) {
                 Ovec[rpq][rk] = _mm256_add_ps(_mm256_mul_ps(Ivec, Fvec[rk]), Ovec[rpq][rk]);
@@ -74,7 +74,7 @@ for (size_t r = 0; r < R; ++r) {
             }
             #pragma unroll
             for (size_t rpq = 0; rpq < PQREG; ++rpq) {
-              Ivec = _mm256_broadcast_ss(I_pack + (bpq * PQREG + rpq) * CBLOCK + bc);
+              Ivec = _mm256_set1_ps(*(I_pack + (bpq * PQREG + rpq) * CBLOCK + bc));
               #pragma unroll
               for (size_t rk = 0; rk < KREG; ++rk) {
                 Ovec[rpq][rk] = _mm256_add_ps(_mm256_mul_ps(Ivec, Fvec[rk]), Ovec[rpq][rk]);
