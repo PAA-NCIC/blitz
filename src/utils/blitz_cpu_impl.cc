@@ -325,7 +325,6 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   size_t str_h, size_t str_w) {
   #define CBLOCK 64
   #define PQBLOCK 16 // divided by VEC_LEN
-  #define KBLOCK 8  // divided by VEC_LEN
   #ifdef BLITZ_SSE
   #define VEC_LEN 4
   __m128 Ovec[VEC_LEN];
@@ -346,11 +345,10 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   #elif BLITZ_AVX512
   #define VEC_LEN 16
   #endif
-  if (K % KBLOCK) {
-    LOG(FATAL) << "Not supported K, please set it as a multiple of: " << KBLOCK;
+  if (K % VEC_LEN) {
+    LOG(FATAL) << "Not supported K, please set it as a multiple of: " << VEC_LEN;
   }
   float I_pack[PQBLOCK * CBLOCK];
-  float F_pack[CBLOCK * KBLOCK];
   #pragma omp parallel for private(I_pack, Ovec, Fvec, Ivec)
   for (size_t n = 0; n < N; ++n) {
     for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {

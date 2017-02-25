@@ -17,7 +17,7 @@ for (size_t r = 0; r < R; ++r) {
             Fvec = _mm256_load_ps(ADDRESS_FILTER_RSCK(r, s, (ic + bc), ik));
             for (size_t bv = 0; bv < VEC_LEN; ++bv) {
               Ivec = _mm256_broadcast_ss(I_pack + (bpq * VEC_LEN + bv) * CBLOCK + bc);
-              Ovec[bv] = _mm256_add_ps(_mm256_mul_ps(Ivec, Fvec), Ovec[bv]);
+              Ovec[bv] = _mm256_fmadd_ps(Ivec, Fvec, Ovec[bv]);
             }
           }
           aq = (iq + bpq * VEC_LEN) % Q;
@@ -53,7 +53,7 @@ for (size_t r = 0; r < R; ++r) {
             Fvec = _mm256_load_ps(ADDRESS_FILTER_RSCK(r, s, (ic + bc), ik));
             for (size_t bv = 0; bv < VEC_LEN; ++bv) {
               Ivec = _mm256_broadcast_ss(I_pack + (bpq * VEC_LEN + bv) * CBLOCK + bc);
-              Ovec[bv] = _mm256_add_ps(_mm256_mul_ps(Ivec, Fvec), Ovec[bv]);
+              Ovec[bv] = _mm256_fmadd_ps(Ivec, Fvec, Ovec[bv]);
             }
           }
           aq = (iq + bpq * VEC_LEN) % Q;
