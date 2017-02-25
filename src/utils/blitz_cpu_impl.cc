@@ -323,8 +323,8 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
-  #define CBLOCK 64
-  #define PQBLOCK 16 // divided by VEC_LEN
+  #define CBLOCK 128
+  #define PQBLOCK 32 // divided by PQREG
   #ifdef BLITZ_SSE
   #define VEC_LEN 4
   __m128 Ovec[VEC_LEN];
@@ -332,21 +332,25 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   __m128 Ivec;
   #elif BLITZ_AVX
   #define VEC_LEN 8  // register blocking
-  __m256 Ovec[VEC_LEN];
-  __m256 Fvec;
+  #define PQREG 4
+  #define KREG 2
+  __m256 Ovec[PQREG][KREG];
+  __m256 Fvec[KREG];
   __m256 Ivec;
   #elif BLITZ_AVX2
   #define VEC_LEN 8
-  __m256 Ovec[VEC_LEN];
-  __m256 Fvec;
+  #define PQREG 4
+  #define KREG 2
+  __m256 Ovec[PQREG][KREG];
+  __m256 Fvec[KREG];
   __m256 Ivec;
   #elif BLITZ_AVX3
   #define VEC_LEN 16
   #elif BLITZ_AVX512
   #define VEC_LEN 16
   #endif
-  if (K % VEC_LEN) {
-    LOG(FATAL) << "Not supported K, please set it as a multiple of: " << VEC_LEN;
+  if (K % (KREG * VEC_LEN)) {
+    LOG(FATAL) << "Not supported K, please set it as a multiple of: " << VEC_LEN * KREG;
   }
   float I_pack[PQBLOCK * CBLOCK];
   #pragma omp parallel for private(I_pack, Ovec, Fvec, Ivec)
