@@ -347,16 +347,16 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   __m256 Ivec;
   #elif BLITZ_AVX3
   #define VEC_LEN 16
-  #define PQBLOCK 36 // divided by PQREG
-  #define PQREG 6
+  #define PQBLOCK 32 // divided by PQREG
+  #define PQREG 4
   #define KREG 4
   __m512 Ovec[PQREG][KREG];
   __m512 Fvec[KREG];
   __m512 Ivec;
   #elif BLITZ_AVX512
   #define VEC_LEN 16
-  #define PQBLOCK 36 // divided by PQREG
-  #define PQREG 6
+  #define PQBLOCK 32 // divided by PQREG
+  #define PQREG 4
   #define KREG 4
   __m512 Ovec[PQREG][KREG];
   __m512 Fvec[KREG];
