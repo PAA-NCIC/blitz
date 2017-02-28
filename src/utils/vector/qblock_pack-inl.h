@@ -9,15 +9,18 @@ for (size_t bpq = 0; bpq < PQBLOCK; ++bpq) {
   int iw_index = static_cast<int>(aq * str_w) - static_cast<int>(pad_w) + static_cast<int>(s);
   if (ih_index >= 0 && ih_index < static_cast<int>(H)) {
     if (iw_index >= 0 && iw_index < static_cast<int>(W)) {
+      #pragma unroll
       for (size_t bc = 0; bc < rc; ++bc) {
         I_pack[bpq * CBLOCK + bc] = ACCESS_INPUT_NHWC(n, ih_index, iw_index, (ic + bc));
       }
     } else {
+      #pragma unroll
       for (size_t bc = 0; bc < CBLOCK; ++bc) {
         I_pack[bpq * CBLOCK + bc] = 0;
       }
     }
   } else {
+    #pragma unroll
     for (size_t bc = 0; bc < CBLOCK; ++bc) {
       I_pack[bpq * CBLOCK + bc] = 0;
     }
