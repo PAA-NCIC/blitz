@@ -199,31 +199,59 @@ void SassConvolution2D(
       LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
     }
   } else if (phase == "backward") {
-    if (C % 64 == 0) {  // C64
-      void *args[45] = {
-        &test_param, &I, &O, &F, &alpha,
-        &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
-        &K, &CRST, &RST,
-        &RS, &magic_RS, &shift_RS,
-        &S, &magic_S, &shift_S,
-        &pad_d, &pad_h, &pad_w,
-        &str_d, &str_h, &str_w,
-        &W, &HW, &WN, &HWN, &DHWN,
-        &magic_W, &shift_W,
-        &magic_HW, &shift_HW,
-        &R, &T,
-        &magic_str_w, &shift_str_w,
-        &magic_str_h, &shift_str_h,
-        &magic_str_d, &shift_str_d};
-      gridX = DHW;
-      gridY = C / 64 + (C % 64 != 0);
-      gridZ = N / 64 + (N % 64 != 0);
-      kernel_name = "sconv_bprop_C64_N64";
-      function = CubinModule::GetFunction(kernel_name);
-      result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        64, 1, 1, 0, 0, args, NULL);
-      if (result != CUDA_SUCCESS) {
-        LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+    if (C % 64 == 0) {  // C64 || C128
+      if (C > 64) {
+        void *args[45] = {
+          &test_param, &I, &O, &F, &alpha,
+          &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
+          &K, &CRST, &RST,
+          &RS, &magic_RS, &shift_RS,
+          &S, &magic_S, &shift_S,
+          &pad_d, &pad_h, &pad_w,
+          &str_d, &str_h, &str_w,
+          &W, &HW, &WN, &HWN, &DHWN,
+          &magic_W, &shift_W,
+          &magic_HW, &shift_HW,
+          &R, &T,
+          &magic_str_w, &shift_str_w,
+          &magic_str_h, &shift_str_h,
+          &magic_str_d, &shift_str_d};
+        gridX = DHW;
+        gridY = C / 128 + (C % 128 != 0);
+        gridZ = N / 128 + (N % 128 != 0);
+        kernel_name = "sconv_bprop_C128_N128";
+        function = CubinModule::GetFunction(kernel_name);
+        result = cuLaunchKernel(function, gridX, gridY, gridZ,
+          256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+        if (result != CUDA_SUCCESS) {
+          LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+        }
+      } else {
+        void *args[45] = {
+          &test_param, &I, &O, &F, &alpha,
+          &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
+          &K, &CRST, &RST,
+          &RS, &magic_RS, &shift_RS,
+          &S, &magic_S, &shift_S,
+          &pad_d, &pad_h, &pad_w,
+          &str_d, &str_h, &str_w,
+          &W, &HW, &WN, &HWN, &DHWN,
+          &magic_W, &shift_W,
+          &magic_HW, &shift_HW,
+          &R, &T,
+          &magic_str_w, &shift_str_w,
+          &magic_str_h, &shift_str_h,
+          &magic_str_d, &shift_str_d};
+        gridX = DHW;
+        gridY = C / 64 + (C % 64 != 0);
+        gridZ = N / 64 + (N % 64 != 0);
+        kernel_name = "sconv_bprop_C64_N64";
+        function = CubinModule::GetFunction(kernel_name);
+        result = cuLaunchKernel(function, gridX, gridY, gridZ,
+          64, 1, 1, 0, 0, args, NULL);
+        if (result != CUDA_SUCCESS) {
+          LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+        }
       }
     } else {  // C1
       void *args[41] = {

@@ -95,7 +95,7 @@ void convolution_forward(
       &context_gpu);
   }
   cudaMemcpy(output_cpu_copy.data(), output_gpu.data(), sizeof(float) * output_gpu.size(), cudaMemcpyDeviceToHost);
-  compare(output_cpu.data(), output_cpu_copy.data(), output_cpu.size(), 1e-2);
+  compare(output_cpu.data(), output_cpu_copy.data(), output_cpu.size(), 1);
 }
 
 void convolution_backward(
