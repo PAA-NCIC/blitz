@@ -49,10 +49,6 @@
   char BlitzInstantiationClassCPUGuard##classname; \
   template class classname<CPUTensor, float>
 
-#define INSTANTIATE_CLASS_MIC(classname) \
-  char BlitzInstantiationClassMICGuard##classname; \
-  template class classname<MICTensor, float>
-
 #define INSTANTIATE_CLASS_GPU(classname) \
   char BlitzInstantiationClassGPUGuard##classname; \
   template class classname<GPUTensor, float>
@@ -62,11 +58,6 @@
   char BlitzInstantiatiionSetterCPUGuard##object; \
   template shared_ptr<object<CPUTensor, float> > \
     Parser::Set##object<CPUTensor, float>(const YAML::Node& node) const
-
-#define INSTANTIATE_SETTER_MIC(object) \
-  char BlitzInstantiatiionSetterMICGuard##object; \
-  template shared_ptr<object<MICTensor, float> > \
-    Parser::Set##object<MICTensor, float>(const YAML::Node& node) const
 
 #define INSTANTIATE_SETTER_GPU(object) \
   char BlitzInstantiatiionSetterGPUGuard##object; \
