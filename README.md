@@ -18,15 +18,9 @@
 - g++/icc
 - openblas/atlas/mkl
 
-####GPU backend (not stable)
+####GPU backend
 
 - NVIDIA GPUs
-- CUBLAS
-
-####MIC backend (not stable)
-
-- KNL
-- libxsmm
 
 ####Whole networks (only for testing)
 
@@ -41,10 +35,6 @@ For convolution networks, we support *NCHW* and *NHWC* data layouts for the conv
 ####GPU backend (not stable)
 
 Our GPU backend supports *NCHW*, *NHWC*, and *CHWN* data layouts. Currently we use *CUBLAS* for the first two layouts, and the *CHWN* layouts is fir for our assembly implementations on Kepler GPU, which outperforms *CUDNN*'s GEMM algorithm in several configurations.
-
-####MIC backend (not stable)
-
-We mainly utilize *libxsmm* library for MIC accelerations. And we are adding *AVX* primitives into these computations.
 
 ## Interfaces
 
@@ -67,5 +57,5 @@ A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. 
 
 ####MIC backend
 
-    make BLITZ_USE_MIC=1 BLITZ_AVX=512
+    make BLITZ_AVX=512
 
