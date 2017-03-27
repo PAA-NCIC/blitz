@@ -40,5 +40,5 @@ before_script:
   - export OMP_NUM_THREADS=4
   - export OMP_DYNAMIC="FALSE" 
 script:
-  - bash ./scripts/tests/cpu_convolution.sh
+  - bash ./scripts/tests/cpu_convolution.sh test
   - bash ./scripts/tests/cpu_pack.sh

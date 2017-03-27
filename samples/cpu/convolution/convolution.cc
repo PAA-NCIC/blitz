@@ -54,6 +54,7 @@ void set_shape_rsck(Shape& shape, size_t K, size_t C, size_t R, size_t S) {
 }
 
 void convolution_forward(
+  const string& mode,
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w,
@@ -80,12 +81,14 @@ void convolution_forward(
   Backend<CPUTensor, float>::TransformCopyFunc(&input_cpu, &input_cpu_algorithm);
   Backend<CPUTensor, float>::TransformCopyFunc(&filter_cpu, &filter_cpu_algorithm);
   // direct convolution 
-  for (size_t i = 0; i < iter; ++i) {
-    Backend<CPUTensor, float>::Convolution2DForwardFunc(
-      &input_cpu,
-      &filter_cpu,
-      &output_cpu,
-      &context);
+  if (mode != "performance") {
+    for (size_t i = 0; i < iter; ++i) {
+      Backend<CPUTensor, float>::Convolution2DForwardFunc(
+        &input_cpu,
+        &filter_cpu,
+        &output_cpu,
+        &context);
+    }
   }
   // algorithm convolution
   for (size_t i = 0; i < iter; ++i) {
@@ -95,16 +98,19 @@ void convolution_forward(
       &output_cpu_algorithm,
       &context_algorithm);
   }
-  if (output_cpu_algorithm.data_layout() != input_cpu_algorithm.data_layout()) {
-    CPUTensor<float> output_cpu_transform(output_shape);
-    Backend<CPUTensor, float>::TransformCopyFunc(&output_cpu_algorithm, &output_cpu_transform);
-    compare(output_cpu.data(), output_cpu_transform.data(), output_cpu.size(), 1e-2);
-  } else {
-    compare(output_cpu.data(), output_cpu_algorithm.data(), output_cpu.size(), 1e-2);
+  if (mode != "performance") {
+    if (output_cpu_algorithm.data_layout() != input_cpu_algorithm.data_layout()) {
+      CPUTensor<float> output_cpu_transform(output_shape);
+      Backend<CPUTensor, float>::TransformCopyFunc(&output_cpu_algorithm, &output_cpu_transform);
+      compare(output_cpu.data(), output_cpu_transform.data(), output_cpu.size(), 1e-2);
+    } else {
+      compare(output_cpu.data(), output_cpu_algorithm.data(), output_cpu.size(), 1e-2);
+    }
   }
 }
 
 void convolution_backward(
+  const string& mode,
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w,
@@ -131,12 +137,14 @@ void convolution_backward(
   Backend<CPUTensor, float>::TransformCopyFunc(&filter_cpu, &filter_cpu_algorithm);
   Backend<CPUTensor, float>::TransformCopyFunc(&output_cpu, &output_cpu_algorithm);
   // cpu convolution 
-  for (size_t i = 0; i < iter; ++i) {
-    Backend<CPUTensor, float>::Convolution2DBackwardFunc(
-      &output_cpu,
-      &filter_cpu,
-      &input_cpu,
-      &context);
+  if (mode != "performance") {
+    for (size_t i = 0; i < iter; ++i) {
+      Backend<CPUTensor, float>::Convolution2DBackwardFunc(
+        &output_cpu,
+        &filter_cpu,
+        &input_cpu,
+        &context);
+    }
   }
   // different algorithm
   for (size_t i = 0; i < iter; ++i) {
@@ -146,16 +154,19 @@ void convolution_backward(
       &input_cpu_algorithm,
       &context_algorithm);
   }
-  if (input_cpu_algorithm.data_layout() != output_cpu_algorithm.data_layout()) {
-    CPUTensor<float> input_cpu_transform(input_shape);
-    Backend<CPUTensor, float>::TransformCopyFunc(&input_cpu_algorithm, &input_cpu_transform);
-    compare(input_cpu.data(), input_cpu_transform.data(), input_cpu.size(), 1e-2);
-  } else {
-    compare(input_cpu.data(), input_cpu_algorithm.data(), input_cpu.size(), 1e-2);
+  if (mode != "performance") {
+    if (input_cpu_algorithm.data_layout() != output_cpu_algorithm.data_layout()) {
+      CPUTensor<float> input_cpu_transform(input_shape);
+      Backend<CPUTensor, float>::TransformCopyFunc(&input_cpu_algorithm, &input_cpu_transform);
+      compare(input_cpu.data(), input_cpu_transform.data(), input_cpu.size(), 1e-2);
+    } else {
+      compare(input_cpu.data(), input_cpu_algorithm.data(), input_cpu.size(), 1e-2);
+    }
   }
 }
 
 void convolution_update(
+  const string& mode,
   BLITZ_ALGORITHM algorithm,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w,
@@ -182,12 +193,14 @@ void convolution_update(
   Backend<CPUTensor, float>::TransformCopyFunc(&output_cpu, &output_cpu_algorithm);
   Backend<CPUTensor, float>::TransformCopyFunc(&input_cpu, &input_cpu_algorithm);
   // cpu convolution 
-  for (size_t i = 0; i < iter; ++i) {
-    Backend<CPUTensor, float>::Convolution2DUpdateFunc(
-      &input_cpu,
-      &output_cpu,
-      &filter_cpu,
-      &context);
+  if (mode != "performance") {
+    for (size_t i = 0; i < iter; ++i) {
+      Backend<CPUTensor, float>::Convolution2DUpdateFunc(
+        &input_cpu,
+        &output_cpu,
+        &filter_cpu,
+        &context);
+    }
   }
   // different algorithm
   for (size_t i = 0; i < iter; ++i) {
@@ -197,17 +210,19 @@ void convolution_update(
       &filter_cpu_algorithm,
       &context_algorithm);
   }
-  if (input_cpu_algorithm.data_layout() != output_cpu_algorithm.data_layout()) {
-    CPUTensor<float> filter_cpu_transform(filter_shape);
-    Backend<CPUTensor, float>::TransformCopyFunc(&filter_cpu_algorithm, &filter_cpu_transform);
-    memcpy(filter_cpu.data(), filter_cpu_transform.data(), sizeof(float) * filter_cpu.size());
-  } else {
-    compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size(), 1);
+  if (mode != "performance") {
+    if (input_cpu_algorithm.data_layout() != output_cpu_algorithm.data_layout()) {
+      CPUTensor<float> filter_cpu_transform(filter_shape);
+      Backend<CPUTensor, float>::TransformCopyFunc(&filter_cpu_algorithm, &filter_cpu_transform);
+      memcpy(filter_cpu.data(), filter_cpu_transform.data(), sizeof(float) * filter_cpu.size());
+    } else {
+      compare(filter_cpu.data(), filter_cpu_algorithm.data(), filter_cpu.size(), 1);
+    }
   }
 }
 
 int main(int argc, char** argv) {
-  const size_t NUM_ARGS = 18;
+  const size_t NUM_ARGS = 19;
   // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w iter
   if (argc != NUM_ARGS + 1) {
     LOG(FATAL) << "Not matchable args!";
@@ -215,24 +230,25 @@ int main(int argc, char** argv) {
   FLAGS_logtostderr = true;
   google::InitGoogleLogging(argv[0]);
   // get args
-  const std::string phase = std::string(argv[1]); 
-  const std::string kernel = std::string(argv[2]); 
-  const std::string input_layout = std::string(argv[3]); 
-  const std::string output_layout = std::string(argv[4]); 
-  const size_t N = atoi(argv[5]);
-  const size_t C = atoi(argv[6]);
-  const size_t H = atoi(argv[7]);
-  const size_t W = atoi(argv[8]);
-  const size_t R = atoi(argv[9]);
-  const size_t S = atoi(argv[10]);
-  const size_t K = atoi(argv[11]);
-  const size_t P = atoi(argv[12]);
-  const size_t Q = atoi(argv[13]);
-  const size_t pad_h = atoi(argv[14]);
-  const size_t pad_w = atoi(argv[15]);
-  const size_t str_h = atoi(argv[16]);
-  const size_t str_w = atoi(argv[17]);
-  const size_t iter = atoi(argv[18]);
+  const std::string mode = std::string(argv[1]);
+  const std::string phase = std::string(argv[2]); 
+  const std::string kernel = std::string(argv[3]); 
+  const std::string input_layout = std::string(argv[4]); 
+  const std::string output_layout = std::string(argv[5]); 
+  const size_t N = atoi(argv[6]);
+  const size_t C = atoi(argv[7]);
+  const size_t H = atoi(argv[8]);
+  const size_t W = atoi(argv[9]);
+  const size_t R = atoi(argv[10]);
+  const size_t S = atoi(argv[11]);
+  const size_t K = atoi(argv[12]);
+  const size_t P = atoi(argv[13]);
+  const size_t Q = atoi(argv[14]);
+  const size_t pad_h = atoi(argv[15]);
+  const size_t pad_w = atoi(argv[16]);
+  const size_t str_h = atoi(argv[17]);
+  const size_t str_w = atoi(argv[18]);
+  const size_t iter = atoi(argv[19]);
   // set shapes
   if (input_layout == "nchw") {
     set_shape_nchw(input_shape, N, C, H, W);
@@ -254,11 +270,11 @@ int main(int argc, char** argv) {
   }
   // run convolution
   if (phase == "forward") {
-    convolution_forward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
+    convolution_forward(mode, BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   } else if (phase == "backward") {
-    convolution_backward(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
+    convolution_backward(mode, BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   } else if (phase == "update") {
-    convolution_update(BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
+    convolution_update(mode, BlitzParseAlgorithm(kernel), pad_h, pad_w, str_h, str_w, iter);
   }
   return 0;
 }
