@@ -6,7 +6,7 @@ PHASE=(forward backward update)
 ALG=(convolution_blas_gemm_batch convolution_blas_gemm)
 INPUT_LAYOUT=(nchw nhwc)
 OUTPUT_LAYOUT=(nchw nhwc)
-BATCH_SIZE=128
+BATCH_SIZE=16
 ITERS=2
 
 for((i=0;i<${#PHASE[@]};i++))
