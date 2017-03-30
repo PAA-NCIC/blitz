@@ -3,7 +3,7 @@
 #define SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_QBLOCK_AVX_INL_H_
 
 #include "qblock_pack-inl.h"
-for (size_t bk = 0; bk < KBLOCK / (KREG * VEC_LEN); ++bk) {
+for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
   size_t mk = bk * (KREG * VEC_LEN);
   for (size_t bpq = 0; bpq < lpq / PQREG; ++bpq) {
     #pragma unroll
