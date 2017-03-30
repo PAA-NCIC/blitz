@@ -323,15 +323,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
-  #define CBLOCK 128
   #ifdef BLITZ_SSE
   #define VEC_LEN 4
   __m128 Ovec[VEC_LEN];
   __m128 Fvec;
   __m128 Ivec;
   #elif BLITZ_AVX
+  #define CBLOCK 192
   #define VEC_LEN 8  // register blocking
-  #define PQBLOCK 72 // divided by PQREG
+  #define PQBLOCK 108 // divided by PQREG
   #define KBLOCK 128 // divided by VEC_LEN * KREG
   #define PQREG 6
   #define KREG 2
@@ -339,24 +339,31 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   __m256 Fvec[KREG];
   __m256 Ivec;
   #elif BLITZ_AVX2
-  #define VEC_LEN 8
-  #define PQBLOCK 36 // divided by PQREG
-  #define PQREG 6
-  #define KREG 2
+  #define CBLOCK 128
+  #define VEC_LEN 8  // register blocking
+  #define PQBLOCK 72 // divided by PQREG
+  #define KBLOCK 128 // divided by VEC_LEN * KREG
+  #define PQREG 2
+  #define KREG 4
   __m256 Ovec[PQREG][KREG];
   __m256 Fvec[KREG];
   __m256 Ivec;
   #elif BLITZ_AVX3
-  #define VEC_LEN 16
-  #define PQBLOCK 36 // divided by PQREG
-  #define PQREG 6
+  #define CBLOCK 128
+  #define VEC_LEN 8  // register blocking
+  #define PQBLOCK 72 // divided by PQREG
+  #define KBLOCK 128 // divided by VEC_LEN * KREG
+  #define PQREG 2
   #define KREG 4
   __m512 Ovec[PQREG][KREG];
   __m512 Fvec[KREG];
   __m512 Ivec;
   #elif BLITZ_AVX512
-  #define VEC_LEN 16
-  #define PQBLOCK 36 // divided by PQREG
+  #define CBLOCK 64
+  #define VEC_LEN 8  // register blocking
+  #define PQBLOCK 72 // divided by PQREG
+  #define KBLOCK 128 // divided by VEC_LEN * KREG
+  #define PQREG 2
   #define PQREG 6
   #define KREG 4
   __m512 Ovec[PQREG][KREG];
@@ -374,12 +381,13 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
       size_t ik = k * KBLOCK;
       for (size_t c = 0; c < C / CBLOCK; ++c) {
         size_t ic = c * CBLOCK;
-        size_t rc = CBLOCK;
+        size_t lc = CBLOCK;
         for (size_t r = 0; r < R; ++r) {
           for (size_t s = 0; s < S; ++s) {
             size_t F_index = 0;
             // F_pack contiguous
             for (size_t bk = 0; bk < KBLOCK / (KREG * VEC_LEN); ++bk) {
+              #pragma unroll
               for (size_t bc = 0; bc < CBLOCK; ++bc) {
                 size_t mk = bk * (KREG * VEC_LEN);
                 #pragma unroll
@@ -392,6 +400,7 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
             for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
               size_t ip = (pq * PQBLOCK) / Q;
               size_t iq = (pq * PQBLOCK) % Q;
+              size_t lpq = PQBLOCK;
               #ifdef BLITZ_SSE
               #include "vector/convolution_forward_qblock_sse-inl.h"
               #elif BLITZ_AVX
@@ -406,6 +415,8 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
             }
             size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
             size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
+            size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
+            lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
             #ifdef BLITZ_SSE
             #include "vector/convolution_forward_qblock_sse-inl.h"
             #elif BLITZ_AVX
