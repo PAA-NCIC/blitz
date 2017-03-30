@@ -70,6 +70,7 @@ for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
     }
     aq = (iq + bpq * PQREG) % Q;
     ap = ip + (iq + bpq * PQREG) / Q;
+    #pragma unroll
     for (size_t rpq = 0; rpq < PQREG; ++rpq) {
       if (ap >= P) {
         break;
