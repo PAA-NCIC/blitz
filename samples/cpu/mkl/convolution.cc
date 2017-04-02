@@ -34,9 +34,9 @@ void convolution_forward(
   struct timeval t1, t2;
   double elapse;
   for (size_t i = 0; i < iters; ++i) {
+    BLITZ_CPU_TIMER_START(elapse, t1);
     if (cv_user_to_conv_input)
       MKL_CHECK_ERR(dnnConversionExecute_F32(cv_user_to_conv_input, user_i, res_conv[dnnResourceSrc]), err );
-    BLITZ_CPU_TIMER_START(elapse, t1);
     MKL_CHECK_ERR(dnnExecute_F32(conv, (void**)res_conv), err);
     BLITZ_CPU_TIMER_END(elapse, t1, t2);
     BLITZ_CPU_TIMER_INFO(computations, elapse);

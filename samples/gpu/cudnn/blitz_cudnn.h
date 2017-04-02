@@ -52,7 +52,7 @@ template <typename DType>
 inline void setTensor4dNHWCDesc(cudnnTensorDescriptor_t* desc,
   size_t n, size_t c, size_t h, size_t w) {
   CUDNN_CHECK(cudnnSetTensor4dDescriptor(*desc,
-    CUDNN_TENSOR_NHWC, DataType<DType>::type,
+    CUDNN_TENSOR_NCHW, DataType<DType>::type,
     n, c, h, w));
 }
 
