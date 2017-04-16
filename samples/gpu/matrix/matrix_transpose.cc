@@ -3,7 +3,7 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
-#include "backends/backends.h"
+#include <blitz.h>
 
 using namespace blitz;
 // M N
@@ -44,10 +44,11 @@ void transpose(size_t m, size_t n) {
 
 int main(int argc, char** argv) {
   const size_t NUM_ARGS = 2;
+  FLAGS_logtostderr = true;
+  google::InitGoogleLogging(argv[0]);
   // M N
   if (argc != NUM_ARGS + 1) {
-    std::cerr << "Not enough args!" << std::endl;
-    exit(1);
+    LOG(FATAL) << "Not enough args!" << " argc " << argc;
   }
   const size_t M = atoi(argv[1]);
   const size_t N = atoi(argv[2]);

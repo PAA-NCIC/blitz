@@ -3,7 +3,7 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
-#include "backends/backends.h"
+#include <blitz.h>
 
 using namespace blitz;
 // M K
@@ -46,7 +46,7 @@ void multiply(size_t m, size_t n, size_t k, BLITZ_ALGORITHM algorithm) {
   // copy from gpu to cpu
   cudaMemcpy(output_copy.data(), output_gpu.data(),
     output_gpu.size() * sizeof(float), cudaMemcpyDeviceToHost);
-  //compare_cpu_gpu(output_cpu.size(), output_cpu.data(), output_copy.data());
+  compare_cpu_gpu(output_cpu.size(), output_cpu.data(), output_copy.data());
 }
 
 int main(int argc, char** argv) {

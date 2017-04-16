@@ -80,13 +80,13 @@ static void Convolution2DForwardFunc(
           str_h, str_w,
           input->data_layout());
         if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          utils::Convolution2DForwardGEMMDispatch<GPUTensor, DType>(
-            workspace->data(),
+          utils::Gemm<GPUTensor, DType>(
             const_cast<GPUTensor<DType>*>(filter)->data(),
+            workspace->data(),
             output->Slice(nKPQ),
-            K, PQ, CRS,
-            input->data_layout(),
-            output->data_layout());
+            false, true,
+            static_cast<DType>(1), static_cast<DType>(0),
+            K, PQ, CRS);
         } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           kernels::SassGemm(const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),

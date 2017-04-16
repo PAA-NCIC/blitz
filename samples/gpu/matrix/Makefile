@@ -2,35 +2,17 @@
 .PHONY: clean bins
 
 #project
-BINS := matrix_transpose matrix_multiply
+BINS := matrix_multiply matrix_transpose
 CC := g++
 
 bins: $(BINS)
 
-#dirs
-DIR := ../../..
-INC := -I$(DIR)/include
-
-#libs
-LIBS := $(DIR)/lib/libblitz.a
-
 #flags
-LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lcudart -lcuda -lcublas -lcudnn -lcurand \
-  -lboost_chrono -lboost_thread -lboost_date_time -lboost_system
-CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp
-CXXFLAGS += -DBLITZ_PERFORMANCE
-CXXFLAGS += -DBLITZ_USE_GPU
-CXXFLAGS += -DBLITZ_RELEASE
-CXXFLAGS += -DBLITZ_NUM_THREADS=16
-CXXFLAGS += -DBLITZ_ALIGNMENT_SIZE=64
+LDFLAGS := -Wl,--no-as-needed -lglog -lblitz -lcudart -lcuda -lcublas -lcurand
+CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx -DBLITZ_USE_GPU
 
-#mkl for compare
-LDFLAGS += -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread -ldl
-CXXFLAGS += -DUSE_MKL
-INC += -I/opt/intel/mkl/include
-
-$(BINS): % : %.cc $(LIBS)
-	$(CC) $(CXXFLAGS) $(INC) $(LDFLAGS) -o $@ $^
+$(BINS): % : %.cc
+	$(CC) $(CXXFLAGS) $(INC) -o $@ $^ $(LDFLAGS) 
 
 clean:
 	-rm -rf $(BINS)

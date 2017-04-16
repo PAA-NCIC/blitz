@@ -85,5 +85,5 @@ template <typename DType>
 inline void setConvolution2DDesc(cudnnConvolutionDescriptor_t* conv,
   size_t pad_h, size_t pad_w, size_t stride_h, size_t stride_w) {
   CUDNN_CHECK(cudnnSetConvolution2dDescriptor(*conv,
-    pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CROSS_CORRELATION));
+    pad_h, pad_w, stride_h, stride_w, 1, 1, CUDNN_CONVOLUTION, DataType<DType>::type));
 }

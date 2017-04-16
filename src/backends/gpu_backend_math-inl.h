@@ -182,13 +182,29 @@ static void MatrixMultiplyFunc(
   CUevent event_stop;
   BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop);
   #endif  // BLITZ_PERFORMANCE
-  utils::Gemm<GPUTensor, DType>(
-    const_cast<GPUTensor<DType>*>(left)->data(),
-    const_cast<GPUTensor<DType>*>(right)->data(),
-    output->data(),
-    gpu_transa, gpu_transb,
-    alpha, beta,
-    dim_left, dim_right, dim_common_left);
+  switch (algorithm) {
+    case SASS_GEMM:
+      kernels::SassGemm(
+        const_cast<GPUTensor<DType>*>(left)->data(),
+        const_cast<GPUTensor<DType>*>(right)->data(),
+        output->data(),
+        gpu_transa, gpu_transb,
+        alpha, beta,
+        dim_left, dim_right, dim_common_left);
+      break;
+    case BLAS_GEMM:
+      utils::Gemm<GPUTensor, DType>(
+        const_cast<GPUTensor<DType>*>(left)->data(),
+        const_cast<GPUTensor<DType>*>(right)->data(),
+        output->data(),
+        gpu_transa, gpu_transb,
+        alpha, beta,
+        dim_left, dim_right, dim_common_left);
+      break;
+    default:
+      LOG(FATAL) << "Not suppoted GEMM algorithm: " << algorithm;
+      break;
+  }
   #ifdef BLITZ_PERFORMANCE
   double computations = static_cast<double>(2 * dim_right) * static_cast<double>(dim_left) * static_cast<double>(dim_common_left);
   BLITZ_GPU_TIMER_END(elapsed_time, event_start, event_stop);

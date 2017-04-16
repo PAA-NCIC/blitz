@@ -338,12 +338,6 @@ void Gemm<GPUTensor, float>(
   bool transa, bool transb,
   float alpha, float beta,
   size_t M, size_t N, size_t K) {
-  #ifdef BLITZ_USE_SASS
-  kernels::SassGemm(A, B, C,
-    false, false,
-    1.0, 1.0,
-    M, K, N);
-  #else
   cublasOperation_t TransA = transa ? CUBLAS_OP_T : CUBLAS_OP_N;
   size_t lda = transa ? M : K;
   cublasOperation_t TransB = transb ? CUBLAS_OP_T : CUBLAS_OP_N;
@@ -356,7 +350,6 @@ void Gemm<GPUTensor, float>(
     A, lda,
     &beta,
     C, N);
-  #endif
 }
 
 template<>
@@ -365,9 +358,6 @@ void Gemm<GPUTensor, double>(
   bool transa, bool transb,
   double alpha, double beta,
   size_t M, size_t N, size_t K) {
-  #ifdef BLITZ_USE_SASS
-  LOG(FATAL) << "Double precision SASS GEMM not implemented!";
-  #else
   cublasOperation_t TransA = transa ? CUBLAS_OP_T : CUBLAS_OP_N;
   size_t lda = transa ? M : K;
   cublasOperation_t TransB = transb ? CUBLAS_OP_T : CUBLAS_OP_N;
@@ -380,7 +370,6 @@ void Gemm<GPUTensor, double>(
     A, lda,
     &beta,
     C, N);
-  #endif
 }
 
 }  // namespace utils

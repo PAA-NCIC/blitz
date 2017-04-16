@@ -194,12 +194,12 @@ void convolution_update(
 
 int main(int argc, char** argv) {
   const size_t NUM_ARGS = 18;
+  FLAGS_logtostderr = true;
+  google::InitGoogleLogging(argv[0]);
   // phase kernel N C H W R S K P Q pad_h pad_w str_h str_w iter
   if (argc != NUM_ARGS + 1) {
     LOG(FATAL) << "Not matchable args!";
   }
-  FLAGS_logtostderr = true;
-  google::InitGoogleLogging(argv[0]);
   // get args
   const std::string phase = std::string(argv[1]); 
   const std::string kernel = std::string(argv[2]); 
