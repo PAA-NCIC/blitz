@@ -31,13 +31,13 @@ static void Convolution2DForwardFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
+  output->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   cudaEvent_t start, stop;
   float elapsed_time = 0;
   BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
   #endif
-  output->Fill(0);
   switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_SASS_DIRECT: {
       workspace->Fill(0);
@@ -139,6 +139,7 @@ static void Convolution2DBackwardFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
+  input->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   cudaEvent_t start, stop;
@@ -146,7 +147,6 @@ static void Convolution2DBackwardFunc(
   BLITZ_GPU_TIMER_START(elapsed_time, start, stop);
   #endif  // BLITZ_PERFORMANCE
   // init
-  input->Fill(0);
   switch (context->algorithm()) {
     case BLITZ_CONVOLUTION_SASS_DIRECT: {
       workspace->Fill(0);
@@ -195,13 +195,13 @@ static void Convolution2DBackwardFunc(
         nCHW = n * CHW;
         nKPQ = n * KPQ;
         if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
-          utils::Convolution2DBackwardGEMMDispatch<GPUTensor, DType>(
-            const_cast<GPUTensor<DType>*>(filter)->data(),
+          utils::Gemm<GPUTensor, DType>(
             const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+            const_cast<GPUTensor<DType>*>(filter)->data(),
             workspace->data(),
-            PQ, CRS, K,
-            input->data_layout(),
-            output->data_layout());
+            true, false,
+            static_cast<DType>(1), static_cast<DType>(0),
+            PQ, CRS, K);
         } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
           kernels::SassGemm(const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
             const_cast<GPUTensor<DType>*>(filter)->data(),
@@ -262,6 +262,7 @@ static void Convolution2DUpdateFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
+  update->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   cudaEvent_t start, stop;
@@ -296,6 +297,7 @@ static void Convolution2DUpdateFunc(
         CRS, K);
       break;
     }
+    case BLITZ_CONVOLUTION_SASS_GEMM:
     case BLITZ_CONVOLUTION_BLAS_GEMM: {
       for (size_t n = 0; n < NIN; ++n) {
         nCHW = n * CHW;
@@ -308,13 +310,23 @@ static void Convolution2DUpdateFunc(
           pad_h, pad_w,
           str_h, str_w,
           input->data_layout());
-        utils::Convolution2DUpdateGEMMDispatch<GPUTensor, DType>(
-          workspace->data(),
-          const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
-          update->data(),
-          K, CRS, PQ,
-          input->data_layout(),
-          output->data_layout());
+        if (context->algorithm() == BLITZ_CONVOLUTION_BLAS_GEMM) {
+          utils::Gemm<GPUTensor, DType>(
+            const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+            const_cast<GPUTensor<DType>*>(workspace)->data(),
+            update->data(),
+            false, false,
+            static_cast<DType>(1), static_cast<DType>(1),
+            K, CRS, PQ);
+        } else if (context->algorithm() == BLITZ_CONVOLUTION_SASS_GEMM) {
+          kernels::SassGemm(
+            const_cast<GPUTensor<DType>*>(output)->Slice(nKPQ),
+            const_cast<GPUTensor<DType>*>(workspace)->data(),
+            update->data(),
+            false, false,
+            static_cast<DType>(1), static_cast<DType>(1),
+            K, CRS, PQ);
+        }
       }
       break;
     }

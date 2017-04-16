@@ -2,7 +2,7 @@
 #include <cuda_runtime_api.h>
 #include <blitz.h>
 
-#include "./blitz_cudnn.h"
+#include "blitz_cudnn.h"
 
 using namespace blitz;
 

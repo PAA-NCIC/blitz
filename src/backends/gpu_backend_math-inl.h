@@ -142,7 +142,6 @@ static void BatchNormBackwardFunc(
   GPUTensor<DType>* output,
   DType epsilon) {}
 
-
 static void GradientdescentFunc(
   GPUTensor<DType>* weight,
   GPUTensor<DType>* gradient,
@@ -183,7 +182,7 @@ static void MatrixMultiplyFunc(
   BLITZ_GPU_TIMER_START(elapsed_time, event_start, event_stop);
   #endif  // BLITZ_PERFORMANCE
   switch (algorithm) {
-    case SASS_GEMM:
+    case BLITZ_SASS_GEMM:
       kernels::SassGemm(
         const_cast<GPUTensor<DType>*>(left)->data(),
         const_cast<GPUTensor<DType>*>(right)->data(),
@@ -192,7 +191,7 @@ static void MatrixMultiplyFunc(
         alpha, beta,
         dim_left, dim_right, dim_common_left);
       break;
-    case BLAS_GEMM:
+    case BLITZ_BLAS_GEMM:
       utils::Gemm<GPUTensor, DType>(
         const_cast<GPUTensor<DType>*>(left)->data(),
         const_cast<GPUTensor<DType>*>(right)->data(),
@@ -202,7 +201,7 @@ static void MatrixMultiplyFunc(
         dim_left, dim_right, dim_common_left);
       break;
     default:
-      LOG(FATAL) << "Not suppoted GEMM algorithm: " << algorithm;
+      LOG(FATAL) << "Unsuppoted GEMM algorithm: " << algorithm;
       break;
   }
   #ifdef BLITZ_PERFORMANCE

@@ -31,13 +31,13 @@ static void Convolution2DForwardFunc(
   const size_t PQ = P * Q;
   const size_t KPQ = K * PQ;
   const size_t CRS = C * R * S;
+  output->Fill(0);
   // time counter
   #ifdef BLITZ_PERFORMANCE
   timeval start, end;
   double elapsed_time;
   BLITZ_CPU_TIMER_START(elapsed_time, start);
   #endif  // BLITZ_PERFORMANCE
-  output->Fill(0);
   switch (context->algorithm()) { // NCHW & NHWC
     case BLITZ_CONVOLUTION_BLAS_GEMM_BATCH: {
       #pragma omp parallel private(nCHW, nKPQ)

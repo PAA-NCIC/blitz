@@ -1,10 +1,10 @@
 #!/bin/bash
 #phase N C H W R S K P Q pad_h pad_w str_h str_w iterations
 
-PHASE=(update)
-ALG=(convolution_sass_direct)
+PHASE=(forward backward update)
+ALG=(convolution_blas_gemm convolution_sass_gemm convolution_sass_direct)
 INPUT_LAYOUT=(nchw)
-BATCH_SIZE=128
+BATCH_SIZE=32
 ITERS=2
 
 for((i=0;i<${#PHASE[@]};i++))

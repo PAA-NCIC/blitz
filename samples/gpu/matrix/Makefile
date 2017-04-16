@@ -8,7 +8,7 @@ CC := g++
 bins: $(BINS)
 
 #flags
-LDFLAGS := -Wl,--no-as-needed -lglog -lblitz -lcudart -lcuda -lcublas -lcurand
+LDFLAGS := -Wl,--no-as-needed -lglog -lblitz
 CXXFLAGS := -Wall -Wno-unused-parameter -O3 -fPIC -fopenmp -mavx -DBLITZ_USE_GPU
 
 $(BINS): % : %.cc
