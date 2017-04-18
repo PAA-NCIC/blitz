@@ -6,33 +6,33 @@
 
 ## Requirements
 
-####Common
+#### Common
 
 - linux systems
 - boost
 - glog
 
-####CPU backend
+#### CPU backend
 
 - x86-64 processors
 - g++/icc
 - openblas/atlas/mkl
 
-####GPU backend
+#### GPU backend
 
 - NVIDIA GPUs
 
-####Whole networks (only for testing)
+#### Whole networks (only for testing)
 
 - yaml-cpp
 
 ## Features
 
-####CPU backend
+#### CPU backend
 
 For convolution networks, we support *NCHW* and *NHWC* data layouts for the convolution and pooling computations in forward, backward and update phases. Besides, we devise a feature for automatic data transformation. It is designed for tunning the performance on the network level. For instance, if some layers performs well on *NCHW* layouts while others are best for *NHWC* layouts, we could specify the output formats of the convolution layer. The internal transformation does not require extra copies. 
 
-####GPU backend (not stable)
+#### GPU backend (not stable)
 
 Our GPU backend supports *NCHW*, *NHWC*, and *CHWN* data layouts. Currently we use *CUBLAS* for the first two layouts, and the *CHWN* layouts is fir for our assembly implementations on Kepler GPU, which outperforms *CUDNN*'s GEMM algorithm in several configurations.
 
@@ -44,18 +44,18 @@ A convenient feature of blitz is that CPU, GPU and MIC share common interfaces. 
 
 ## Build
 
-####CPU backend
+#### CPU backend
 
 
-    make BLITZ_AVX=0/1/2/3 BLAS=openblas/atlas/mkl
+    make AVX=0/1/2/3 BLAS=openblas/atlas/mkl
 
 
-####GPU backend
+#### GPU backend
 
-    make BLITZ_USE_GPU=1 CUDA_ARCH=<according to specific GPU generation>
+    make USE_GPU=1 CUDA_ARCH=<according to specific GPU generation>
 
 
-####MIC backend
+#### MIC backend
 
-    make BLITZ_AVX=512
+    make AVX=512
 
