@@ -37,9 +37,20 @@ class CubinLoadModule {
       "sconv_update_C128_K64"
     };
 
+    int major;
+    string version;
+    CUdevice device;
+    cuDeviceGet(&device, 0);
+    cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, device);
+    if (major == 3) {
+      version = "Kepler";
+    } else if (major > 3) {
+      version = "Pascal";
+    }
+
     for (size_t i = 0; i < kernel_size; ++i) {
       const string& name = kernel_name[i];
-      const string path = "./cubin/" + name + ".cubin";
+      const string path = "./cubin/" + version + "/" + name + ".cubin";
 
       CUmodule module;
       CUfunction function;
@@ -123,14 +134,31 @@ void SassGemm(
   size_t M, size_t N, size_t K);
 
 template<typename DType>
-void SassConvolution2D(
+void SassConvolution2DForward(
   DType *I, DType *O, DType *F,
   size_t N, size_t C, size_t H, size_t W,
   size_t R, size_t S,
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w,
-  const string& phase);
+  size_t str_h, size_t str_w);
+
+template<typename DType>
+void SassConvolution2DBackward(
+  DType *I, DType *O, DType *F,
+  size_t N, size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w);
+
+template<typename DType>
+void SassConvolution2DUpdate(
+  DType *I, DType *O, DType *F,
+  size_t N, size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w);
 
 template<typename DType>
 void Filter2DShuffle(

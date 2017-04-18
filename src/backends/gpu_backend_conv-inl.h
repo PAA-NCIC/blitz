@@ -50,7 +50,7 @@ static void Convolution2DForwardFunc(
         workspace->Slice(input->size() + output->size()),
         K, CRS);
       // direct GEMM
-      kernels::SassConvolution2D(
+      kernels::SassConvolution2DForward(
         workspace->data(),
         workspace->Slice(input->size()),
         workspace->Slice(input->size() + output->size()),
@@ -58,8 +58,7 @@ static void Convolution2DForwardFunc(
         R, S,
         K, P, Q,
         pad_h, pad_w,
-        str_h, str_w,
-        "forward");
+        str_h, str_w);
       // transpose Output
       utils::GPUTrans(const_cast<DType*>(workspace->Slice(input->size())), 
         output->data(),
@@ -156,7 +155,7 @@ static void Convolution2DBackwardFunc(
         NIN, KPQ);
       if (C % 64 != 0) {
         // direct GEMM
-        kernels::SassConvolution2D(
+        kernels::SassConvolution2DBackward(
           workspace->data(),
           const_cast<DType*>(workspace->Slice(input->size())),
           const_cast<DType*>(filter->data()),
@@ -164,15 +163,14 @@ static void Convolution2DBackwardFunc(
           R, S,
           K, P, Q,
           pad_h, pad_w,
-          str_h, str_w,
-          "backward");
+          str_h, str_w);
       } else {
         // shuffle filter
         kernels::Filter2DShuffle(const_cast<DType*>(filter->data()), 
           workspace->Slice(input->size() + output->size()),
           K, C, R, S);
         // direct GEMM
-        kernels::SassConvolution2D(
+        kernels::SassConvolution2DBackward(
           workspace->data(),
           const_cast<DType*>(workspace->Slice(input->size())),
           const_cast<DType*>(workspace->Slice(input->size() + output->size())),
@@ -180,8 +178,7 @@ static void Convolution2DBackwardFunc(
           R, S,
           K, P, Q,
           pad_h, pad_w,
-          str_h, str_w,
-          "backward");
+          str_h, str_w);
       }
       // transpose input
       utils::GPUTrans(const_cast<DType*>(workspace->data()), 
@@ -280,7 +277,7 @@ static void Convolution2DUpdateFunc(
       utils::GPUTrans(const_cast<DType*>(output->data()), 
         workspace->Slice(input->size()), 
         NIN, KPQ);
-      kernels::SassConvolution2D(
+      kernels::SassConvolution2DUpdate(
         const_cast<DType*>(workspace->data()),
         const_cast<DType*>(workspace->Slice(input->size())),
         workspace->Slice(input->size() + output->size()),
@@ -288,8 +285,7 @@ static void Convolution2DUpdateFunc(
         R, S,
         K, P, Q,
         pad_h, pad_w,
-        str_h, str_w,
-        "update");
+        str_h, str_w);
       // transpose update
       utils::GPUTrans(
         const_cast<DType*>(workspace->Slice(input->size() + output->size())),

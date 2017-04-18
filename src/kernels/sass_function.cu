@@ -94,20 +94,120 @@ void SassGemm(
 }
 
 template<>
-void SassConvolution2D(
+void SassConvolution2DForward(
   float* I, float* O, float* F,
   size_t N, size_t C, size_t H, size_t W,
   size_t R, size_t S,
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w,
-  const string& phase) {
+  size_t str_h, size_t str_w) {
   float alpha = 1.0f;
   size_t D = 1, M = 1, T = 1;
   size_t str_d = 1;
   size_t pad_d = 0;
   size_t WN, HW, DHW, HWN, DHWN;
   size_t RS, RST, KRST, CRST;
+  size_t PQ, QN, MPQ, PQN, MPQN;
+  size_t magic_HW, shift_HW;
+  size_t magic_W, shift_W;
+  size_t magic_RST, shift_RST;
+  size_t magic_RS, shift_RS;
+  size_t magic_S, shift_S;
+  size_t magic_PQ, shift_PQ;
+  size_t magic_Q, shift_Q;
+  size_t magic_PQu, shift_PQu;
+  size_t magic_Qu, shift_Qu;
+  size_t magic_str_w, shift_str_w;
+  size_t magic_str_h, shift_str_h;
+  size_t magic_str_d, shift_str_d;
+  size_t grid_P = 1;
+  size_t grid_Q = 1;
+  size_t grid_PQ = grid_P * grid_Q;
+  size_t grid_PQM = grid_PQ * M;
+  // input
+  WN = W * N;
+  HW = H * W;
+  DHW = D * HW;
+  HWN = H * WN;
+  DHWN = HWN;
+  // filter
+  RS = R * S;
+  RST = RS;
+  KRST = K * RST;
+  CRST = C * RST;
+  // output
+  QN = Q * N;
+  PQ = P * Q;
+  PQN = P * QN;
+  MPQ = PQ;
+  MPQN = PQN;
+  // magic numbers
+  utils::Magic32(DHW, HW, magic_HW, shift_HW);
+  utils::Magic32(HW, W, magic_W, shift_W);
+  utils::Magic32(CRST, RST, magic_RST, shift_RST);
+  utils::Magic32(RST + 32, RS, magic_RS, shift_RS);
+  utils::Magic32(RS + 32, S, magic_S, shift_S);
+  utils::Magic32(MPQ, PQ, magic_PQ, shift_PQ);
+  utils::Magic32(PQ, Q, magic_Q, shift_Q);
+  utils::Magic32(grid_PQM, grid_PQ, magic_PQu, shift_PQu);
+  utils::Magic32(grid_PQ, grid_Q, magic_Qu, shift_Qu);
+  utils::Magic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
+  utils::Magic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
+  utils::Magic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
+  // test param set up TODO(keren): erase
+  float *test_param;
+  // arguments
+  size_t gridX, gridY, gridZ;
+  CUresult result;
+  CUfunction function;
+  string kernel_name;
+  void *args[37] = {
+    &test_param, &O, &I, &F, &alpha,
+    &N, &K, &D, &H, &W, &WN, &HWN, &DHWN,
+    &C, &KRST, &RST,
+    &RS, &magic_RS, &shift_RS,
+    &S, &magic_S, &shift_S,
+    &pad_d, &pad_h, &pad_w,
+    &str_d, &str_h, &str_w,
+    &Q, &PQ, &QN, &PQN, &MPQN,
+    &magic_Q, &shift_Q,
+    &magic_PQ, &shift_PQ};
+  if (K <= 64 || N <= 64) {
+    gridX = MPQ;
+    gridY = K / 64 + (K % 64 != 0);
+    gridZ = N / 64 + (N % 64 != 0);
+    kernel_name = "sconv_fprop_K64_N64";
+    function = CubinModule::GetFunction(kernel_name);
+    result = cuLaunchKernel(function, gridX, gridY, gridZ,
+      64, 1, 1, 64 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+  } else {
+    gridX = MPQ;
+    gridY = K / 128 + (K % 128 != 0);
+    gridZ = N / 128 + (N % 128 != 0);
+    kernel_name = "sconv_fprop_K128_N128";
+    function = CubinModule::GetFunction(kernel_name);
+    result = cuLaunchKernel(function, gridX, gridY, gridZ,
+      256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+  }
+  if (result != CUDA_SUCCESS) {
+    LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+  }
+}
+
+template<>
+void SassConvolution2DBackward(
+  float* I, float* O, float* F,
+  size_t N, size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  float alpha = 1.0f;
+  size_t D = 1, M = 1, T = 1;
+  size_t str_d = 1;
+  size_t pad_d = 0;
+  size_t WN, HW, DHW, HWN, DHWN;
+  size_t RS, RST, CRST;
   size_t PQ, QN, MPQ, PQN, MPQN;
   size_t magic_HW, shift_HW;
   size_t magic_W, shift_W;
@@ -135,7 +235,6 @@ void SassConvolution2D(
   // filter
   RS = R * S;
   RST = RS;
-  KRST = K * RST;
   CRST = C * RST;
   // output
   QN = Q * N;
@@ -166,121 +265,63 @@ void SassConvolution2D(
   CUresult result;
   CUfunction function;
   string kernel_name;
-  if (phase == "forward") {
-    void *args[37] = {
-      &test_param, &O, &I, &F, &alpha,
-      &N, &K, &D, &H, &W, &WN, &HWN, &DHWN,
-      &C, &KRST, &RST,
-      &RS, &magic_RS, &shift_RS,
-      &S, &magic_S, &shift_S,
-      &pad_d, &pad_h, &pad_w,
-      &str_d, &str_h, &str_w,
-      &Q, &PQ, &QN, &PQN, &MPQN,
-      &magic_Q, &shift_Q,
-      &magic_PQ, &shift_PQ};
-    if (K <= 64 || N <= 64) {
-      gridX = MPQ;
-      gridY = K / 64 + (K % 64 != 0);
-      gridZ = N / 64 + (N % 64 != 0);
-      kernel_name = "sconv_fprop_K64_N64";
-      function = CubinModule::GetFunction(kernel_name);
-      result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        64, 1, 1, 64 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
-    } else {
-      gridX = MPQ;
-      gridY = K / 128 + (K % 128 != 0);
-      gridZ = N / 128 + (N % 128 != 0);
-      kernel_name = "sconv_fprop_K128_N128";
-      function = CubinModule::GetFunction(kernel_name);
-      result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
-    }
-    if (result != CUDA_SUCCESS) {
-      LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
-    }
-  } else if (phase == "backward") {
-    if (C % 64 == 0) {  // C64 || C128
-      if (C > 64) {
-        void *args[45] = {
-          &test_param, &I, &O, &F, &alpha,
-          &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
-          &K, &CRST, &RST,
-          &RS, &magic_RS, &shift_RS,
-          &S, &magic_S, &shift_S,
-          &pad_d, &pad_h, &pad_w,
-          &str_d, &str_h, &str_w,
-          &W, &HW, &WN, &HWN, &DHWN,
-          &magic_W, &shift_W,
-          &magic_HW, &shift_HW,
-          &R, &T,
-          &magic_str_w, &shift_str_w,
-          &magic_str_h, &shift_str_h,
-          &magic_str_d, &shift_str_d};
-        gridX = DHW;
-        gridY = C / 128 + (C % 128 != 0);
-        gridZ = N / 128 + (N % 128 != 0);
-        kernel_name = "sconv_bprop_C128_N128";
-        function = CubinModule::GetFunction(kernel_name);
-        result = cuLaunchKernel(function, gridX, gridY, gridZ,
-          256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
-        if (result != CUDA_SUCCESS) {
-          LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
-        }
-      } else {
-        void *args[45] = {
-          &test_param, &I, &O, &F, &alpha,
-          &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
-          &K, &CRST, &RST,
-          &RS, &magic_RS, &shift_RS,
-          &S, &magic_S, &shift_S,
-          &pad_d, &pad_h, &pad_w,
-          &str_d, &str_h, &str_w,
-          &W, &HW, &WN, &HWN, &DHWN,
-          &magic_W, &shift_W,
-          &magic_HW, &shift_HW,
-          &R, &T,
-          &magic_str_w, &shift_str_w,
-          &magic_str_h, &shift_str_h,
-          &magic_str_d, &shift_str_d};
-        gridX = DHW;
-        gridY = C / 64 + (C % 64 != 0);
-        gridZ = N / 64 + (N % 64 != 0);
-        kernel_name = "sconv_bprop_C64_N64";
-        function = CubinModule::GetFunction(kernel_name);
-        result = cuLaunchKernel(function, gridX, gridY, gridZ,
-          64, 1, 1, 0, 0, args, NULL);
-        if (result != CUDA_SUCCESS) {
-          LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
-        }
-      }
-    } else {  // C1
-      void *args[41] = {
+  if (C % 64 == 0) {  // C64 || C128
+    if (C > 64) {
+      void *args[45] = {
         &test_param, &I, &O, &F, &alpha,
-        &N, &K, &D, &H, &W, &WN, &HWN, &DHWN,
-        &C, &CRST,
-        &RST, &magic_RST, &shift_RST,
+        &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
+        &K, &CRST, &RST,
         &RS, &magic_RS, &shift_RS,
         &S, &magic_S, &shift_S,
         &pad_d, &pad_h, &pad_w,
         &str_d, &str_h, &str_w,
-        &Q, &PQ, &QN, &PQN, &MPQN,
-        &magic_Q, &shift_Q,
-        &magic_PQ, &shift_PQ,
-        &CRST32, &MPQN32};
-      gridX = MPQ;
-      gridY = CRST / 32 + (CRST % 32 != 0);
-      gridZ = N / 64 + (N % 64 != 0);
-      kernel_name = "sconv_bprop_C1_N64";
+        &W, &HW, &WN, &HWN, &DHWN,
+        &magic_W, &shift_W,
+        &magic_HW, &shift_HW,
+        &R, &T,
+        &magic_str_w, &shift_str_w,
+        &magic_str_h, &shift_str_h,
+        &magic_str_d, &shift_str_d};
+      gridX = DHW;
+      gridY = C / 128 + (C % 128 != 0);
+      gridZ = N / 128 + (N % 128 != 0);
+      kernel_name = "sconv_bprop_C128_N128";
       function = CubinModule::GetFunction(kernel_name);
       result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        32, 1, 1, 0, 0, args, NULL);
+        256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+      if (result != CUDA_SUCCESS) {
+        LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+      }
+    } else {
+      void *args[45] = {
+        &test_param, &I, &O, &F, &alpha,
+        &N, &C, &M, &P, &Q, &QN, &PQN, &MPQN,
+        &K, &CRST, &RST,
+        &RS, &magic_RS, &shift_RS,
+        &S, &magic_S, &shift_S,
+        &pad_d, &pad_h, &pad_w,
+        &str_d, &str_h, &str_w,
+        &W, &HW, &WN, &HWN, &DHWN,
+        &magic_W, &shift_W,
+        &magic_HW, &shift_HW,
+        &R, &T,
+        &magic_str_w, &shift_str_w,
+        &magic_str_h, &shift_str_h,
+        &magic_str_d, &shift_str_d};
+      gridX = DHW;
+      gridY = C / 64 + (C % 64 != 0);
+      gridZ = N / 64 + (N % 64 != 0);
+      kernel_name = "sconv_bprop_C64_N64";
+      function = CubinModule::GetFunction(kernel_name);
+      result = cuLaunchKernel(function, gridX, gridY, gridZ,
+        64, 1, 1, 0, 0, args, NULL);
       if (result != CUDA_SUCCESS) {
         LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
       }
     }
-  } else if (phase == "update") {
-    void *args[43] = {
-      &test_param, &F, &I, &O, &alpha,
+  } else {  // C1
+    void *args[41] = {
+      &test_param, &I, &O, &F, &alpha,
       &N, &K, &D, &H, &W, &WN, &HWN, &DHWN,
       &C, &CRST,
       &RST, &magic_RST, &shift_RST,
@@ -288,17 +329,17 @@ void SassConvolution2D(
       &S, &magic_S, &shift_S,
       &pad_d, &pad_h, &pad_w,
       &str_d, &str_h, &str_w,
-      &P, &Q, &PQ, &QN, &PQN, &MPQN,
-      &magic_Qu, &shift_Qu,
-      &magic_PQu, &shift_PQu,
-      &grid_P, &grid_Q, &grid_PQ};
-    gridX = grid_PQM;
-    gridY = CRST / 128 + (CRST % 128 != 0);
-    gridZ = K / 128 + (K % 128 != 0);
-    kernel_name = "sconv_update_C128_K128";
+      &Q, &PQ, &QN, &PQN, &MPQN,
+      &magic_Q, &shift_Q,
+      &magic_PQ, &shift_PQ,
+      &CRST32, &MPQN32};
+    gridX = MPQ;
+    gridY = CRST / 32 + (CRST % 32 != 0);
+    gridZ = N / 64 + (N % 64 != 0);
+    kernel_name = "sconv_bprop_C1_N64";
     function = CubinModule::GetFunction(kernel_name);
     result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      256, 1, 1, 0, 0, args, NULL);
+      32, 1, 1, 0, 0, args, NULL);
     if (result != CUDA_SUCCESS) {
       LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
     }
@@ -306,7 +347,99 @@ void SassConvolution2D(
 }
 
 template<>
-void SassConvolution2D(
+void SassConvolution2DUpdate(
+  float* I, float* O, float* F,
+  size_t N, size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  float alpha = 1.0f;
+  size_t D = 1, M = 1, T = 1;
+  size_t str_d = 1;
+  size_t pad_d = 0;
+  size_t WN, HW, DHW, HWN, DHWN;
+  size_t RS, RST, CRST;
+  size_t PQ, QN, MPQ, PQN, MPQN;
+  size_t magic_HW, shift_HW;
+  size_t magic_W, shift_W;
+  size_t magic_RST, shift_RST;
+  size_t magic_RS, shift_RS;
+  size_t magic_S, shift_S;
+  size_t magic_PQ, shift_PQ;
+  size_t magic_Q, shift_Q;
+  size_t magic_PQu, shift_PQu;
+  size_t magic_Qu, shift_Qu;
+  size_t magic_str_w, shift_str_w;
+  size_t magic_str_h, shift_str_h;
+  size_t magic_str_d, shift_str_d;
+  size_t grid_P = 1;
+  size_t grid_Q = 1;
+  size_t grid_PQ = grid_P * grid_Q;
+  size_t grid_PQM = grid_PQ * M;
+  // input
+  WN = W * N;
+  HW = H * W;
+  DHW = D * HW;
+  HWN = H * WN;
+  DHWN = HWN;
+  // filter
+  RS = R * S;
+  RST = RS;
+  CRST = C * RST;
+  // output
+  QN = Q * N;
+  PQ = P * Q;
+  PQN = P * QN;
+  MPQ = PQ;
+  MPQN = PQN;
+  // magic numbers
+  utils::Magic32(DHW, HW, magic_HW, shift_HW);
+  utils::Magic32(HW, W, magic_W, shift_W);
+  utils::Magic32(CRST, RST, magic_RST, shift_RST);
+  utils::Magic32(RST + 32, RS, magic_RS, shift_RS);
+  utils::Magic32(RS + 32, S, magic_S, shift_S);
+  utils::Magic32(MPQ, PQ, magic_PQ, shift_PQ);
+  utils::Magic32(PQ, Q, magic_Q, shift_Q);
+  utils::Magic32(grid_PQM, grid_PQ, magic_PQu, shift_PQu);
+  utils::Magic32(grid_PQ, grid_Q, magic_Qu, shift_Qu);
+  utils::Magic32(W + S - pad_w - 2, str_w, magic_str_w, shift_str_w);
+  utils::Magic32(H + R - pad_h - 2, str_h, magic_str_h, shift_str_h);
+  utils::Magic32(D + T - pad_d - 2, str_d, magic_str_d, shift_str_d);
+  // test param set up TODO(keren): erase
+  float *test_param;
+  // arguments
+  size_t gridX, gridY, gridZ;
+  CUresult result;
+  CUfunction function;
+  string kernel_name;
+  void *args[43] = {
+    &test_param, &F, &I, &O, &alpha,
+    &N, &K, &D, &H, &W, &WN, &HWN, &DHWN,
+    &C, &CRST,
+    &RST, &magic_RST, &shift_RST,
+    &RS, &magic_RS, &shift_RS,
+    &S, &magic_S, &shift_S,
+    &pad_d, &pad_h, &pad_w,
+    &str_d, &str_h, &str_w,
+    &P, &Q, &PQ, &QN, &PQN, &MPQN,
+    &magic_Qu, &shift_Qu,
+    &magic_PQu, &shift_PQu,
+    &grid_P, &grid_Q, &grid_PQ};
+  gridX = grid_PQM;
+  gridY = CRST / 128 + (CRST % 128 != 0);
+  gridZ = K / 128 + (K % 128 != 0);
+  kernel_name = "sconv_update_C128_K128";
+  function = CubinModule::GetFunction(kernel_name);
+  result = cuLaunchKernel(function, gridX, gridY, gridZ,
+    256, 1, 1, 0, 0, args, NULL);
+  if (result != CUDA_SUCCESS) {
+    LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
+  }
+}
+
+template<>
+void SassConvolution2DForward(
   double* I,
   double* O,
   double* F,
@@ -315,8 +448,35 @@ void SassConvolution2D(
   size_t R, size_t S,
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
-  size_t str_h, size_t str_w,
-  const string& phase) { 
+  size_t str_h, size_t str_w) {
+  LOG(FATAL) << "sass kernel dost not support double precision";
+}
+
+template<>
+void SassConvolution2DBackward(
+  double* I,
+  double* O,
+  double* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
+  LOG(FATAL) << "sass kernel dost not support double precision";
+}
+
+template<>
+void SassConvolution2DUpdate(
+  double* I,
+  double* O,
+  double* F,
+  size_t N,
+  size_t C, size_t H, size_t W,
+  size_t R, size_t S,
+  size_t K, size_t P, size_t Q,
+  size_t pad_h, size_t pad_w,
+  size_t str_h, size_t str_w) {
   LOG(FATAL) << "sass kernel dost not support double precision";
 }
 
