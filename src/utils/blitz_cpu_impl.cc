@@ -349,8 +349,8 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   if (K % (KREG * VEC_LEN)) {
     LOG(FATAL) << "Not supported K, please set it as a multiple of: " << VEC_LEN * KREG;
   }
-  __declspec(align(32)) float *__restrict__ I_workspace = workspace;
-  __declspec(align(32)) float *__restrict__ F_workspace = workspace + omp_get_max_threads() * PQBLOCK * CBLOCK;
+  float *__restrict__ I_workspace = workspace;
+  float *__restrict__ F_workspace = workspace + omp_get_max_threads() * PQBLOCK * CBLOCK;
   //__declspec(align(32)) float I_pack[PQBLOCK * CBLOCK];
   //__declspec(align(32)) float F_pack[CBLOCK * KBLOCK];
   #pragma omp parallel private(Ovec, Fvec, Ivec)
