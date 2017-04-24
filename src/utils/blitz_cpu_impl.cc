@@ -1,6 +1,7 @@
 #include "utils/blitz_impl_function.h"
 
 #include <immintrin.h>
+#include <omp.h>
 
 #ifdef USE_MKL
 #include <mkl.h>
@@ -345,9 +346,10 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   #define KBLOCK 128 // divided by VEC_LEN * KREG
   #define PQREG 6
   #define KREG 2
+  #define IREG 2
   __m256 Ovec[PQREG][KREG];
   __m256 Fvec[KREG];
-  __m256 Ivec;
+  __m256 Ivec[IREG];
   #elif BLITZ_AVX3
   #define CBLOCK 128
   #define VEC_LEN 8  // register blocking
