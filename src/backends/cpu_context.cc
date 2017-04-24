@@ -11,6 +11,8 @@ void ConvolutionContext<CPUTensor, float>::InitAlgorithmForUser(BLITZ_ALGORITHM 
   Shape workspace_shape(1);
   size_t workspace_unpack_size = C_ * R_ * S_ * P_ * Q_;
   size_t workspace_update_size = KF_ * C_ * R_ * S_;
+  size_t I_pack_size = PQBLOCK * CBLOCK;
+  size_t F_pack_size = CBLOCK * KBLOCK;
   size_t threads = omp_get_max_threads();
   switch (algorithm) {
     case BLITZ_CONVOLUTION_BLAS_GEMM:
@@ -23,7 +25,7 @@ void ConvolutionContext<CPUTensor, float>::InitAlgorithmForUser(BLITZ_ALGORITHM 
       workspace_shape[0] = 0;
       break;
     case BLITZ_CONVOLUTION_VECTOR_DIRECT:
-      workspace_shape[0] = 0;
+      workspace_shape[0] = threads * (I_pack_size + F_pack_size);
       break;
     default:
       LOG(FATAL) << "No such algorithm: " << algorithm;

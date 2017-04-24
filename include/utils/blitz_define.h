@@ -3,6 +3,41 @@
 
 namespace blitz {
 
+#ifdef BLITZ_SSE
+#define VEC_LEN 4
+#elif BLITZ_AVX
+#define CBLOCK 192
+#define VEC_LEN 8  // register blocking
+#define PQBLOCK 108 // divided by PQREG
+#define KBLOCK 128 // divided by VEC_LEN * KREG
+#define PQREG 2
+#define KREG 4
+#elif BLITZ_AVX2
+#define CBLOCK 192
+#define VEC_LEN 8  // register blocking
+#define PQBLOCK 108 // divided by PQREG
+#define KBLOCK 128 // divided by VEC_LEN * KREG
+#define PQREG 6
+#define KREG 2
+#define IREG 2
+#elif BLITZ_AVX3
+#define CBLOCK 192
+#define VEC_LEN 8  // register blocking
+#define PQBLOCK 108 // divided by PQREG
+#define KBLOCK 128 // divided by VEC_LEN * KREG
+#define PQREG 6
+#define KREG 2
+#define IREG 2
+#elif BLITZ_AVX512
+#define CBLOCK 64
+#define VEC_LEN 16  // register blocking
+#define PQBLOCK 72 // divided by PQREG
+#define KBLOCK 128 // divided by VEC_LEN * KREG
+#define PQREG 4
+#define KREG 6
+#endif
+#define NBLOCK 1
+
 enum BLITZ_ALGORITHM {
   BLITZ_CONVOLUTION_SASS_GEMM = 0,
   BLITZ_CONVOLUTION_SASS_DIRECT = 1,

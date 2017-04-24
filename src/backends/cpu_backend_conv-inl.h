@@ -140,6 +140,7 @@ static void Convolution2DForwardFunc(
             input->data(),
             filter->data(),
             output->data(),
+            workspace->data(),
             NIN,
             C, H, W,
             R, S,

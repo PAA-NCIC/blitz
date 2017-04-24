@@ -46,9 +46,10 @@ void ConvolutionUpdateNaiveImpl(
 
 template<template <typename> class TensorType, typename DType, BLITZ_DATA_LAYOUT DataLayout>
 void ConvolutionForwardVectorImpl(
-  const DType* I,
-  const DType* F,
-  DType* O,
+  const DType *I,
+  const DType *F,
+  DType *O,
+  DType *workspace,
   size_t N,
   size_t C, size_t H, size_t W,
   size_t R, size_t S,
