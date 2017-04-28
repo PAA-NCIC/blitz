@@ -3,6 +3,7 @@
 
 #include "backends/shape.h"
 #include "utils/common.h"
+#include "utils/blitz_define.h"
 #include "utils/blitz_algorithm_function.h"
 #include "utils/blitz_shape_function.h"
 

@@ -1,6 +1,7 @@
 #include "utils/blitz_impl_function.h"
 
 #include <immintrin.h>
+#include <omp.h>
 
 #ifdef USE_MKL
 #include <mkl.h>
@@ -314,95 +315,96 @@ void ConvolutionUpdateNaiveImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
 
 template<>
 void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
-  const float* I,
-  const float* F,
-  float* O,
+  const float *I,
+  const float *F,
+  float *O,
+  float *workspace,
   size_t N,
   size_t C, size_t H, size_t W,
   size_t R, size_t S,
   size_t K, size_t P, size_t Q,
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
-  #ifdef BLITZ_SSE
-  #define VEC_LEN 4
+  #ifdef BLITZ_SSE // TODO: finish legacy support
   __m128 Ovec[VEC_LEN];
   __m128 Fvec;
   __m128 Ivec;
   #elif BLITZ_AVX
-  #define CBLOCK 192
-  #define VEC_LEN 8  // register blocking
-  #define PQBLOCK 108 // divided by PQREG
-  #define KBLOCK 128 // divided by VEC_LEN * KREG
-  #define PQREG 2
-  #define KREG 4
   __m256 Ovec[PQREG][KREG];
   __m256 Fvec[KREG];
   __m256 Ivec;
   #elif BLITZ_AVX2
-  #define CBLOCK 192
-  #define VEC_LEN 8  // register blocking
-  #define PQBLOCK 108 // divided by PQREG
-  #define KBLOCK 128 // divided by VEC_LEN * KREG
-  #define PQREG 6
-  #define KREG 2
   __m256 Ovec[PQREG][KREG];
   __m256 Fvec[KREG];
-  __m256 Ivec;
+  __m256 Ivec[IREG];
   #elif BLITZ_AVX3
-  #define CBLOCK 128
-  #define VEC_LEN 8  // register blocking
-  #define PQBLOCK 72 // divided by PQREG
-  #define KBLOCK 128 // divided by VEC_LEN * KREG
-  #define PQREG 2
-  #define KREG 4
   __m512 Ovec[PQREG][KREG];
   __m512 Fvec[KREG];
-  __m512 Ivec;
+  __m512 Ivec[IREG];
   #elif BLITZ_AVX512
-  #define CBLOCK 64
-  #define VEC_LEN 8  // register blocking
-  #define PQBLOCK 72 // divided by PQREG
-  #define KBLOCK 128 // divided by VEC_LEN * KREG
-  #define PQREG 2
-  #define PQREG 6
-  #define KREG 4
   __m512 Ovec[PQREG][KREG];
   __m512 Fvec[KREG];
   __m512 Ivec;
   #endif
-  #define NBLOCK 1
   if (K % (KREG * VEC_LEN)) {
     LOG(FATAL) << "Not supported K, please set it as a multiple of: " << VEC_LEN * KREG;
   }
-  float I_pack[PQBLOCK * CBLOCK];
-  float F_pack[CBLOCK * KBLOCK];
-  #pragma omp parallel for private(F_pack, I_pack, Ovec, Fvec, Ivec)
-  for (size_t in = 0; in < N / NBLOCK; ++in) {
-    for (size_t k = 0; k < K / KBLOCK; ++k) {
-      size_t ik = k * KBLOCK;
-      size_t lk = KBLOCK;
-      for (size_t c = 0; c < C / CBLOCK; ++c) {
-        size_t ic = c * CBLOCK;
-        size_t lc = CBLOCK;
-        for (size_t r = 0; r < R; ++r) {
-          for (size_t s = 0; s < S; ++s) {
-            size_t F_index = 0;
-            // F_pack contiguous
-            for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
-              #pragma unroll
-              for (size_t bc = 0; bc < lc; ++bc) {
-                size_t mk = bk * (KREG * VEC_LEN);
+  float *__restrict__ I_workspace = workspace;
+  float *__restrict__ F_workspace = workspace + omp_get_max_threads() * PQBLOCK * CBLOCK;
+  //__declspec(align(32)) float I_pack[PQBLOCK * CBLOCK];
+  //__declspec(align(32)) float F_pack[CBLOCK * KBLOCK];
+  #pragma omp parallel private(Ovec, Fvec, Ivec)
+  {
+    size_t tid = omp_get_thread_num();
+    float *__restrict__ I_pack = I_workspace + tid * PQBLOCK * CBLOCK;
+    float *__restrict__ F_pack = F_workspace + tid * CBLOCK * KBLOCK;
+    //float I_pack[PQBLOCK * CBLOCK];
+    //float F_pack[CBLOCK * KBLOCK];
+    #pragma omp for
+    for (size_t in = 0; in < N / NBLOCK; ++in) {
+      for (size_t k = 0; k < K / KBLOCK; ++k) {
+        size_t ik = k * KBLOCK;
+        size_t lk = KBLOCK;
+        for (size_t c = 0; c < C / CBLOCK; ++c) {
+          size_t ic = c * CBLOCK;
+          size_t lc = CBLOCK;
+          for (size_t r = 0; r < R; ++r) {
+            for (size_t s = 0; s < S; ++s) {
+              size_t F_index = 0;
+              // F_pack contiguous
+              for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
                 #pragma unroll
-                for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
-                  F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                for (size_t bc = 0; bc < lc; ++bc) {
+                  size_t mk = bk * (KREG * VEC_LEN);
+                  #pragma unroll
+                  for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
+                    F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                  }
+                  F_index += KREG * VEC_LEN;
                 }
-                F_index += KREG * VEC_LEN;
               }
-            }
-            for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
-              size_t ip = (pq * PQBLOCK) / Q;
-              size_t iq = (pq * PQBLOCK) % Q;
-              size_t lpq = PQBLOCK;
+              for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
+                size_t ip = (pq * PQBLOCK) / Q;
+                size_t iq = (pq * PQBLOCK) % Q;
+                size_t lpq = PQBLOCK;
+                for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
+                #ifdef BLITZ_SSE
+                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #elif BLITZ_AVX
+                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #elif BLITZ_AVX2
+                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #elif BLITZ_AVX3
+                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #elif BLITZ_AVX512
+                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #endif
+                }
+              }
+              size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
+              size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
+              size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
+              lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
               #include "vector/convolution_forward_qblock_sse-inl.h"
@@ -417,48 +419,108 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               #endif
               }
             }
-            size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
-            size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
-            size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
-            lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
-            for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
-            #ifdef BLITZ_SSE
-            #include "vector/convolution_forward_qblock_sse-inl.h"
-            #elif BLITZ_AVX
-            #include "vector/convolution_forward_qblock_avx-inl.h"
-            #elif BLITZ_AVX2
-            #include "vector/convolution_forward_qblock_avx2-inl.h"
-            #elif BLITZ_AVX3
-            #include "vector/convolution_forward_qblock_avx3-inl.h"
-            #elif BLITZ_AVX512
-            #include "vector/convolution_forward_qblock_avx512-inl.h"
-            #endif
+          }
+        }
+        size_t ic = (C / CBLOCK) * CBLOCK;
+        size_t lc = C - ic;
+        if (lc > 0) {
+          for (size_t r = 0; r < R; ++r) {
+            for (size_t s = 0; s < S; ++s) {
+              // F_pack contiguous
+              for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
+                size_t F_index = bk * KREG * VEC_LEN * CBLOCK;
+                #pragma unroll
+                for (size_t bc = 0; bc < lc; ++bc) {
+                  size_t mk = bk * (KREG * VEC_LEN);
+                  #pragma unroll
+                  for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
+                    F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                  }
+                  F_index += KREG * VEC_LEN;
+                }
+              }
+              for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
+                size_t ip = (pq * PQBLOCK) / Q;
+                size_t iq = (pq * PQBLOCK) % Q;
+                size_t lpq = PQBLOCK;
+                for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
+                #ifdef BLITZ_SSE
+                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #elif BLITZ_AVX
+                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #elif BLITZ_AVX2
+                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #elif BLITZ_AVX3
+                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #elif BLITZ_AVX512
+                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #endif
+                }
+              }
+              size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
+              size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
+              size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
+              lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
+              for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
+              #ifdef BLITZ_SSE
+              #include "vector/convolution_forward_qblock_sse-inl.h"
+              #elif BLITZ_AVX
+              #include "vector/convolution_forward_qblock_avx-inl.h"
+              #elif BLITZ_AVX2
+              #include "vector/convolution_forward_qblock_avx2-inl.h"
+              #elif BLITZ_AVX3
+              #include "vector/convolution_forward_qblock_avx3-inl.h"
+              #elif BLITZ_AVX512
+              #include "vector/convolution_forward_qblock_avx512-inl.h"
+              #endif
+              }
             }
           }
         }
       }
-      size_t ic = (C / CBLOCK) * CBLOCK;
-      size_t lc = C - ic;
-      if (lc > 0) {
-        for (size_t r = 0; r < R; ++r) {
-          for (size_t s = 0; s < S; ++s) {
-            // F_pack contiguous
-            for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
-              size_t F_index = bk * KREG * VEC_LEN * CBLOCK;
-              #pragma unroll
-              for (size_t bc = 0; bc < lc; ++bc) {
-                size_t mk = bk * (KREG * VEC_LEN);
+      size_t ik = (K / KBLOCK) * KBLOCK;
+      size_t lk = K - ik;
+      if (lk > 0) {
+        for (size_t c = 0; c < C / CBLOCK; ++c) {
+          size_t ic = c * CBLOCK;
+          size_t lc = CBLOCK;
+          for (size_t r = 0; r < R; ++r) {
+            for (size_t s = 0; s < S; ++s) {
+              size_t F_index = 0;
+              // F_pack contiguous
+              for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
                 #pragma unroll
-                for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
-                  F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                for (size_t bc = 0; bc < lc; ++bc) {
+                  size_t mk = bk * (KREG * VEC_LEN);
+                  #pragma unroll
+                  for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
+                    F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                  }
+                  F_index += KREG * VEC_LEN;
                 }
-                F_index += KREG * VEC_LEN;
               }
-            }
-            for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
-              size_t ip = (pq * PQBLOCK) / Q;
-              size_t iq = (pq * PQBLOCK) % Q;
-              size_t lpq = PQBLOCK;
+              for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
+                size_t ip = (pq * PQBLOCK) / Q;
+                size_t iq = (pq * PQBLOCK) % Q;
+                size_t lpq = PQBLOCK;
+                for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
+                #ifdef BLITZ_SSE
+                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #elif BLITZ_AVX
+                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #elif BLITZ_AVX2
+                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #elif BLITZ_AVX3
+                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #elif BLITZ_AVX512
+                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #endif
+                }
+              }
+              size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
+              size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
+              size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
+              lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
               #include "vector/convolution_forward_qblock_sse-inl.h"
@@ -472,53 +534,49 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               #include "vector/convolution_forward_qblock_avx512-inl.h"
               #endif
               }
-            }
-            size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
-            size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
-            size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
-            lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
-            for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
-            #ifdef BLITZ_SSE
-            #include "vector/convolution_forward_qblock_sse-inl.h"
-            #elif BLITZ_AVX
-            #include "vector/convolution_forward_qblock_avx-inl.h"
-            #elif BLITZ_AVX2
-            #include "vector/convolution_forward_qblock_avx2-inl.h"
-            #elif BLITZ_AVX3
-            #include "vector/convolution_forward_qblock_avx3-inl.h"
-            #elif BLITZ_AVX512
-            #include "vector/convolution_forward_qblock_avx512-inl.h"
-            #endif
             }
           }
         }
-      }
-    }
-    size_t ik = (K / KBLOCK) * KBLOCK;
-    size_t lk = K - ik;
-    if (lk > 0) {
-      for (size_t c = 0; c < C / CBLOCK; ++c) {
-        size_t ic = c * CBLOCK;
-        size_t lc = CBLOCK;
-        for (size_t r = 0; r < R; ++r) {
-          for (size_t s = 0; s < S; ++s) {
-            size_t F_index = 0;
-            // F_pack contiguous
-            for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
-              #pragma unroll
-              for (size_t bc = 0; bc < lc; ++bc) {
-                size_t mk = bk * (KREG * VEC_LEN);
+        size_t ic = (C / CBLOCK) * CBLOCK;
+        size_t lc = C - ic;
+        if (lc > 0) {
+          for (size_t r = 0; r < R; ++r) {
+            for (size_t s = 0; s < S; ++s) {
+              // F_pack contiguous
+              for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
+                size_t F_index = bk * KREG * VEC_LEN * CBLOCK;
                 #pragma unroll
-                for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
-                  F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                for (size_t bc = 0; bc < lc; ++bc) {
+                  size_t mk = bk * (KREG * VEC_LEN);
+                  #pragma unroll
+                  for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
+                    F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
+                  }
+                  F_index += KREG * VEC_LEN;
                 }
-                F_index += KREG * VEC_LEN;
               }
-            }
-            for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
-              size_t ip = (pq * PQBLOCK) / Q;
-              size_t iq = (pq * PQBLOCK) % Q;
-              size_t lpq = PQBLOCK;
+              for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
+                size_t ip = (pq * PQBLOCK) / Q;
+                size_t iq = (pq * PQBLOCK) % Q;
+                size_t lpq = PQBLOCK;
+                for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
+                #ifdef BLITZ_SSE
+                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #elif BLITZ_AVX
+                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #elif BLITZ_AVX2
+                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #elif BLITZ_AVX3
+                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #elif BLITZ_AVX512
+                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #endif
+                }
+              }
+              size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
+              size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
+              size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
+              lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
               #include "vector/convolution_forward_qblock_sse-inl.h"
@@ -532,79 +590,6 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               #include "vector/convolution_forward_qblock_avx512-inl.h"
               #endif
               }
-            }
-            size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
-            size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
-            size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
-            lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
-            for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
-            #ifdef BLITZ_SSE
-            #include "vector/convolution_forward_qblock_sse-inl.h"
-            #elif BLITZ_AVX
-            #include "vector/convolution_forward_qblock_avx-inl.h"
-            #elif BLITZ_AVX2
-            #include "vector/convolution_forward_qblock_avx2-inl.h"
-            #elif BLITZ_AVX3
-            #include "vector/convolution_forward_qblock_avx3-inl.h"
-            #elif BLITZ_AVX512
-            #include "vector/convolution_forward_qblock_avx512-inl.h"
-            #endif
-            }
-          }
-        }
-      }
-      size_t ic = (C / CBLOCK) * CBLOCK;
-      size_t lc = C - ic;
-      if (lc > 0) {
-        for (size_t r = 0; r < R; ++r) {
-          for (size_t s = 0; s < S; ++s) {
-            // F_pack contiguous
-            for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
-              size_t F_index = bk * KREG * VEC_LEN * CBLOCK;
-              #pragma unroll
-              for (size_t bc = 0; bc < lc; ++bc) {
-                size_t mk = bk * (KREG * VEC_LEN);
-                #pragma unroll
-                for (size_t rk = 0; rk < KREG * VEC_LEN; ++rk) {
-                  F_pack[F_index + rk] = ACCESS_FILTER_RSCK(r, s, (ic + bc), (ik + mk + rk)); 
-                }
-                F_index += KREG * VEC_LEN;
-              }
-            }
-            for (size_t pq = 0; pq < P * Q / PQBLOCK; ++pq) {
-              size_t ip = (pq * PQBLOCK) / Q;
-              size_t iq = (pq * PQBLOCK) % Q;
-              size_t lpq = PQBLOCK;
-              for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
-              #ifdef BLITZ_SSE
-              #include "vector/convolution_forward_qblock_sse-inl.h"
-              #elif BLITZ_AVX
-              #include "vector/convolution_forward_qblock_avx-inl.h"
-              #elif BLITZ_AVX2
-              #include "vector/convolution_forward_qblock_avx2-inl.h"
-              #elif BLITZ_AVX3
-              #include "vector/convolution_forward_qblock_avx3-inl.h"
-              #elif BLITZ_AVX512
-              #include "vector/convolution_forward_qblock_avx512-inl.h"
-              #endif
-              }
-            }
-            size_t ip = (P * Q / PQBLOCK) * PQBLOCK / Q;  // p remainder
-            size_t iq = (P * Q / PQBLOCK) * PQBLOCK % Q;  // q remainder
-            size_t lpq = P * Q - (P * Q / PQBLOCK) * PQBLOCK;
-            lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
-            for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
-            #ifdef BLITZ_SSE
-            #include "vector/convolution_forward_qblock_sse-inl.h"
-            #elif BLITZ_AVX
-            #include "vector/convolution_forward_qblock_avx-inl.h"
-            #elif BLITZ_AVX2
-            #include "vector/convolution_forward_qblock_avx2-inl.h"
-            #elif BLITZ_AVX3
-            #include "vector/convolution_forward_qblock_avx3-inl.h"
-            #elif BLITZ_AVX512
-            #include "vector/convolution_forward_qblock_avx512-inl.h"
-            #endif
             }
           }
         }
