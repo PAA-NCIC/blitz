@@ -37,15 +37,17 @@ class CubinLoadModule {
       "sconv_update_C128_K64"
     };
 
-    int major;
     string version;
-    CUdevice device;
-    cuDeviceGet(&device, 0);
-    cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, device);
-    if (major == 3) {
-      version = "Kepler";
-    } else if (major > 3) {
-      version = "Pascal";
+    {
+      int major;
+      CUdevice device;
+      cuDeviceGet(&device, 0);
+      cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, device);
+      if (major == 3) {
+        version = "Kepler";
+      } else if (major > 3) {
+        version = "Pascal";
+      }
     }
 
     for (size_t i = 0; i < kernel_size; ++i) {

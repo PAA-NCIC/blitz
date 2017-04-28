@@ -73,7 +73,10 @@ void SassGemm(
   size_t threads = 256;
 
   // lanuch kernel
-  cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
+  CUresult res = cuLaunchKernel(function, 1, gridA, gridB, threads, 1, 1, 0, 0, params, NULL);
+  if (res != CUDA_SUCCESS) {
+    LOG(FATAL) << "Error launching kernel ";
+  }
 
   #ifdef BLITZ_PERFORMANCE
   double computations = 2 * M * N * K;
