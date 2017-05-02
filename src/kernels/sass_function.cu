@@ -182,7 +182,7 @@ void SassConvolution2DForward(
     kernel_name = "sconv_fprop_K64_N64";
     function = CubinModule::GetFunction(kernel_name);
     result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      64, 1, 1, 64 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+      64, 1, 1, 4 * (64 * 8 * 4 + RST * 2 + 8), 0, args, NULL);
   } else {
     gridX = MPQ;
     gridY = K / 128 + (K % 128 != 0);
@@ -190,7 +190,7 @@ void SassConvolution2DForward(
     kernel_name = "sconv_fprop_K128_N128";
     function = CubinModule::GetFunction(kernel_name);
     result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+      256, 1, 1, 4 * (128 * 8 * 4 + RST * 2 + 8), 0, args, NULL);
   }
   if (result != CUDA_SUCCESS) {
     LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
@@ -291,7 +291,7 @@ void SassConvolution2DBackward(
       kernel_name = "sconv_bprop_C128_N128";
       function = CubinModule::GetFunction(kernel_name);
       result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        256, 1, 1, 128 * 8 * 4 + RST * 4 * 2 + 8, 0, args, NULL);
+        256, 1, 1, 4 * (128 * 8 * 4 + RST * 2 + 8), 0, args, NULL);
       if (result != CUDA_SUCCESS) {
         LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
       }
@@ -317,7 +317,7 @@ void SassConvolution2DBackward(
       kernel_name = "sconv_bprop_C64_N64";
       function = CubinModule::GetFunction(kernel_name);
       result = cuLaunchKernel(function, gridX, gridY, gridZ,
-        64, 1, 1, 0, 0, args, NULL);
+        64, 1, 1, 4 * (64 * 8 * 4 + RST * 2 + 8), 0, args, NULL);
       if (result != CUDA_SUCCESS) {
         LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
       }
@@ -342,7 +342,7 @@ void SassConvolution2DBackward(
     kernel_name = "sconv_bprop_C1_N64";
     function = CubinModule::GetFunction(kernel_name);
     result = cuLaunchKernel(function, gridX, gridY, gridZ,
-      32, 1, 1, 0, 0, args, NULL);
+      32, 1, 1, 4 * (64 * 8 * 4 + RST * 2 + 32), 0, args, NULL);
     if (result != CUDA_SUCCESS) {
       LOG(FATAL) << "Launch kernel: " << kernel_name << " error!";
     }
