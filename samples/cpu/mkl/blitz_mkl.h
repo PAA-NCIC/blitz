@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <mkl_dnn.h>
+#include <sys/time.h>
 
 #define BLITZ_CPU_TIMER_START(elapsed_time, t1) \
   do { \

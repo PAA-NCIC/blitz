@@ -1,5 +1,4 @@
 #include <glog/logging.h>
-#include "sys/time.h"
 #include "blitz_mkl.h"
 
 const size_t dimension = 4;
