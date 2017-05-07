@@ -4,7 +4,12 @@
 namespace blitz {
 
 #ifdef BLITZ_SSE
-#define VEC_LEN 4
+#define CBLOCK 192
+#define VEC_LEN 8  // register blocking
+#define PQBLOCK 108 // divided by PQREG
+#define KBLOCK 128 // divided by VEC_LEN * KREG
+#define PQREG 4
+#define KREG 6
 #elif BLITZ_AVX
 #define CBLOCK 192
 #define VEC_LEN 8  // register blocking
@@ -29,10 +34,10 @@ namespace blitz {
 #define KREG 2
 #define IREG 2
 #elif BLITZ_AVX512
-#define CBLOCK 64
+#define CBLOCK 80
 #define VEC_LEN 16  // register blocking
 #define PQBLOCK 72 // divided by PQREG
-#define KBLOCK 128 // divided by VEC_LEN * KREG
+#define KBLOCK 192 // divided by VEC_LEN * KREG
 #define PQREG 4
 #define KREG 6
 #endif

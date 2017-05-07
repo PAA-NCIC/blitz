@@ -1,8 +1,8 @@
-#undef SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_QBLOCK_AVX2_INL_H_
-#ifndef SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_QBLOCK_AVX2_INL_H_
-#define SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_QBLOCK_AVX2_INL_H_
+#undef SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_PQBLOCK_AVX2_INL_H_
+#ifndef SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_PQBLOCK_AVX2_INL_H_
+#define SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_PQBLOCK_AVX2_INL_H_
 
-#include "qblock_pack-inl.h"
+#include "pqblock_pack-inl.h"
 for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
   size_t mk = bk * (KREG * VEC_LEN);
   for (size_t bpq = 0; bpq < lpq / PQREG; ++bpq) {
@@ -20,21 +20,21 @@ for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
       // KREG = 2
       Fvec[0] = _mm256_load_ps(F_slice + bc * (KREG * VEC_LEN));
       Fvec[1] = _mm256_load_ps(F_slice + bc * (KREG * VEC_LEN) + VEC_LEN);
-      Ivec[0] = _mm256_set1_ps(I_pack[bc]);
-      Ivec[1] = _mm256_set1_ps(I_pack[CBLOCK + bc]);
+      Ivec[0] = _mm256_set1_ps(I_slice[bc]);
+      Ivec[1] = _mm256_set1_ps(I_slice[CBLOCK + bc]);
       _mm_prefetch((char*)(F_slice + (bc + 1) * (KREG * VEC_LEN)), _MM_HINT_T0);
       Ovec[0][0] = _mm256_fmadd_ps(Ivec[0], Fvec[0], Ovec[0][0]);
       Ovec[0][1] = _mm256_fmadd_ps(Ivec[0], Fvec[1], Ovec[0][1]);
       Ovec[1][0] = _mm256_fmadd_ps(Ivec[1], Fvec[0], Ovec[1][0]);
       Ovec[1][1] = _mm256_fmadd_ps(Ivec[1], Fvec[1], Ovec[1][1]);
-      Ivec[0] = _mm256_set1_ps(I_pack[CBLOCK * 2 + bc]);
-      Ivec[1] = _mm256_set1_ps(I_pack[CBLOCK * 3 + bc]);
+      Ivec[0] = _mm256_set1_ps(I_slice[CBLOCK * 2 + bc]);
+      Ivec[1] = _mm256_set1_ps(I_slice[CBLOCK * 3 + bc]);
       Ovec[2][0] = _mm256_fmadd_ps(Ivec[0], Fvec[0], Ovec[2][0]);
       Ovec[2][1] = _mm256_fmadd_ps(Ivec[0], Fvec[1], Ovec[2][1]);
       Ovec[3][0] = _mm256_fmadd_ps(Ivec[1], Fvec[0], Ovec[3][0]);
       Ovec[3][1] = _mm256_fmadd_ps(Ivec[1], Fvec[1], Ovec[3][1]);
-      Ivec[0] = _mm256_set1_ps(I_pack[CBLOCK * 4 + bc]);
-      Ivec[1] = _mm256_set1_ps(I_pack[CBLOCK * 5 + bc]);
+      Ivec[0] = _mm256_set1_ps(I_slice[CBLOCK * 4 + bc]);
+      Ivec[1] = _mm256_set1_ps(I_slice[CBLOCK * 5 + bc]);
       Ovec[4][0] = _mm256_fmadd_ps(Ivec[0], Fvec[0], Ovec[4][0]);
       Ovec[4][1] = _mm256_fmadd_ps(Ivec[0], Fvec[1], Ovec[4][1]);
       Ovec[5][0] = _mm256_fmadd_ps(Ivec[1], Fvec[0], Ovec[5][0]);
@@ -64,4 +64,4 @@ for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
   }
 }
 
-#endif  // SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_SSE_QBLOCK_AVX2_INL_H_
+#endif  // SRC_UTILS_VECTOR_CONVOLUTION_FORWARD_PQBLOCK_AVX2_INL_H_

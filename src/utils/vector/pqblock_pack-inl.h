@@ -1,6 +1,6 @@
-#undef SRC_UTILS_VECTOR_QBLOCK_PACK_INL_H_
-#ifndef SRC_UTILS_VECTOR_QBLOCK_PACK_INL_H_
-#define SRC_UTILS_VECTOR_QBLOCK_PACK_INL_H_
+#undef SRC_UTILS_VECTOR_PQBLOCK_PACK_INL_H_
+#ifndef SRC_UTILS_VECTOR_PQBLOCK_PACK_INL_H_
+#define SRC_UTILS_VECTOR_PQBLOCK_PACK_INL_H_
 
 size_t aq = iq;
 size_t ap = ip;
@@ -32,4 +32,4 @@ for (size_t bpq = 0; bpq < lpq; ++bpq) {
   } 
 }
 
-#endif  // SRC_UTILS_VECTOR_QBLOCK_PACK_INL_H_
+#endif  // SRC_UTILS_VECTOR_PQBLOCK_PACK_INL_H_

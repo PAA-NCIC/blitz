@@ -326,9 +326,9 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   size_t pad_h, size_t pad_w,
   size_t str_h, size_t str_w) {
   #ifdef BLITZ_SSE // TODO: finish legacy support
-  __m128 Ovec[VEC_LEN];
-  __m128 Fvec;
-  __m128 Ivec;
+  __m256 Ovec[PQREG][KREG];
+  __m256 Fvec[KREG];
+  __m256 Ivec;
   #elif BLITZ_AVX
   __m256 Ovec[PQREG][KREG];
   __m256 Fvec[KREG];
@@ -351,15 +351,11 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
   }
   float *__restrict__ I_workspace = workspace;
   float *__restrict__ F_workspace = workspace + omp_get_max_threads() * PQBLOCK * CBLOCK;
-  //__declspec(align(32)) float I_pack[PQBLOCK * CBLOCK];
-  //__declspec(align(32)) float F_pack[CBLOCK * KBLOCK];
   #pragma omp parallel private(Ovec, Fvec, Ivec)
   {
     size_t tid = omp_get_thread_num();
     float *__restrict__ I_pack = I_workspace + tid * PQBLOCK * CBLOCK;
     float *__restrict__ F_pack = F_workspace + tid * CBLOCK * KBLOCK;
-    //float I_pack[PQBLOCK * CBLOCK];
-    //float F_pack[CBLOCK * KBLOCK];
     #pragma omp for
     for (size_t in = 0; in < N / NBLOCK; ++in) {
       for (size_t k = 0; k < K / KBLOCK; ++k) {
@@ -389,15 +385,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
                 size_t lpq = PQBLOCK;
                 for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
                 #ifdef BLITZ_SSE
-                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #include "vector/convolution_forward_pqblock_sse-inl.h"
                 #elif BLITZ_AVX
-                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #include "vector/convolution_forward_pqblock_avx-inl.h"
                 #elif BLITZ_AVX2
-                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #include "vector/convolution_forward_pqblock_avx2-inl.h"
                 #elif BLITZ_AVX3
-                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #include "vector/convolution_forward_pqblock_avx3-inl.h"
                 #elif BLITZ_AVX512
-                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #include "vector/convolution_forward_pqblock_avx512-inl.h"
                 #endif
                 }
               }
@@ -407,15 +403,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
-              #include "vector/convolution_forward_qblock_sse-inl.h"
+              #include "vector/convolution_forward_pqblock_sse-inl.h"
               #elif BLITZ_AVX
-              #include "vector/convolution_forward_qblock_avx-inl.h"
+              #include "vector/convolution_forward_pqblock_avx-inl.h"
               #elif BLITZ_AVX2
-              #include "vector/convolution_forward_qblock_avx2-inl.h"
+              #include "vector/convolution_forward_pqblock_avx2-inl.h"
               #elif BLITZ_AVX3
-              #include "vector/convolution_forward_qblock_avx3-inl.h"
+              #include "vector/convolution_forward_pqblock_avx3-inl.h"
               #elif BLITZ_AVX512
-              #include "vector/convolution_forward_qblock_avx512-inl.h"
+              #include "vector/convolution_forward_pqblock_avx512-inl.h"
               #endif
               }
             }
@@ -445,15 +441,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
                 size_t lpq = PQBLOCK;
                 for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
                 #ifdef BLITZ_SSE
-                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #include "vector/convolution_forward_pqblock_sse-inl.h"
                 #elif BLITZ_AVX
-                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #include "vector/convolution_forward_pqblock_avx-inl.h"
                 #elif BLITZ_AVX2
-                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #include "vector/convolution_forward_pqblock_avx2-inl.h"
                 #elif BLITZ_AVX3
-                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #include "vector/convolution_forward_pqblock_avx3-inl.h"
                 #elif BLITZ_AVX512
-                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #include "vector/convolution_forward_pqblock_avx512-inl.h"
                 #endif
                 }
               }
@@ -463,15 +459,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
-              #include "vector/convolution_forward_qblock_sse-inl.h"
+              #include "vector/convolution_forward_pqblock_sse-inl.h"
               #elif BLITZ_AVX
-              #include "vector/convolution_forward_qblock_avx-inl.h"
+              #include "vector/convolution_forward_pqblock_avx-inl.h"
               #elif BLITZ_AVX2
-              #include "vector/convolution_forward_qblock_avx2-inl.h"
+              #include "vector/convolution_forward_pqblock_avx2-inl.h"
               #elif BLITZ_AVX3
-              #include "vector/convolution_forward_qblock_avx3-inl.h"
+              #include "vector/convolution_forward_pqblock_avx3-inl.h"
               #elif BLITZ_AVX512
-              #include "vector/convolution_forward_qblock_avx512-inl.h"
+              #include "vector/convolution_forward_pqblock_avx512-inl.h"
               #endif
               }
             }
@@ -505,15 +501,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
                 size_t lpq = PQBLOCK;
                 for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
                 #ifdef BLITZ_SSE
-                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #include "vector/convolution_forward_pqblock_sse-inl.h"
                 #elif BLITZ_AVX
-                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #include "vector/convolution_forward_pqblock_avx-inl.h"
                 #elif BLITZ_AVX2
-                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #include "vector/convolution_forward_pqblock_avx2-inl.h"
                 #elif BLITZ_AVX3
-                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #include "vector/convolution_forward_pqblock_avx3-inl.h"
                 #elif BLITZ_AVX512
-                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #include "vector/convolution_forward_pqblock_avx512-inl.h"
                 #endif
                 }
               }
@@ -523,15 +519,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
-              #include "vector/convolution_forward_qblock_sse-inl.h"
+              #include "vector/convolution_forward_pqblock_sse-inl.h"
               #elif BLITZ_AVX
-              #include "vector/convolution_forward_qblock_avx-inl.h"
+              #include "vector/convolution_forward_pqblock_avx-inl.h"
               #elif BLITZ_AVX2
-              #include "vector/convolution_forward_qblock_avx2-inl.h"
+              #include "vector/convolution_forward_pqblock_avx2-inl.h"
               #elif BLITZ_AVX3
-              #include "vector/convolution_forward_qblock_avx3-inl.h"
+              #include "vector/convolution_forward_pqblock_avx3-inl.h"
               #elif BLITZ_AVX512
-              #include "vector/convolution_forward_qblock_avx512-inl.h"
+              #include "vector/convolution_forward_pqblock_avx512-inl.h"
               #endif
               }
             }
@@ -561,15 +557,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
                 size_t lpq = PQBLOCK;
                 for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
                 #ifdef BLITZ_SSE
-                #include "vector/convolution_forward_qblock_sse-inl.h"
+                #include "vector/convolution_forward_pqblock_sse-inl.h"
                 #elif BLITZ_AVX
-                #include "vector/convolution_forward_qblock_avx-inl.h"
+                #include "vector/convolution_forward_pqblock_avx-inl.h"
                 #elif BLITZ_AVX2
-                #include "vector/convolution_forward_qblock_avx2-inl.h"
+                #include "vector/convolution_forward_pqblock_avx2-inl.h"
                 #elif BLITZ_AVX3
-                #include "vector/convolution_forward_qblock_avx3-inl.h"
+                #include "vector/convolution_forward_pqblock_avx3-inl.h"
                 #elif BLITZ_AVX512
-                #include "vector/convolution_forward_qblock_avx512-inl.h"
+                #include "vector/convolution_forward_pqblock_avx512-inl.h"
                 #endif
                 }
               }
@@ -579,15 +575,15 @@ void ConvolutionForwardVectorImpl<CPUTensor, float, BLITZ_BUFFER_NHWC>(
               lpq = lpq % PQREG ? ((lpq - 1) / PQREG + 1) * PQREG : lpq;
               for (size_t n = in * NBLOCK; n < (in + 1) * NBLOCK; ++n) {
               #ifdef BLITZ_SSE
-              #include "vector/convolution_forward_qblock_sse-inl.h"
+              #include "vector/convolution_forward_pqblock_sse-inl.h"
               #elif BLITZ_AVX
-              #include "vector/convolution_forward_qblock_avx-inl.h"
+              #include "vector/convolution_forward_pqblock_avx-inl.h"
               #elif BLITZ_AVX2
-              #include "vector/convolution_forward_qblock_avx2-inl.h"
+              #include "vector/convolution_forward_pqblock_avx2-inl.h"
               #elif BLITZ_AVX3
-              #include "vector/convolution_forward_qblock_avx3-inl.h"
+              #include "vector/convolution_forward_pqblock_avx3-inl.h"
               #elif BLITZ_AVX512
-              #include "vector/convolution_forward_qblock_avx512-inl.h"
+              #include "vector/convolution_forward_pqblock_avx512-inl.h"
               #endif
               }
             }
