@@ -22,7 +22,6 @@ for (size_t bk = 0; bk < lk / (KREG * VEC_LEN); ++bk) {
       Fvec[1] = _mm256_load_ps(F_slice + bc * (KREG * VEC_LEN) + VEC_LEN);
       Ivec[0] = _mm256_set1_ps(I_slice[bc]);
       Ivec[1] = _mm256_set1_ps(I_slice[CBLOCK + bc]);
-      _mm_prefetch((char*)(F_slice + (bc + 1) * (KREG * VEC_LEN)), _MM_HINT_T0);
       Ovec[0][0] = _mm256_fmadd_ps(Ivec[0], Fvec[0], Ovec[0][0]);
       Ovec[0][1] = _mm256_fmadd_ps(Ivec[0], Fvec[1], Ovec[0][1]);
       Ovec[1][0] = _mm256_fmadd_ps(Ivec[1], Fvec[0], Ovec[1][0]);
