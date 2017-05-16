@@ -34,6 +34,9 @@
 # result
 *.result
 
+# bin
+bin/*
+
 # IMAGENET data
 data/IMAGENET12*
 

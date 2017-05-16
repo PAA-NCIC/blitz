@@ -1,6 +1,6 @@
 #include "initializer/parser.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 #include "fillers/gaussian.h"
 #include "fillers/uniform.h"
 #include "fillers/constant.h"
@@ -58,9 +58,6 @@ shared_ptr<Filler<TensorType, DType> > Parser::SetFiller(const YAML::Node& node)
 INSTANTIATE_SETTER_CPU(Filler);
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_SETTER_GPU(Filler);
-#endif
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_SETTER_MIC(Filler);
 #endif
 
 }  // namespace blitz

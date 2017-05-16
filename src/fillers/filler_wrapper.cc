@@ -1,6 +1,6 @@
 #include "fillers/filler_wrapper.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -30,9 +30,6 @@ void FillerWrapper<TensorType, DType>::AddLayer(const string& filler_name,
 }
 
 INSTANTIATE_CLASS_CPU(FillerWrapper);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(FillerWrapper);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(FillerWrapper);
 #endif

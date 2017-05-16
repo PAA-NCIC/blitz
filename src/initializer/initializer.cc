@@ -2,7 +2,7 @@
 
 #include "initializer/parser.h"
 #include "model/model.h"
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -69,9 +69,6 @@ void Initializer::Initialize(const Parser& parser) {
 REGISTER_INITIALIZER_CPU;
 #ifdef BLITZ_USE_GPU
   REGISTER_INITIALIZER_GPU;
-#endif
-#ifdef BLITZ_USE_MIC
-  REGISTER_INITIALIZER_MIC;
 #endif
 
 }  // namespace blitz

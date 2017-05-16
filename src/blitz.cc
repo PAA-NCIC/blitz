@@ -1,7 +1,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include <omp.h>
-#include <mkl.h>
 
 #include "initializer/initializer.h"
 #include "initializer/parser.h"

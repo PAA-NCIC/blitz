@@ -1,6 +1,6 @@
 #include "transforms/square_mean.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -22,9 +22,6 @@ void SquareMean<TensorType, DType>::Derivative(
 }
 
 INSTANTIATE_CLASS_CPU(SquareMean);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(SquareMean);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(SquareMean);
 #endif

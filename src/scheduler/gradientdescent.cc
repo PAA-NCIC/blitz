@@ -1,5 +1,6 @@
 #include "scheduler/gradientdescent.h"
-#include "backends/backends.h"
+
+#include "blitz.h"
 
 namespace blitz {
 
@@ -24,9 +25,6 @@ void Gradientdescent<TensorType, DType>::OptimizeImpl(
 }
 
 INSTANTIATE_CLASS_CPU(Gradientdescent);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(Gradientdescent);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(Gradientdescent);
 #endif

@@ -1,6 +1,6 @@
 #include "initializer/parser.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 #include "transforms/cross_entropy_binary.h"
 #include "transforms/cross_entropy_multi.h"
 #include "transforms/square_mean.h"
@@ -35,9 +35,6 @@ shared_ptr<Cost<TensorType, DType> > Parser::SetCost(const YAML::Node& node) con
 INSTANTIATE_SETTER_CPU(Cost);
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_SETTER_GPU(Cost);
-#endif
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_SETTER_MIC(Cost);
 #endif
 
 }  // namespace blitz

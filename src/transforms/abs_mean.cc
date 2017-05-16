@@ -1,6 +1,6 @@
 #include "transforms/abs_mean.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -22,9 +22,6 @@ void AbsMean<TensorType, DType>::Derivative(
 }
 
 INSTANTIATE_CLASS_CPU(AbsMean);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(AbsMean);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(AbsMean);
 #endif

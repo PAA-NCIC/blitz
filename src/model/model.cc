@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -114,8 +114,6 @@ void Model<TensorType, DType>::EpochFit(
   shared_ptr<CallbackWrapper> callback_wrapper,
   shared_ptr<Scheduler<TensorType, DType> > scheduler) {
   size_t niteration = data_set->total() / data_set->batch_size();
-  time_point<system_clock> start, end;
-  start = system_clock::now();
 
   for (size_t i = 0; i < niteration; ++i) {
     callback_wrapper->OnBatchBegin(i);
@@ -131,10 +129,6 @@ void Model<TensorType, DType>::EpochFit(
 
     callback_wrapper->OnBatchEnd(i, loss);
   }
-  end = system_clock::now();
-
-  duration<double> elapsed_seconds = end-start;
-  LOG(INFO) << "Elapsed second: " << elapsed_seconds.count();
 }
 
 template<template <typename> class TensorType, typename DType>
@@ -177,9 +171,6 @@ void Model<TensorType, DType>::BackwardProp(
 }
 
 INSTANTIATE_CLASS_CPU(Model);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(Model);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(Model);
 #endif

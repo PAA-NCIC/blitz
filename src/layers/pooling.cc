@@ -1,6 +1,6 @@
 #include "layers/pooling.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -62,9 +62,7 @@ void Pooling<TensorType, DType>::BackwardPropImpl(
       Backend<TensorType, DType>::MaxPooling2DBackwardFunc(
         backward_input.get(),
         (this->backward_output_).get(),
-        max_index_.get(),
-        filter_, filter_,
-        stride_, stride_);
+        max_index_.get());
     } else {
       LOG(ERROR) << "Pooling type: " << op_ << " not exist";
     }
@@ -72,9 +70,6 @@ void Pooling<TensorType, DType>::BackwardPropImpl(
 }
 
 INSTANTIATE_CLASS_CPU(Pooling);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(Pooling);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(Pooling);
 #endif

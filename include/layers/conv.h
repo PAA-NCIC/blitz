@@ -3,7 +3,7 @@
 
 #include <string>
 
-#ifdef BLITZ_USE_GPU
+#ifdef BLITZ_USE_CUDNN
 #include <cudnn.h>
 #endif
 #include "layers/param_layer.h"
@@ -39,6 +39,7 @@ class Conv : public ParamLayer<TensorType, DType> {
   // TODO(keren) bias
   const Shape filter_shape_;
 
+  shared_ptr<ConvolutionContext<TensorType, DType> > context_;
   shared_ptr<TensorType<DType> > workspace_;
 
   const size_t stride_height_;
@@ -51,7 +52,7 @@ class Conv : public ParamLayer<TensorType, DType> {
   double forward_computations_;
   double backward_computations_;
   double backward_update_computations_;
-#ifdef BLITZ_USE_GPU
+#ifdef BLITZ_USE_CUDNN
   cudnnHandle_t cudnn_handle_;
 
   // algorithms for forward and backwards convolutions

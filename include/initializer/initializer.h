@@ -73,57 +73,31 @@ class InitializerRegister {
 
 #define INSTANTIATE_INITIALIZE_CPU \
   char BlitzInstantiatiionInitializerCPUGuard; \
-  template void Initializer::Initialize<CPUTensor, float>(const Parser& parser); \
-  template void Initializer::Initialize<CPUTensor, double>(const Parser& parser)
+  template void Initializer::Initialize<CPUTensor, float>(const Parser& parser)
 
 #define INSTANTIATE_INITIALIZE_GPU \
   char BlitzInstantiatiionInitializerGPUGuard; \
-  template void Initializer::Initialize<GPUTensor, float>(const Parser& parser); \
-  template void Initializer::Initialize<GPUTensor, double>(const Parser& parser)
-
-#define INSTANTIATE_INITIALIZE_MIC \
-  char BlitzInstantiatiionInitializerMICGuard; \
-  template void Initializer::Initialize<MICTensor, float>(const Parser& parser); \
-  template void Initializer::Initialize<MICTensor, double>(const Parser& parser)
+  template void Initializer::Initialize<GPUTensor, float>(const Parser& parser)
   
 #define INSTANTIATE_ADD_CPU \
   char BlitzInstantiatiionAddCPUGuard; \
   template void Initializer::Add<CPUTensor, float>(const string& data_type, \
-    const string& backend); \
-  template void Initializer::Add<CPUTensor, double>(const string& data_type, \
-    const string& backend)
+    const string& backend) 
 
 #define INSTANTIATE_ADD_GPU \
   char BlitzInstantiatiionAddGPUGuard; \
   template void Initializer::Add<GPUTensor, float>(const string& data_type, \
-    const string& backend); \
-  template void Initializer::Add<GPUTensor, double>(const string& data_type, \
-    const string& backend)
-
-#define INSTANTIATE_ADD_MIC \
-  char BlitzInstantiatiionAddMICGuard; \
-  template void Initializer::Add<MICTensor, float>(const string& data_type, \
-    const string& backend); \
-  template void Initializer::Add<MICTensor, double>(const string& data_type, \
     const string& backend)
 
 #define REGISTER_INITIALIZER_CPU \
   INSTANTIATE_INITIALIZE_CPU; \
   INSTANTIATE_ADD_CPU; \
-  static InitializerRegister<CPUTensor, float> initializer_float_CPU("float", "CPU"); \
-  static InitializerRegister<CPUTensor, double> initializer_double_CPU("double", "CPU")
+  static InitializerRegister<CPUTensor, float> initializer_float_CPU("float", "CPU")
 
 #define REGISTER_INITIALIZER_GPU \
   INSTANTIATE_INITIALIZE_GPU; \
   INSTANTIATE_ADD_GPU; \
-  static InitializerRegister<CPUTensor, float> initializer_float_GPU("float", "GPU"); \
-  static InitializerRegister<CPUTensor, double> initializer_double_GPU("double", "GPU")
-
-#define REGISTER_INITIALIZER_MIC \
-  INSTANTIATE_INITIALIZE_MIC; \
-  INSTANTIATE_ADD_MIC; \
-  static InitializerRegister<MICTensor, float> initializer_float_MIC("float", "MIC"); \
-  static InitializerRegister<MICTensor, double> initializer_double_MIC("double", "MIC")
+  static InitializerRegister<CPUTensor, float> initializer_float_GPU("float", "GPU")
 
 }  // namespace blitz
 

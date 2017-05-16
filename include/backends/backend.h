@@ -182,6 +182,8 @@ class Backend {
 
   static void TransformCopyFunc(const TensorType<DType>* source, TensorType<DType>* target);
 
+  static void HostCopyToTensorFunc(const DType* host, TensorType<DType>* tensor);
+
   static void Unpack2DFunc(
     const TensorType<DType>* input,
     TensorType<DType>* unpack,

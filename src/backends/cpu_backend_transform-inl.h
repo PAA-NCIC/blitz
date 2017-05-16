@@ -86,4 +86,10 @@ static void TransformCopyFunc(
   utils::CPUCopy(source->data(), dest->data(), source->size());
 }
 
+static void HostCopyToTensorFunc(
+  const DType *host,
+  CPUTensor<DType> *tensor) {
+  utils::CPUCopy(host, tensor->data(), tensor->size());
+}
+
 #endif  // SRC_BACKENDS_CPU_BACKEND_TRANSFORM_INL_H_

@@ -1,6 +1,6 @@
 #include "transforms/softmax.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -23,9 +23,6 @@ void Softmax<TensorType, DType>::Derivative(
 }
 
 INSTANTIATE_CLASS_CPU(Softmax);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(Softmax);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(Softmax);
 #endif

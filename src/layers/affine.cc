@@ -1,6 +1,6 @@
 #include "layers/affine.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -84,9 +84,6 @@ void Affine<TensorType, DType>::BackwardPropImpl(
 }
 
 INSTANTIATE_CLASS_CPU(Affine);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(Affine);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(Affine);
 #endif

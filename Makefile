@@ -52,7 +52,7 @@ INC := -Iinclude/
 ifeq ($(LIB_ONLY), 1)
 	LDFLAGS := -Wl,--no-as-needed -lglog -lboost_thread -lboost_date_time -lboost_system
 else
-	LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5 -lglog -lboost_thread -lboost_date_time -lboost_system
+	LDFLAGS := -Wl,--no-as-needed -lyaml-cpp -lhdf5_serial -lglog -lboost_thread -lboost_date_time -lboost_system
 endif
 
 ifeq ($(USE_GPU), 1)
@@ -162,8 +162,8 @@ $(LIB_DIR):
 libs: $(LIB)
 
 ifeq ($(LIB_ONLY), 0)
-$(BINS): $(BIN_DIR)/% : $(LIB) $(SRC_ROOT)/%.cc 
-	$(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $^ -o $@ $(LIB) 
+$(BINS): $(BIN_DIR)/% : $(SRC_ROOT)/%.cc $(LIB)
+	$(CC) $(CXXFLAGS) $(INC) $(LIBRARY_DIR) $< -o $@ $(LDFLAGS) -lblitz
 endif
 
 ifeq ($(USE_GPU), 1)

@@ -1,6 +1,6 @@
 #include "initializer/parser.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 #include "transforms/logistic.h"
 #include "transforms/rectlin.h"
 #include "transforms/softmax.h"
@@ -45,9 +45,6 @@ shared_ptr<Activation<TensorType, DType> > Parser::SetActivation(const YAML::Nod
 INSTANTIATE_SETTER_CPU(Activation);
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_SETTER_GPU(Activation);
-#endif
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_SETTER_MIC(Activation);
 #endif
 
 }  // namespace blitz

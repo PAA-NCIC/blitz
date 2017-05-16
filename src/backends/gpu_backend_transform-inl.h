@@ -49,4 +49,10 @@ static void Pack2DFunc(
   }
 }
 
+static void HostCopyToTensorFunc(
+  const DType *host,
+  GPUTensor<DType> *tensor) {
+  cudaMemcpy(tensor->data(), host, tensor->size() * sizeof(DType), cudaMemcpyHostToDevice);
+}
+
 #endif  // SRC_BACKENDS_GPU_BACKEND_TRANSFORM_INL_H_

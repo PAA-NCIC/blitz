@@ -3,7 +3,7 @@
 #include <hdf5.h>
 #include <fstream>
 
-#include "backends/backends.h"
+#include "blitz.h"
 #include "utils/blitz_cpu_function.h"
 
 namespace blitz {
@@ -133,7 +133,7 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
       copy_size = end_file_offset * input_size;
     }
 
-    BlitzCPUCopy(current_files_data.get() + current_files_data_offset * input_size,
+    utils::CPUCopy(current_files_data.get() + current_files_data_offset * input_size,
       file_data.get() + file_data_offset, copy_size);
     file_data_offset += copy_size;
   }
@@ -143,8 +143,8 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
   // only in the last pool_size_, remaining samples are ignored
   for (size_t j = 0; j < last_index; ++j) {
     shared_ptr<TensorType<DType> > tensor = make_shared<TensorType<DType> >(input_shape_);
-    Backend<TensorType, DType>::HostCopyToFunc(file_data.get() + tensor_offset_size,
-      tensor->data(), input_shape_.size());
+    Backend<TensorType, DType>::HostCopyToTensorFunc(file_data.get() + tensor_offset_size,
+      tensor.get());
     tensor_pool_[j] = tensor;
     tensor_offset_size += input_shape_.size();
   }
@@ -153,8 +153,8 @@ void DataIterator<TensorType, DType>::CopyFileBuffer(size_t begin_offset) {
     Shape shape = input_shape_;
     shape[0] = accumulate % batch_size_;
     shared_ptr<TensorType<DType> > tensor = make_shared<TensorType<DType> >(shape);
-    Backend<TensorType, DType>::HostCopyToFunc(file_data.get() + input_shape_.size() * last_index,
-      tensor->data(), shape.size());
+    Backend<TensorType, DType>::HostCopyToTensorFunc(file_data.get() + input_shape_.size() * last_index,
+      tensor.get());
     tensor_pool_[last_index] = tensor;
   }  
 }
@@ -175,9 +175,6 @@ shared_ptr<TensorType<DType> > DataIterator<TensorType, DType>::GenerateTensor(s
 }
 
 INSTANTIATE_CLASS_CPU(DataIterator);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(DataIterator);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(DataIterator);
 #endif

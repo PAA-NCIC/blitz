@@ -1,6 +1,6 @@
 #include "initializer/parser.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 #include "layers/affine.h"
 #include "layers/conv.h"
 #include "layers/pooling.h"
@@ -176,9 +176,6 @@ shared_ptr<Layer<TensorType, DType> > Parser::SetLayer(const YAML::Node& node) c
 INSTANTIATE_SETTER_CPU(Layer);
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_SETTER_GPU(Layer);
-#endif
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_SETTER_MIC(Layer);
 #endif
 
 }  // namespace blitz

@@ -1,6 +1,6 @@
 #include "fillers/gaussian.h"
 
-#include "backends/backends.h"
+#include "blitz.h"
 
 namespace blitz {
 
@@ -12,9 +12,6 @@ void Gaussian<TensorType, DType>::FillImpl(LayerWeightIterator
 }
 
 INSTANTIATE_CLASS_CPU(Gaussian);
-#ifdef BLITZ_USE_MIC
-  INSTANTIATE_CLASS_MIC(Gaussian);
-#endif
 #ifdef BLITZ_USE_GPU
   INSTANTIATE_CLASS_GPU(Gaussian);
 #endif
