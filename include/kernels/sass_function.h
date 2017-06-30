@@ -20,7 +20,7 @@ class CubinLoadModule {
  public:
   CubinLoadModule() {
     // init kernels list
-    const size_t kernel_size = 13;
+    const size_t kernel_size = 12;
     const string kernel_name[kernel_size] = {
       "sgemm_nn_128x128",
       "sgemm_nt_128x128",
@@ -33,8 +33,7 @@ class CubinLoadModule {
       "sconv_bprop_C1_N64",
       "sconv_bprop_C64_N64",
       "sconv_bprop_C128_N128",
-      "sconv_update_C128_K128",
-      "sconv_update_C128_K64"
+      "sconv_update_C128_K128"
     };
 
     string version;
